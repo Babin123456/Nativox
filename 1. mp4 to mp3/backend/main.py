@@ -7,6 +7,7 @@ audio track with ffmpeg, and hands back an untouched MP3.
 Run with:  uvicorn main:app --reload   (from the backend/ folder)
 """
 
+import os
 import subprocess
 import uuid
 from pathlib import Path
@@ -77,9 +78,20 @@ async def extract_audio(file: UploadFile = File(...)):
                 raise HTTPException(status_code=413, detail=f"File exceeds {MAX_FILE_SIZE_MB} MB limit.")
             out_file.write(chunk)
 
+    # Locate ffmpeg (check system PATH first, fallback to WinGet installed path)
+    import shutil
+    ffmpeg_bin = shutil.which("ffmpeg")
+    if not ffmpeg_bin:
+        winget_ffmpeg = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+        matches = list(winget_ffmpeg.glob("**/ffmpeg.exe"))
+        if matches:
+            ffmpeg_bin = str(matches[0])
+        else:
+            ffmpeg_bin = "ffmpeg"
+
     # Extract audio with ffmpeg: -vn drops video, libmp3lame + -q:a 2 is high-quality MP3
     cmd = [
-        "ffmpeg", "-y",
+        ffmpeg_bin, "-y",
         "-i", str(input_path),
         "-vn",
         "-acodec", "libmp3lame",

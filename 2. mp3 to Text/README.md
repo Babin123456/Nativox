@@ -1,84 +1,106 @@
-# Nativox Transcribe
+# Nativox Transcribe — Audio to Text
 
-A standalone audio-to-text web app for **English, Hindi, and Bengali** — upload
-a clip, get clean transcribed text back. Built as a focused, self-contained
-piece of the Nativox pipeline (this is Stage 1: ASR, wrapped in its own
-frontend and API).
+[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
+[![Stage 1](https://img.shields.io/badge/Prev_Stage-Stage_1:_Extractor-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../1.%20mp4%20to%20mp3/README.md)
+[![Stage 3](https://img.shields.io/badge/Next_Stage-Stage_3:_Keyword-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../3.%20Text%20to%20Keyword/README.md)
+[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 
-- **Backend:** FastAPI + [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-  (CTranslate2 build of OpenAI Whisper), running fully locally, CPU-friendly.
-- **Frontend:** a single-page HTML/CSS/JS app, no build step, served directly
-  by the backend.
-- No paid API keys anywhere in the stack.
+---
 
-## Project structure
+A standalone speech-to-text (ASR) microservice for **English, Hindi, and Bengali**. Upload any audio file or video sound track, listen to the clip on the left, and view the clean transcribed text and timestamps on the right. This is the standalone implementation of **Stage 2 (ASR)** from the Nativox pipeline.
 
+---
+
+## 🛠️ Tech Stack
+
+- **Backend:** FastAPI + [faster-whisper](https://github.com/SYSTRAN/faster-whisper) (CTranslate2 build of OpenAI Whisper, CPU/GPU accelerated)
+- **Frontend:** Single-page HTML5/CSS/Vanilla JS side-by-side player & transcript view (served directly by FastAPI)
+- **Zero API keys:** Operates 100% locally with open-weights neural models.
+
+---
+
+## 📋 Requirements
+
+- **Python:** **3.10 or 3.11** (Required: Python 3.14 lacks pre-compiled wheels for PyAV/faster-whisper)
+- **Internet Connection:** Only required on the very first run to download model weights (cached locally in `~/.cache/huggingface/hub/` afterwards).
+
+---
+
+## 🚀 Quick Start
+
+### Windows (Command Prompt / PowerShell)
+
+```powershell
+.\run.bat
 ```
-nativox-transcribe/
-├── backend/
-│   ├── main.py              FastAPI app: routes + serves the frontend
-│   ├── requirements.txt
-│   └── app/
-│       ├── config.py        Languages, model size, upload limits
-│       └── transcriber.py   faster-whisper wrapper (model caching, ASR call)
-└── frontend/
-    └── index.html           Upload UI, language picker, transcript display
+
+### Git Bash (Windows) / macOS / Linux
+
+```bash
+chmod +x run.sh
+./run.sh
 ```
 
-## Setup
+Once running, navigate to: **`http://127.0.0.1:8001`**
 
-Requirements: **Python 3.11+** and an internet connection the first time you
-run it (to download the Whisper model weights — a few hundred MB, cached
-locally after that). `ffmpeg` is not strictly required (faster-whisper
-decodes audio itself via PyAV), but having it on PATH helps with unusual
-file formats.
+---
+
+## ⚙️ Manual Setup
+
+### Windows PowerShell
+
+```powershell
+cd backend
+py -3.11 -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8001
+```
+
+### Git Bash (Windows)
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+py -3.11 -m venv venv
+source venv/Scripts/activate
 pip install -r requirements.txt
-uvicorn main:app --reload
+python -m uvicorn main:app --reload --port 8001
 ```
 
-Open **http://127.0.0.1:8000** — the backend serves the frontend from the
-same process, so there's nothing else to start.
+### macOS / Linux
 
-## How it works
+```bash
+cd backend
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 -m uvicorn main:app --reload --port 8001
+```
 
-1. You drop in an audio file (mp3, wav, m4a, aac, ogg, flac, or a video's
-   audio track) and pick a language, or leave it on **Auto-detect**.
-2. The frontend `POST`s the file to `/api/transcribe` as multipart form data.
-3. The backend streams the upload to a temp file, runs it through
-   faster-whisper (Voice Activity Detection filters silence first), and
-   deletes the temp file immediately after.
-4. The response includes the full transcript, per-segment timestamps, the
-   detected language and confidence, and timing info — the frontend renders
-   the transcript in the correct script (Devanagari for Hindi, Bengali script
-   for Bengali) automatically.
+---
 
-## Configuration
+## 🔄 How It Works
 
-Edit `backend/app/config.py`:
+1. **Audio Selection & Left Preview:** Drop an audio file (`.mp3`, `.wav`, `.m4a`, `.aac`, `.flac`, `.ogg`). The built-in audio player initializes immediately on the left.
+2. **Language Selection:** Choose Auto-detect or lock to English, Hindi, or Bengali.
+3. **Neural Transcription:** The file is posted to `/api/transcribe`. Faster-Whisper performs voice activity detection (VAD) and transcribes speech into timestamped tokens.
+4. **Right Transcript Output:** Renders the text in proper Indic scripts (Devanagari or Bengali script), displays audio length, confidence %, and offers one-click copy and `.txt` download.
 
-- `DEFAULT_MODEL_SIZE` — `tiny` / `base` / `small` (default) / `medium` /
-  `large-v3`. Bigger = more accurate, slower, more RAM.
-- `DEVICE` / `COMPUTE_TYPE` — set `DEVICE = "cuda"` and
-  `COMPUTE_TYPE = "float16"` if you have a GPU available; CPU + int8 (the
-  default) runs anywhere.
-- `MAX_UPLOAD_MB` — upload size cap.
+---
 
-## Notes for the project report / viva
+## 📁 Project Structure
 
-- Whisper (and by extension faster-whisper) was trained on multilingual
-  data and supports Hindi and Bengali natively — no separate model per
-  language is needed, which keeps this piece of the stack simple to defend.
-- Auto-detection uses Whisper's built-in language ID pass; forcing a
-  language (skipping auto-detect) is faster and more accurate when you
-  already know what's being spoken, which is why the UI exposes both.
-- The Whisper model is loaded once per process and cached (`lru_cache`) —
-  worth mentioning if asked about performance, since reloading model weights
-  per request would make every call several seconds slower.
-- This is intentionally scoped to ASR only — no translation or TTS — so it
-  can be demoed and evaluated (e.g. WER on English/Hindi/Bengali test clips)
-  as its own clean unit, separate from the rest of the Nativox pipeline.
+```text
+2. mp3 to Text/
+├── README.md
+├── run.bat
+├── run.sh
+├── backend/
+│   ├── main.py              # FastAPI endpoints + serves frontend
+│   ├── requirements.txt     # faster-whisper, fastapi, uvicorn, requests
+│   └── app/
+│       ├── config.py        # Model size (small/medium), upload caps
+│       └── transcriber.py   # faster-whisper wrapper with LRU caching
+└── frontend/
+    └── index.html           # Side-by-side audio player & transcript UI
+```
