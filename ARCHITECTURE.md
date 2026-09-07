@@ -2,6 +2,11 @@
 
 This document details the modular component architecture of **Nativox**, tracking how each standalone stage interfaces with the pipeline to deliver real-time, contextually accurate video dubbing.
 
+[![Suite Readme](https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white)](README.md)
+[![Instructions](https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-3E8FC4?style=for-the-badge&logo=googledocs&logoColor=white)](INSTRUCTIONS.md)
+[![Roadmap](https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white)](ROADMAP.md)
+[![MIT License](https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE.md)
+
 ---
 
 ## 🏛️ High-Level Component Flow
@@ -68,6 +73,7 @@ graph TD
 ## 🔍 Stage Specifications
 
 ### 1. Stage 1: `1. mp4 to mp3/`
+
 - **Responsibility:** Ingest incoming media and decouple audio streams.
 - **Port:** `8000` (standalone)
 - **Core Operations:**
@@ -75,6 +81,7 @@ graph TD
   - Vocal and background instrumental separation.
 
 ### 2. Stage 2: `2. mp3 to Text/`
+
 - **Responsibility:** High-precision acoustic transcription and speaker feature extraction.
 - **Port:** `8001` (standalone)
 - **Core Operations:**
@@ -82,6 +89,7 @@ graph TD
   - Formant and pitch detection for automatic gender identification (Male/Female voice selection).
 
 ### 3. Stage 3: `3. Text to Keyword/`
+
 - **Responsibility:** Identify technical vocabulary and domain terms that require specialized translation.
 - **Port:** `8002` (standalone)
 - **Core Operations:**
@@ -89,6 +97,7 @@ graph TD
   - Filtering stopwords and highlighting critical technical jargon.
 
 ### 4. Stage 4: `4. Keyword Translate/`
+
 - **Responsibility:** Multilingual glossary resolution.
 - **Port:** `8003` (standalone)
 - **Core Operations:**
@@ -99,4 +108,4 @@ graph TD
 
 ## ⚡ Integration into Unified Delivery
 
-While each stage runs independently for research evaluation and testing, the master orchestrator in `backend/app/pipeline/orchestrator.py` chains these stages together with asynchronous job management, real-time WebSocket/polling status events, and decoupled HLS output generation.
+While each stage runs independently for research evaluation and testing, the modular pipeline stages chain together with asynchronous job management, real-time status events, and decoupled HLS output generation.

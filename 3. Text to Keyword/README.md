@@ -1,147 +1,144 @@
-# Text to Keyword
+# Text to Keyword Extractor
 
-A standalone module (usable on its own, or as Stage 3 — "Keyword
-extraction" — of the larger Nativox dubbing pipeline) that extracts
-**single-word** keywords — no stopwords, no multi-word phrases — from
-text in **English**, **Hindi**, **Bengali**, and **freely code-mixed
-combinations of the three**, with a FastAPI backend and a single-page
-frontend.
+[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
+[![Stage 2](https://img.shields.io/badge/Prev_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../2.%20mp3%20to%20Text/README.md)
+[![Stage 4](https://img.shields.io/badge/Next_Stage-Stage_4:_Translate-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../4.%20Keyword%20Translate/README.md)
+[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 
-## What makes this a multilingual/code-mixed extractor (not three separate ones)
+---
 
-The naive approach to "support three languages" is to run language
-identification on the whole input, route it to one of three separate
-per-language NLP pipelines, then merge the outputs. That breaks the
-moment a sentence switches languages mid-line — which is exactly how
-people actually type in Hindi/Bengali/English contexts.
+A standalone microservice that extracts **salient single-word keywords** — filtering stopwords and non-content words — from text in **English**, **Hindi**, **Bengali**, and **freely code-mixed combinations of all three**. This is the standalone implementation of **Stage 3 (Keyword Extraction)** from the Nativox pipeline.
 
-Instead, this project adapts **RAKE (Rapid Automatic Keyword
-Extraction)** so the *language-sensitive* part of the algorithm — the
-stopword list used to find content words — is the union of all three
-languages' stopwords, applied in a single pass. The output is
-**single-word keywords only** — no stopwords, no multi-word phrases:
+---
 
-1. Split the input into sentences (on `. ! ? , ; :` and the Devanagari/
-   Bengali danda `।`).
-2. Within each sentence, walk word by word. A run of consecutive
-   **content words** (i.e. not in the combined English+Hindi+Bengali
-   stopword set) forms a **candidate phrase**. This step still matters
-   for single-word output: it's what guarantees a word like "am", "is",
-   "are", "was", "were" (or their Hindi/Bengali equivalents) can never
-   reach the results — they're filtered out before scoring even starts.
-3. Score each unique word by `degree(word) / frequency(word)`, where
-   `degree` counts how often that word co-occurs with other content
-   words inside candidate phrases. This rewards words that show up in
-   richer contexts, not just words that repeat a lot.
-4. Rank individual words by that score and return the top N.
-5. Separately (and only for *display*), each returned word is
-   script-tagged by its Unicode block (Latin / Devanagari / Bengali) so
-   the UI can label it English, Hindi, or Bengali.
+## 🛠️ Tech Stack & Working Principle
 
-Because step 2 never needs to know "what language is this sentence,"
-code-mixed input such as *"ei video ta te amra ekta automated dubbing
-system use korchi"* is handled by the exact same code path as a
-monolingual sentence — there's no separate "mixed mode."
+- **Backend:** FastAPI (Python)
+- **Algorithm:** Multilingual **RAKE (Rapid Automatic Keyword Extraction)**
+  - Applies a combined English + Hindi + Bengali stopword list in a single pass.
+  - Handles code-mixed sentences (e.g. *"ei video ta te amra automated dubbing model use korchi"*) seamlessly without needing language segmentation.
+  - Scores words based on word degree and co-occurrence frequency within candidate phrases.
+  - Tags detected Unicode scripts (Latin, Devanagari, Bengali) for visual highlighting.
+- **Frontend:** Single-page dashboard with real-time script-mix meter and ranked keyword pills.
 
-This is a deliberately lightweight, dependency-free, and auditable
-algorithm (good for a viva walkthrough), rather than a black-box
-transformer pipeline. The natural "next step" comparison for a project
-report is benchmarking this against a transformer-based multilingual
-keyphrase model (e.g. a multilingual KeyBERT variant) — see *Future
-Work* below.
+---
 
-## Project structure
+## 📋 Requirements
 
-```
-nativox-keyword-extractor/
-├── run.sh / run.bat          # one-command launcher
-├── backend/
-│   ├── main.py                # FastAPI app (serves API + frontend)
-│   ├── requirements.txt
-│   └── app/
-│       ├── keyword_extractor.py   # the RAKE-multilingual algorithm
-│       ├── language_utils.py      # Unicode-script word/phrase tagging
-│       └── stopwords.py           # curated EN / HI / BN stopword lists
-└── frontend/
-    └── index.html             # single-page UI (no build step)
+- **Python:** 3.10 or 3.11 recommended
+- **Dependencies:** Pure Python NLP algorithms (no heavy GPU model weights required).
+
+---
+
+## 🚀 Quick Start
+
+### Windows (Command Prompt / PowerShell)
+
+```powershell
+.\run.bat
 ```
 
-## Running it
+### Git Bash (Windows) / macOS / Linux
 
 ```bash
-./run.sh          # Mac/Linux
-.\run.bat         # Windows
+chmod +x run.sh
+./run.sh
 ```
 
-Either script creates a virtual environment, installs dependencies, and
-starts the server. Once you see `Uvicorn running on
-http://127.0.0.1:8010`, open that URL — the backend serves the frontend
-from the same process (no CORS issues, nothing else to run).
+Once running, navigate to: **`http://127.0.0.1:8002`** (or configured port `8010`)
 
-**Manual setup**, if you'd rather not use the script:
+---
+
+## ⚙️ Manual Setup
+
+### Windows PowerShell
+
+```powershell
+cd backend
+py -3.11 -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8002
+```
+
+### Git Bash (Windows)
+
+```bash
+cd backend
+py -3.11 -m venv venv
+source venv/Scripts/activate
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8002
+```
+
+### macOS / Linux
 
 ```bash
 cd backend
 python3 -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8010
+python3 -m uvicorn main:app --reload --port 8002
 ```
 
-## API
+---
 
-`POST /api/extract-keywords`
+## 🔌 API Reference
+
+### `POST /api/extract-keywords`
+
+**Request:**
 
 ```json
-{ "text": "your text here", "top_n": 15 }
+{
+  "text": "Artificial intelligence and machine learning are transforming multilingual dubbing in Kolkata and Delhi.",
+  "top_n": 10
+}
 ```
+
+**Response:**
 
 ```json
 {
   "keywords": [
     {
-      "word": "translation",
+      "word": "intelligence",
       "score": 4.0,
       "relative_score": 100.0,
       "language": "en"
+    },
+    {
+      "word": "dubbing",
+      "score": 3.5,
+      "relative_score": 87.5,
+      "language": "en"
     }
   ],
-  "language_labels": {"en": "English", "hi": "Hindi", "bn": "Bengali", "mixed": "Mixed"}
+  "language_labels": {
+    "en": "English",
+    "hi": "Hindi",
+    "bn": "Bengali",
+    "mixed": "Mixed"
+  }
 }
 ```
 
-`GET /api/health` — simple liveness check.
+---
 
-## Frontend
+## 📁 Project Structure
 
-`frontend/index.html` is a single static file — a textarea, a "script
-mix" meter that live-updates as you type (percentage of Latin /
-Devanagari / Bengali characters), sample buttons for each language and
-for code-mixed text, and a ranked results list where each keyword's
-left border color shows its detected script.
-
-## Known limitations (useful for the report's "Limitations" section)
-
-- Stopword lists are curated by hand (60–100 entries per language) for
-  this prototype's scope — a production system would use larger,
-  linguistically-reviewed stopword resources.
-- Script detection is per-character Unicode-block based; it correctly
-  separates Latin/Devanagari/Bengali but doesn't distinguish, e.g.,
-  Hindi from other Devanagari-script languages, or English from other
-  Latin-script languages — out of scope since only these three
-  languages are targeted.
-- Output is single words only by design (per project requirements);
-  multi-word named entities or fixed phrases (e.g. "machine
-  translation") are returned as separate words rather than as one unit.
-- No stemming/lemmatization, so morphological variants of a word (e.g.
-  Hindi verb forms) are currently scored as distinct tokens.
-
-## Future work
-
-- Compare this RAKE-multilingual approach against a transformer-based
-  multilingual keyphrase extractor (e.g. multilingual KeyBERT / YAKE)
-  as a measurable evaluation section for the project report.
-- Feed extracted keywords into Nativox's keyword-anchored translation
-  consistency layer (Stage 4 of the full dubbing pipeline).
-- Add simple stemming for Hindi/Bengali to merge morphological
-  variants before scoring.
+```text
+3. Text to Keyword/
+├── README.md
+├── run.bat
+├── run.sh
+├── backend/
+│   ├── main.py                  # FastAPI app + REST endpoints
+│   ├── requirements.txt
+│   └── app/
+│       ├── keyword_extractor.py # Multilingual RAKE co-occurrence engine
+│       ├── language_utils.py    # Unicode-script tagging (Latin/Devanagari/Bengali)
+│       └── stopwords.py         # Curated English, Hindi, and Bengali stopword dictionaries
+└── frontend/
+    └── index.html               # Interactive input, script meter, and keyword cards
+```
