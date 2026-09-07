@@ -1,78 +1,112 @@
 # MP4 → MP3 Extractor
 
-A tiny full-stack app: upload a video, get its audio track back as an MP3 — no
-translation, no dubbing, just clean extraction. This is effectively a
-standalone version of Stage 0 (Extract audio) from the Nativox pipeline.
+[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
+[![Stage 2](https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../2.%20mp3%20to%20Text/README.md)
+[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 
-## Stack
+---
 
-- **Backend:** FastAPI (Python) + ffmpeg (via subprocess)
-- **Frontend:** Single-page HTML/CSS/JS, no build step, served directly by FastAPI
+A lightweight, full-stack microservice: upload a video file, preview it on the left, and extract its untouched raw audio track as an MP3 on the right. This is the standalone implementation of **Stage 1 (Audio Extraction)** from the Nativox dubbing pipeline.
 
-## Requirements
+---
 
-- Python 3.9+ (3.11 recommended)
-- **ffmpeg** installed and available on your system PATH
-  - Mac: `brew install ffmpeg`
-  - Windows: `winget install Gyan.FFmpeg` (then restart your terminal/PC so PATH updates)
-  - Linux: `sudo apt install ffmpeg`
+## 🛠️ Tech Stack
 
-## Quick start
+- **Backend:** FastAPI (Python) + FFmpeg
+- **Frontend:** Single-page HTML5/CSS/Vanilla JS with side-by-side video/audio preview (served directly by FastAPI)
 
-**Mac/Linux:**
+---
+
+## 📋 Requirements
+
+- **Python:** 3.10 or 3.11 recommended
+- **FFmpeg:** Installed and available on your system PATH:
+  - **Windows:** `winget install Gyan.FFmpeg`
+  - **macOS:** `brew install ffmpeg`
+  - **Linux (Ubuntu/Debian):** `sudo apt update && sudo apt install -y ffmpeg`
+
+---
+
+## 🚀 Quick Start
+
+### Windows (Command Prompt / PowerShell)
+
+```powershell
+.\run.bat
+```
+
+### Git Bash (Windows) / macOS / Linux
+
 ```bash
+chmod +x run.sh
 ./run.sh
 ```
 
-**Windows:**
-```bat
-run.bat
+Once running, navigate to: **`http://127.0.0.1:8000`**
+
+---
+
+## ⚙️ Manual Setup
+
+### Windows PowerShell
+
+```powershell
+cd backend
+py -3.11 -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
 ```
 
-Either script creates a virtual environment, installs dependencies, and
-starts the server. Once you see `Uvicorn running on http://127.0.0.1:8000`,
-open that URL in your browser.
-
-## Manual setup
+### Git Bash (Windows)
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+py -3.11 -m venv venv
+source venv/Scripts/activate
 pip install -r requirements.txt
-uvicorn main:app --reload
+python -m uvicorn main:app --reload --port 8000
 ```
 
-## How it works
+### macOS / Linux
 
-1. You drop/select a video file (.mp4, .mov, .mkv, .avi, .webm, .m4v) in the browser.
-2. The frontend POSTs it to `/extract`.
-3. The backend saves it temporarily, runs:
-   ```
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 -m uvicorn main:app --reload --port 8000
+```
+
+---
+
+## 🔄 How It Works
+
+1. **Upload & Preview:** Drop a video file (`.mp4`, `.mov`, `.mkv`, `.avi`, `.webm`, `.m4v`). The browser immediately loads a live preview in the left player.
+2. **Audio Isolation:** The frontend sends a `POST` request to `/extract`.
+3. **FFmpeg Processing:**
+
+   ```bash
    ffmpeg -i input.mp4 -vn -acodec libmp3lame -q:a 2 output.mp3
    ```
-4. The resulting MP3 is streamed back and the uploaded video is deleted.
-5. You can preview it in the built-in audio player or download it.
 
-## Project structure
+4. **Playback & Export:** The MP3 stream is loaded into the player on the right with a one-click download button.
 
-```
-mp4-to-mp3/
-├── run.sh / run.bat
+---
+
+## 📁 Project Structure
+
+```text
+1. mp4 to mp3/
 ├── README.md
+├── run.bat
+├── run.sh
 ├── backend/
-│   ├── main.py            # FastAPI app + /extract route
-│   └── requirements.txt
+│   ├── main.py            # FastAPI endpoints + FFmpeg subprocess executor
+│   └── requirements.txt   # FastAPI, Uvicorn, Python-Multipart
 ├── frontend/
-│   └── index.html         # Upload UI
+│   └── index.html         # Responsive side-by-side preview interface
 └── storage/
-    ├── uploads/            # Temp video storage (auto-cleared per request)
-    └── outputs/            # Generated MP3s
+    ├── uploads/           # Temp video storage (cleaned up automatically)
+    └── outputs/           # Extracted MP3 audio files
 ```
-
-## Notes / limitations
-
-- Files are capped at 500 MB by default (edit `MAX_FILE_SIZE_MB` in `main.py` to change).
-- Output MP3s accumulate in `storage/outputs/` — fine for a class project/demo,
-  but for anything longer-lived you'd want a cleanup job or move to temp files.
-- No auth — this is meant to run locally for a demo, not be exposed to the internet as-is.

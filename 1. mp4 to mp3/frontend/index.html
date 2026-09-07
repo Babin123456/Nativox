@@ -30,14 +30,14 @@
   }
   .card {
     width: 100%;
-    max-width: 480px;
+    max-width: 960px;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 32px;
   }
   h1 {
-    font-size: 20px;
+    font-size: 22px;
     margin: 0 0 4px;
   }
   p.sub {
@@ -48,7 +48,7 @@
   #dropzone {
     border: 2px dashed var(--border);
     border-radius: 12px;
-    padding: 32px 16px;
+    padding: 28px 16px;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
@@ -68,10 +68,11 @@
     font-size: 13px;
     color: var(--text);
     word-break: break-all;
+    font-weight: 500;
   }
   button {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 16px;
     padding: 12px;
     border: none;
     border-radius: 10px;
@@ -95,14 +96,76 @@
   }
   #status.error { color: var(--error); }
   #status.success { color: var(--success); }
-  #result {
-    margin-top: 20px;
+
+  /* Side-by-Side Dual View */
+  .comparison-grid {
+    margin-top: 24px;
     display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
-  audio { width: 100%; margin-top: 10px; }
+  @media (max-width: 768px) {
+    .comparison-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .media-box {
+    background: #11141a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .media-box h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #cad1de;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(91, 140, 255, 0.15);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  video {
+    width: 100%;
+    max-height: 280px;
+    border-radius: 8px;
+    background: #000;
+    outline: none;
+  }
+  audio {
+    width: 100%;
+    outline: none;
+    margin-top: auto;
+  }
+  .audio-placeholder {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: #141820;
+    color: var(--muted);
+    font-size: 13px;
+    gap: 8px;
+  }
+  .audio-placeholder .icon {
+    font-size: 32px;
+  }
   .download-link {
     display: inline-block;
-    margin-top: 12px;
+    margin-top: 4px;
     color: var(--accent);
     text-decoration: none;
     font-size: 14px;
@@ -116,7 +179,7 @@
 
 <div class="card">
   <h1>MP4 → MP3 Extractor</h1>
-  <p class="sub">Upload a video, get its raw audio track back as an MP3. Nothing else changes.</p>
+  <p class="sub">Upload a video, preview the MP4 video on the left, and play or download the extracted MP3 on the right.</p>
 
   <div id="dropzone">
     <div class="icon">🎬</div>
@@ -128,10 +191,37 @@
   <button id="extractBtn" disabled>Extract Audio</button>
   <div id="status"></div>
 
-  <div id="result">
-    <audio id="player" controls></audio>
-    <br />
-    <a id="downloadLink" class="download-link" download>⬇ Download MP3</a>
+  <!-- Dual Comparison Grid: MP4 (Left) | Extracted MP3 (Right) -->
+  <div class="comparison-grid" id="comparisonGrid">
+    <div class="media-box" id="videoBox">
+      <h3>
+        <span>🎬 Uploaded Video</span>
+        <span class="badge">MP4 Source</span>
+      </h3>
+      <video id="videoPreview" controls></video>
+    </div>
+
+    <div class="media-box" id="audioBox">
+      <h3>
+        <span>🎵 Extracted Audio</span>
+        <span class="badge">MP3 Output</span>
+      </h3>
+      <div id="audioPlaceholder" class="audio-placeholder">
+        <span class="icon">⏳</span>
+        <span>Awaiting extraction...</span>
+      </div>
+      <div id="audioResult" style="display: none; flex-direction: column; gap: 12px; height: 100%;">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center; color: var(--success); font-size: 14px; font-weight: 500;">
+            ✓ Audio track isolated successfully
+          </div>
+        </div>
+        <audio id="audioPlayer" controls></audio>
+        <div>
+          <a id="downloadLink" class="download-link" download>⬇ Download MP3 Audio</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -141,11 +231,16 @@
   const filenameEl = document.getElementById('filename');
   const extractBtn = document.getElementById('extractBtn');
   const statusEl = document.getElementById('status');
-  const resultEl = document.getElementById('result');
-  const player = document.getElementById('player');
+  const comparisonGrid = document.getElementById('comparisonGrid');
+  const videoPreview = document.getElementById('videoPreview');
+  const audioPlaceholder = document.getElementById('audioPlaceholder');
+  const audioResult = document.getElementById('audioResult');
+  const audioPlayer = document.getElementById('audioPlayer');
   const downloadLink = document.getElementById('downloadLink');
 
   let selectedFile = null;
+  let videoObjectUrl = null;
+  let audioObjectUrl = null;
 
   dropzone.addEventListener('click', () => fileInput.click());
 
@@ -172,7 +267,16 @@
     extractBtn.disabled = false;
     statusEl.textContent = '';
     statusEl.className = '';
-    resultEl.style.display = 'none';
+
+    // Show Left Video Preview immediately
+    if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+    videoObjectUrl = URL.createObjectURL(file);
+    videoPreview.src = videoObjectUrl;
+    
+    // Reset Right Audio Box to awaiting state
+    audioPlaceholder.style.display = 'flex';
+    audioResult.style.display = 'none';
+    comparisonGrid.style.display = 'grid';
   }
 
   extractBtn.addEventListener('click', async () => {
@@ -180,8 +284,8 @@
 
     extractBtn.disabled = true;
     statusEl.className = '';
-    statusEl.textContent = 'Extracting audio… this can take a moment for longer videos.';
-    resultEl.style.display = 'none';
+    statusEl.textContent = 'Extracting audio… processing video stream with FFmpeg.';
+    audioPlaceholder.innerHTML = '<span class="icon">⚙️</span><span>Extracting audio...</span>';
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -202,18 +306,22 @@
       }
 
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+      audioObjectUrl = URL.createObjectURL(blob);
 
-      player.src = url;
-      downloadLink.href = url;
+      audioPlayer.src = audioObjectUrl;
+      downloadLink.href = audioObjectUrl;
       downloadLink.download = selectedFile.name.replace(/\.[^/.]+$/, '') + '.mp3';
 
-      resultEl.style.display = 'block';
-      statusEl.textContent = 'Done!';
+      audioPlaceholder.style.display = 'none';
+      audioResult.style.display = 'flex';
+
+      statusEl.textContent = 'Extraction complete! Audio is ready on the right.';
       statusEl.className = 'success';
     } catch (err) {
       statusEl.textContent = err.message || 'Something went wrong.';
       statusEl.className = 'error';
+      audioPlaceholder.innerHTML = '<span class="icon">⚠️</span><span>Extraction failed</span>';
     } finally {
       extractBtn.disabled = false;
     }

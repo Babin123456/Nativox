@@ -4,30 +4,64 @@ Translates a word/keyword between English, Hindi, and Bengali,
 and adds a Roman-script pronunciation guide for the Hindi/Bengali output.
 """
 
-from deep_translator import GoogleTranslator
-from indic_transliteration import sanscript
+try:
+    from deep_translator import GoogleTranslator  # type: ignore
+except ImportError:  # pragma: no cover
+    GoogleTranslator = None  # type: ignore
+
+try:
+    from indic_transliteration import sanscript  # type: ignore
+except ImportError:  # pragma: no cover
+    sanscript = None
 
 from .config import LANG_CODES, LANG_LABELS
 from .detect import detect_language
 
 # Which sanscript scheme to use per language, for transliteration
 # INTO Roman letters (pronunciation guide).
-SCRIPT_SCHEME = {
-    "hindi": sanscript.DEVANAGARI,
-    "bengali": sanscript.BENGALI,
-}
+if sanscript:
+    SCRIPT_SCHEME = {
+        "hindi": sanscript.DEVANAGARI,
+        "bengali": sanscript.BENGALI,
+    }
+else:
+    SCRIPT_SCHEME = {}
 
 
 def _translate_text(text: str, source_lang: str, target_lang: str) -> str:
     source_code = LANG_CODES[source_lang]
     target_code = LANG_CODES[target_lang]
-    translator = GoogleTranslator(source=source_code, target=target_code)
-    return translator.translate(text)
+    
+    # 1. Try Google Translate via deep-translator
+    if GoogleTranslator is not None:
+        try:
+            translator = GoogleTranslator(source=source_code, target=target_code)
+            res = translator.translate(text)
+            if res and not res.startswith("Error 500"):
+                return res
+        except Exception:
+            pass
+
+    # 2. Resilient fallback: MyMemory public API
+    try:
+        import urllib.request, urllib.parse, json
+        q = urllib.parse.quote(text)
+        url = f"https://api.mymemory.translated.net/get?q={q}&langpair={source_code}|{target_code}"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=6) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            out = data.get("responseData", {}).get("translatedText")
+            if out:
+                return out
+    except Exception:
+        pass
+
+    return text
 
 
 def _pronunciation(text: str, language: str) -> str | None:
     """Roman-script pronunciation guide. None for English (not needed)."""
-    if language not in SCRIPT_SCHEME:
+    if not sanscript or language not in SCRIPT_SCHEME:
         return None
     try:
         romanized = sanscript.transliterate(
