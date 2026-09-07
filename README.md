@@ -96,3 +96,43 @@ For detailed technical designs, architectural blueprints, and stage references:
 - **[Architecture Deep-Dive](ARCHITECTURE.md):** Complete end-to-end dataflow, state machines, and microservice layout.
 - **[Future Roadmap & Directives](ROADMAP.md):** Faculty directives, LLM duration compression, and YouTube-style HLS multi-audio track sync.
 - **[Setup & Deployment Guide](INSTRUCTIONS.md):** Environment configuration, GPU acceleration, and package installation.
+
+---
+
+## 👥 Project Team & Mentorship
+
+<div align="center">
+
+### 🎓 Final Year Major Project — B.Tech Computer Science & Engineering
+
+<table>
+  <tr>
+    <td align="center" width="60%">
+      <b>👨💻 Student Contributors</b><br/><br/>
+      <b>Atanu Saha</b><br/>
+      <b>Babin Bid</b><br/>
+      <b>Rohit Kr Adak</b><br/>
+      <b>Sagnik Bachhar</b>
+    </td>
+    <td align="center" width="40%">
+      <b>👨🏫 Guided Under</b><br/><br/>
+      <b>Dr. Debjit Ghosh</b><br/>
+      <i>Department of Computer Science & Engineering</i>
+    </td>
+  </tr>
+</table>
+
+</div>
+
+---
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:E8A33D,50:FF6B6B,100:3E8FC4&height=120&section=footer&animation=fadeIn" width="100%" alt="Footer Wave" />
+</p>
+
+<p align="center">
+  <sub>
+    Made with ❤️ by <b>Atanu, Babin, Rohit & Sagnik</b> • Guided by <b>Dr. Debjit Ghosh</b><br/>
+    <b>🎙️ Nativox</b> — Empowering Multilingual Communication
+  </sub>
+</p>

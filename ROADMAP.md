@@ -1,13 +1,11 @@
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:E8A33D,50:FF6B6B,100:3E8FC4&height=220&section=header&text=FUTURE%20ROADMAP&fontSize=56&fontColor=FFFFFF&fontAlignY=38&desc=Faculty%20Directives%20and%20Real-Time%20YouTube-Style%20Dubbing%20Evolution&descFontSize=18&descColor=FFFFFF&descAlignY=60&animation=fadeIn" width="100%" alt="Future Roadmap Header"/>
-</p>
+# Future Roadmap & Faculty Directives
 
-<p align="center">
-  <a href="README.md"><img src="https://img.shields.io/badge/Suite_Readme-⬅️_Back_to_README-E8A33D?style=for-the-badge&logo=readme&logoColor=1A1204" alt="Back to README"/></a>
-  <a href="ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture"/></a>
-  <a href="INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions"/></a>
-  <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License"/></a>
-</p>
+Faculty Directives and Real-Time YouTube-Style Dubbing Evolution.
+
+[![Suite Readme](https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white)](README.md)
+[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white)](ARCHITECTURE.md)
+[![Instructions](https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white)](INSTRUCTIONS.md)
+[![MIT License](https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE.md)
 
 ---
 
