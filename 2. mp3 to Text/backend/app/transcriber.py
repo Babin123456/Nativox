@@ -11,7 +11,10 @@ from __future__ import annotations
 import functools
 from dataclasses import dataclass, field
 
-from faster_whisper import WhisperModel
+try:
+    from faster_whisper import WhisperModel  # type: ignore
+except ImportError:  # pragma: no cover
+    WhisperModel = None  # type: ignore
 
 from .config import DEVICE, COMPUTE_TYPE
 
@@ -33,12 +36,14 @@ class TranscriptionResult:
 
 
 @functools.lru_cache(maxsize=2)
-def _load_model(model_size: str) -> WhisperModel:
+def _load_model(model_size: str):
     """
     Cached model loader. lru_cache means the (potentially large) model
     weights are only loaded into memory once per model_size, the first
     time they're needed, then reused for every subsequent request.
     """
+    if WhisperModel is None:
+        raise RuntimeError("faster-whisper is not installed. Please run within the stage virtual environment.")
     return WhisperModel(model_size, device=DEVICE, compute_type=COMPUTE_TYPE)
 
 

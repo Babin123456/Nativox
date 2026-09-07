@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2026 Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+Copyright (c) 2026 Nativox
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
