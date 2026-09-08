@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MP4 → MP3 Extractor</title>
+<link rel="icon" type="image/webp" href="/static/favicon.webp" />
 <style>
   :root {
     --bg: #0f1115;
@@ -290,17 +291,27 @@
     const formData = new FormData();
     formData.append('file', selectedFile);
 
+    // Support opening both directly via http://127.0.0.1:8000 and external/file:// viewers
+    const endpoint = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && (window.location.port === '8000')
+      ? '/extract'
+      : 'http://127.0.0.1:8000/extract';
+
     try {
-      const response = await fetch('/extract', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        let message = 'Extraction failed.';
+        let message = `Extraction failed (HTTP ${response.status})`;
         try {
-          const errJson = await response.json();
-          message = errJson.detail || message;
+          const errText = await response.text();
+          try {
+            const errJson = JSON.parse(errText);
+            message = errJson.detail || message;
+          } catch (_) {
+            if (errText) message = `${message}: ${errText}`;
+          }
         } catch (_) {}
         throw new Error(message);
       }
@@ -319,9 +330,14 @@
       statusEl.textContent = 'Extraction complete! Audio is ready on the right.';
       statusEl.className = 'success';
     } catch (err) {
-      statusEl.textContent = err.message || 'Something went wrong.';
+      console.error('Extraction error details:', err);
+      let message = err.message || 'Something went wrong.';
+      if (err.name === 'TypeError' && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        message = `Cannot reach backend at ${endpoint}. Please ensure the backend is running at http://127.0.0.1:8000.`;
+      }
+      statusEl.textContent = message;
       statusEl.className = 'error';
-      audioPlaceholder.innerHTML = '<span class="icon">⚠️</span><span>Extraction failed</span>';
+      audioPlaceholder.innerHTML = `<span class="icon">⚠️</span><span>${message}</span>`;
     } finally {
       extractBtn.disabled = false;
     }
