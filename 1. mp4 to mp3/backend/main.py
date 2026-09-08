@@ -13,6 +13,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -35,6 +36,14 @@ MAX_FILE_SIZE_MB = 500  # simple sanity cap
 # ---------------------------------------------------------------------------
 app = FastAPI(title="MP4 -> MP3 Extractor")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Serve any static assets (css/js/images) the frontend might use later
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
@@ -43,6 +52,15 @@ app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 def serve_frontend() -> str:
     """Serve the single-page frontend."""
     return (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.webp", include_in_schema=False)
+def serve_favicon():
+    favicon_path = FRONTEND_DIR / "favicon.webp"
+    if favicon_path.exists():
+        return FileResponse(favicon_path, media_type="image/webp")
+    raise HTTPException(status_code=404, detail="Favicon not found")
 
 
 @app.get("/health")
@@ -81,7 +99,7 @@ async def extract_audio(file: UploadFile = File(...)):
     # Locate ffmpeg (check system PATH first, fallback to WinGet installed path)
     import shutil
     ffmpeg_bin = shutil.which("ffmpeg")
-    if not ffmpeg_bin:
+    if not ffmpeg_bin or not os.path.exists(ffmpeg_bin):
         winget_ffmpeg = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
         matches = list(winget_ffmpeg.glob("**/ffmpeg.exe"))
         if matches:
@@ -98,14 +116,27 @@ async def extract_audio(file: UploadFile = File(...)):
         "-q:a", "2",
         str(output_path),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        input_path.unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=500,
+            detail="FFmpeg binary was not found. Please install FFmpeg using 'winget install Gyan.FFmpeg' and restart the server.",
+        )
 
     input_path.unlink(missing_ok=True)  # clean up the uploaded video regardless of outcome
 
     if result.returncode != 0 or not output_path.exists():
+        err_msg = result.stderr or "Unknown error"
+        if "does not contain any stream" in err_msg or "matches no streams" in err_msg:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded video does not appear to contain an audio track.",
+            )
         raise HTTPException(
             status_code=500,
-            detail=f"ffmpeg failed to extract audio: {result.stderr[-1000:]}",
+            detail=f"FFmpeg failed to extract audio: {err_msg[-600:]}",
         )
 
     download_name = Path(file.filename).stem + ".mp3"
