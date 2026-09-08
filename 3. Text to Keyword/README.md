@@ -47,6 +47,10 @@ chmod +x run.sh
 
 Once running, navigate to: **`http://127.0.0.1:8002`** (or configured port `8010`)
 
+> [!IMPORTANT]
+> **Access via `http://127.0.0.1:8002`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on the server port. Double-clicking `index.html` locally will open it under `file:///` and fail to connect to `/api/extract-keywords`. Do **not** delete `frontend/index.html`, as it is required by the backend to serve the frontend interface.
+
 ---
 
 ## ⚙️ Manual Setup
