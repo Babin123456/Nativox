@@ -1,0 +1,167 @@
+"""
+Sentence Reformation Engine: Disfluency cleaner and meaningful sentence reconstructor.
+Converts broken, fragmented, or filler-laden sentences into grammatical, natural Hindi sentences.
+"""
+import re
+from .config import ENGLISH_DISFLUENCIES, HINDI_DISFLUENCIES
+from .translator import translate_to_hindi
+
+
+def clean_disfluencies(text: str) -> tuple[str, list[str]]:
+    """
+    Strips spoken disfluencies, verbal pauses, and fillers.
+    Returns the cleaned text along with a list of detected/removed fillers.
+    """
+    removed: list[str] = []
+    cleaned = text
+
+    # Strip English disfluencies
+    for pattern in ENGLISH_DISFLUENCIES:
+        matches = re.findall(pattern, cleaned, flags=re.IGNORECASE)
+        if matches:
+            removed.extend([m.strip() for m in matches])
+            cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
+
+    # Strip Hindi disfluencies
+    for pattern in HINDI_DISFLUENCIES:
+        matches = re.findall(pattern, cleaned, flags=re.IGNORECASE)
+        if matches:
+            removed.extend([m.strip() for m in matches])
+            cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
+
+    # Remove repeated consecutive words (e.g. "we we", "to to")
+    cleaned = re.sub(r"\b(\w+)(?:\s+\1\b)+", r"\1", cleaned, flags=re.IGNORECASE)
+
+    # Clean double spaces, isolated commas, and trimmed
+    cleaned = re.sub(r"\s*,\s*", ", ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+    # Clean leading/trailing punctuation artifacts
+    cleaned = re.sub(r"^[,;.\s]+", "", cleaned)
+    cleaned = re.sub(r"[,;]+$", "", cleaned)
+
+    return cleaned, list(set(removed))
+
+
+def reconstruct_english_syntax(text: str) -> str:
+    """
+    Restructures fragmented clauses or keyword sequences into a well-formed English sentence
+    with appropriate capitalization, punctuation, and predicate flow.
+    """
+    text = text.strip()
+    if not text:
+        return ""
+
+    words = text.split()
+    lower_words = [w.lower().rstrip(",;.") for w in words]
+
+    # 1. Check if input is a comma-separated or newline-separated keyword list
+    raw_tokens = re.split(r"[\n,]+", text)
+    tokens = [t.strip() for t in raw_tokens if t.strip()]
+    is_keyword_list = len(tokens) >= 2 and all(len(t.split()) <= 4 for t in tokens)
+
+    pronouns = {"we", "i", "you", "they", "he", "she", "it", "this", "that"}
+    finite_verbs = {
+        "is", "are", "was", "were", "will", "can", "should", "have", "has",
+        "do", "does", "did", "trains", "trained", "builds", "built", "uses",
+        "used", "works", "explains", "discusses", "creates", "demonstrates"
+    }
+
+    has_pronoun = any(w in pronouns for w in lower_words)
+    has_finite_verb = any(w in finite_verbs for w in lower_words)
+
+    # If comma-separated or newline-separated keywords without full sentence framing
+    if is_keyword_list and (not has_pronoun or not has_finite_verb):
+        if len(tokens) == 2:
+            return f"This explores {tokens[0]} and {tokens[1]}."
+        joined = ", ".join(tokens[:-1])
+        return f"This explores {joined}, and {tokens[-1]}."
+
+    # If space-separated keywords without pronouns and finite verbs
+    verbs = {
+        "train", "learn", "build", "use", "create", "make", "explore",
+        "show", "see", "work", "find", "explain", "discuss", "is", "are",
+        "was", "were", "have", "has", "do", "does", "will", "can", "understand"
+        "show", "see", "work", "find", "explain", "discuss", "understand"
+    }
+    has_any_verb = any(w in verbs or w.endswith(("ing", "ed", "ize", "ise", "ate")) for w in lower_words)
+
+    has_pronoun = any(w in pronouns for w in lower_words)
+    has_verb = any(w in verbs or w.endswith(("ing", "ed", "ize", "ise", "ate")) for w in lower_words)
+    if len(words) >= 2 and not has_pronoun and not has_any_verb:
+        joined = ", ".join(words[:-1])
+        return f"This explores {joined} and {words[-1]}."
+
+    # If it is a bare keyword list without a verb or pronoun (e.g. "machine learning speech recognition translation")
+    if len(words) >= 2 and not has_verb and not has_pronoun:
+        reconstructed = f"We discuss {', '.join(words[:-1])} and {words[-1]}."
+    else:
+        # If it has "video" at or near start, restore introductory prepositional phrase
+        if lower_words and lower_words[0] == "video":
+            text = "In this video, " + " ".join(words[1:])
+        elif "video" in lower_words[:3] and not text.lower().startswith("in this"):
+            text = re.sub(r"\bvideo\b", "in this video,", text, count=1, flags=re.IGNORECASE)
+            text = re.sub(r"\s+", " ", text).strip()
+    # If it has "video" at or near start, restore introductory prepositional phrase
+    if lower_words and lower_words[0] == "video":
+        text = "In this video, " + " ".join(words[1:])
+    elif "video" in lower_words[:3] and not text.lower().startswith("in this"):
+        text = re.sub(r"\bvideo\b", "in this video,", text, count=1, flags=re.IGNORECASE)
+        text = re.sub(r"\s+", " ", text).strip()
+
+        reconstructed = text
+    reconstructed = text
+
+    # Clean leading punctuation and ensure capitalization
+    reconstructed = re.sub(r"^[,;.\s]+", "", reconstructed).strip()
+    if not reconstructed.endswith((".", "!", "?")):
+        reconstructed += "."
+    if reconstructed:
+        reconstructed = reconstructed[0].upper() + reconstructed[1:]
+
+    return reconstructed
+
+
+def reconstruct_sentence(raw_text: str, target_lang: str = "hindi") -> dict:
+    """
+    Main entry point for Task 1:
+    Takes a meaningless or fragmented sentence, cleans it, restructures it into
+    grammatically sound syntax, and translates it into a natural, meaningful Hindi sentence.
+    """
+    raw_text = (raw_text or "").strip()
+    if not raw_text:
+        return {
+            "original_text": "",
+            "cleaned_english": "",
+            "meaningful_hindi": "",
+            "removed_fillers": [],
+            "input_word_count": 0,
+            "output_word_count": 0,
+            "notes": "Empty input provided.",
+        }
+
+    # Step 1: Remove speech fillers, stutters, and disfluencies
+    cleaned, removed_fillers = clean_disfluencies(raw_text)
+
+    # Step 2: Ensure proper grammatical framing in English
+    well_formed_english = reconstruct_english_syntax(cleaned)
+
+    # Step 3: Produce idiomatic, grammatically sound Hindi sentence
+    meaningful_hindi = translate_to_hindi(well_formed_english)
+
+    input_word_count = len(raw_text.split())
+    output_word_count = len(meaningful_hindi.split())
+
+    notes = "Disfluencies removed and sentence syntax restored with proper SOV grammar in Hindi."
+    if removed_fillers:
+        notes += f" Filtered verbal fillers: {', '.join(removed_fillers)}."
+
+    return {
+        "original_text": raw_text,
+        "cleaned_english": well_formed_english,
+        "meaningful_hindi": meaningful_hindi,
+        "removed_fillers": removed_fillers,
+        "input_word_count": input_word_count,
+        "output_word_count": output_word_count,
+        "notes": notes,
+    }

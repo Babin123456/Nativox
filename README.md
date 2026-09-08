@@ -35,7 +35,7 @@ Each standalone stage can run completely independently as a self-contained micro
 | [`2. mp3 to Text/`](2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](2.%20mp3%20to%20Text/README.md) | OpenAI Whisper / Faster-Whisper | Generates timestamped word-level and sentence-level transcripts with speaker pitch/gender detection. |
 | [`3. Text to Keyword/`](3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](3.%20Text%20to%20Keyword/README.md) | KeyBERT / spaCy / Rake-NLTK | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
 | [`4. Keyword Translate/`](4.%20Keyword%20Translate) | **Contextual Terminology Translation** | [📖 Stage 4 Guide](4.%20Keyword%20Translate/README.md) | Deep-Translator / MarianMT / LLMs | Accurately translates technical vocabulary into Indic & European languages without literal distortion. |
-| **Pipeline Core** | **Sentence Reformation & Compression** | *Internal Service* | Local LLM / Semantic Budgeting | Contextual restructuring (SVO $\to$ SOV) and duration compression to fit strict millisecond video slots. |
+| [`5. Sentence Reformation/`](5.%20Sentence%20Reformation) | **Sentence Reformation & Précis** | [📖 Stage 5 Guide](5.%20Sentence%20Reformation/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
 | **Synthesis & Packaging** | **Neural TTS & HLS Delivery** | *Internal Service* | Edge-TTS / XTTS-v2 / HLS-DASH | Gender-matched voice synthesis and decoupled multi-audio track streaming without re-encoding video. |
 
 ---
@@ -93,6 +93,18 @@ Each module provides native one-click execution scripts (`run.bat` for Windows a
   ```
 
   *Accessible at `http://127.0.0.1:8003`*
+
+- **Stage 5 (Sentence Reformation & Précis):** ➔ *[Read Stage 5 Manual & Line-by-Line Guide](5.%20Sentence%20Reformation/README.md)*
+
+  ```bash
+  cd "5. Sentence Reformation"
+  # Windows (CMD / PowerShell)
+  .\run.bat
+  # Git Bash / macOS / Linux
+  ./run.sh
+  ```
+
+  *Accessible at `http://127.0.0.1:8012`*
 
 ---
 
