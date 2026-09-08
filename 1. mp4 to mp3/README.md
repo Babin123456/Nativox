@@ -44,6 +44,10 @@ chmod +x run.sh
 
 Once running, navigate to: **`http://127.0.0.1:8000`**
 
+> [!IMPORTANT]
+> **Access via `http://127.0.0.1:8000`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on port `8000`. If you double-click `index.html` as a local `file:///` path, browser security restrictions prevent it from reaching the extraction API. Do **not** delete `frontend/index.html`, as FastAPI delivers it to your browser.
+
 ---
 
 ## ⚙️ Manual Setup
