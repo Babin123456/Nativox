@@ -9,10 +9,14 @@ if [ ! -d "venv" ]; then
   python3 -m venv venv
 fi
 
-source venv/bin/activate
-pip install -q -r requirements.txt
+if [ -f "venv/bin/activate" ]; then
+  source venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+  source venv/Scripts/activate
+fi
+python -m pip install -q -r requirements.txt
 echo ""
 echo "Starting Text to Keyword at http://127.0.0.1:8010"
 echo "Press Ctrl+C to stop."
 echo ""
-uvicorn main:app --reload --port 8010
+python -m uvicorn main:app --reload --port 8010

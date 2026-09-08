@@ -15,13 +15,13 @@ if not exist venv (
 call venv\Scripts\activate.bat
 
 echo Installing dependencies...
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 echo.
 echo Starting server on http://127.0.0.1:8011 ...
 echo (Press CTRL+C to stop)
 echo.
 
-uvicorn main:app --reload --port 8011
+python -m uvicorn main:app --reload --port 8011
 
 endlocal

@@ -12,14 +12,18 @@ if [ ! -d "venv" ]; then
     python3.11 -m venv venv
 fi
 
-source venv/bin/activate
+if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+    source venv/Scripts/activate
+fi
 
 echo "Installing dependencies..."
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 echo ""
 echo "Starting server on http://127.0.0.1:8011 ..."
 echo "(Press CTRL+C to stop)"
 echo ""
 
-uvicorn main:app --reload --port 8011
+python -m uvicorn main:app --reload --port 8011
