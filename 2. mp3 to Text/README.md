@@ -43,6 +43,10 @@ chmod +x run.sh
 
 Once running, navigate to: **`http://127.0.0.1:8001`**
 
+> [!IMPORTANT]
+> **Access via `http://127.0.0.1:8001`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on port `8001`. Opening `index.html` directly as a `file:///` path causes browser CORS / connection errors with the `/api/transcribe` endpoint. Do **not** delete `frontend/index.html`, as FastAPI reads and delivers it upon connecting.
+
 ---
 
 ## ⚙️ Manual Setup

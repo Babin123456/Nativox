@@ -45,6 +45,10 @@ chmod +x run.sh
 
 Once running, navigate to: **`http://127.0.0.1:8003`** (or configured port `8011`)
 
+> [!IMPORTANT]
+> **Access via `http://127.0.0.1:8003`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on the server port. Opening `index.html` directly as a local `file:///` path will cause browser CORS / network errors when calling `/api/translate-batch`. Do **not** delete `frontend/index.html`, as FastAPI renders it on root `/`.
+
 ---
 
 ## ⚙️ Manual Setup
