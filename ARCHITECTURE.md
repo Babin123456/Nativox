@@ -54,7 +54,7 @@ graph TD
     TRANS_KW -.->|Domain Lexicon| REFORM
     REFORM --> COMPRESS
     COMPRESS --> TTS
-    PITCH -->|Gender Tag (M/F)| TTS
+    PITCH -->|"Gender Tag (M/F)"| TTS
     TTS --> STITCH
     DEMUCS -->|Preserved Background Bed| STITCH
     STITCH --> HLS
