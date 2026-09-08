@@ -110,3 +110,12 @@ app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 @app.get("/")
 def index():
     return FileResponse(str(FRONTEND_DIR / "index.html"))
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.webp", include_in_schema=False)
+def favicon():
+    favicon_path = FRONTEND_DIR / "favicon.webp"
+    if favicon_path.exists():
+        return FileResponse(str(favicon_path), media_type="image/webp")
+    raise HTTPException(status_code=404, detail="Favicon not found")

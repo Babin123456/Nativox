@@ -14,4 +14,4 @@ pip install -q -r requirements.txt
 echo ""
 echo "Starting server at http://127.0.0.1:8000"
 echo ""
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8000
