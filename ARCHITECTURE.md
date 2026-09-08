@@ -104,6 +104,15 @@ graph TD
   - Translates isolated domain entities and noun phrases.
   - Guarantees technical words (e.g. "Transformer", "Backpropagation") are either preserved in English or matched to accepted standardized vernacular terms.
 
+### 5. Stage 5: `5. Sentence Reformation/`
+
+- **Responsibility:** Spoken disfluency cleaning, syntax restoration, and duration-budgeted 35%–40% précis compression (English to Hindi).
+- **Port:** `8012` (standalone)
+- **Core Operations:**
+  - Removal of spoken disfluencies (*um, uh, you know, like*) and predicate restructuring (SVO to Indic SOV).
+  - Algorithmic précis compression reducing full MP3 transcript paragraphs to 35%–40% length while preserving semantic integrity and core technical facts.
+  - Contextual Hindi translation with proper postpositions (*vibhakti*) and grammatical case markers.
+
 ---
 
 ## ⚡ Integration into Unified Delivery
