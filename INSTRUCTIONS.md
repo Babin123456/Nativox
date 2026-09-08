@@ -114,7 +114,27 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ./run.sh
   ```
 
-- **Port:** `http://127.0.0.1:8003`
+- **Port:** `http://127.0.0.1:8003` (or `8011`)
+
+---
+
+### Module 5: Sentence Reformation & Précis (`5. Sentence Reformation/`)
+
+- **Core Function:** Disfluency cleaning, syntax restoration into meaningful Hindi, and strict 35%–40% paragraph précis compression.
+- **Working Principle:**
+  - Strips verbal fillers (*um, uh, basically, you know*) and restructures broken keywords or ASR speech into grammatically complete sentences.
+  - Analyzes transcript paragraphs from MP3 audio and algorithmically extracts an information-dense précis fitting strictly within 35%–40% of original word length in Hindi.
+- **Execution:**
+
+  ```bash
+  cd "5. Sentence Reformation"
+  # Windows CMD / PowerShell
+  .\run.bat
+  # Git Bash / Linux / macOS
+  ./run.sh
+  ```
+
+- **Port:** `http://127.0.0.1:8012`
 
 ---
 
@@ -128,6 +148,7 @@ To test all modules simultaneously, you can run each stage in a separate termina
 | **Terminal 2** | Stage 2 (MP3 to Text) | `cd "2. mp3 to Text" && .\run.bat` | `cd "2. mp3 to Text" && ./run.sh` | `http://127.0.0.1:8001` |
 | **Terminal 3** | Stage 3 (Text to Keyword) | `cd "3. Text to Keyword" && .\run.bat` | `cd "3. Text to Keyword" && ./run.sh` | `http://127.0.0.1:8002` |
 | **Terminal 4** | Stage 4 (Keyword Translate) | `cd "4. Keyword Translate" && .\run.bat` | `cd "4. Keyword Translate" && ./run.sh` | `http://127.0.0.1:8003` |
+| **Terminal 5** | Stage 5 (Sentence Reformation) | `cd "5. Sentence Reformation" && .\run.bat` | `cd "5. Sentence Reformation" && ./run.sh` | `http://127.0.0.1:8012` |
 
 > [!IMPORTANT]
 > **Always access each stage through its local URL (`http://127.0.0.1:PORT`), NOT by opening raw `index.html` files!**
