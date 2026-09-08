@@ -14,7 +14,7 @@ if not exist venv (
 call venv\Scripts\activate.bat
 
 echo Installing dependencies...
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 echo.
 echo Starting server on http://127.0.0.1:8001 ...
