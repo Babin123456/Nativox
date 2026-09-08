@@ -1,13 +1,21 @@
+<div align="center">
+
 ![Nativox Header](https://capsule-render.vercel.app/api?type=waving&color=0:4E65FF,50:92EFFD,100:3E8FC4&height=220&section=header&text=NATIVOX&fontSize=60&fontColor=FFFFFF&fontAlignY=38&desc=Modular%20Real-Time%20AI%20Multilingual%20Dubbing%20Suite&descFontSize=20&descColor=FFFFFF&descAlignY=62&animation=fadeIn)
 
-![Python Version](https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Decoupled Architecture](https://img.shields.io/badge/Architecture-Stage--by--Stage%20Decoupled-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
+  <img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Architecture-Stage--by--Stage%20Decoupled-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white" alt="Decoupled Architecture" />
+</p>
 
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white)](ARCHITECTURE.md)
-[![Instructions](https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white)](INSTRUCTIONS.md)
-[![Roadmap](https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white)](ROADMAP.md)
-[![License](https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE.md)
+<p align="center">
+  <a href="ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions" /></a>
+  <a href="ROADMAP.md"><img src="https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white" alt="Roadmap" /></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" /></a>
+</p>
+
+</div>
 
 ---
 
@@ -23,10 +31,10 @@ Each standalone stage can run completely independently as a self-contained micro
 
 | Stage Directory | Module Name | Core Technology | Description |
 | :--- | :--- | :--- | :--- |
-| [`1. mp4 to mp3/`](file:///d:/Projects/AI-Powered-Multilingual-Real-Time-Dubbing-System/Nativox/1.%20mp4%20to%20mp3) | **Audio Extractor & Stem Separator** | FFmpeg / Demucs | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates vocal tracks, and preserves background ambient audio. |
-| [`2. mp3 to Text/`](file:///d:/Projects/AI-Powered-Multilingual-Real-Time-Dubbing-System/Nativox/2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | OpenAI Whisper / Faster-Whisper | Generates timestamped word-level and sentence-level transcripts with speaker pitch/gender detection. |
-| [`3. Text to Keyword/`](file:///d:/Projects/AI-Powered-Multilingual-Real-Time-Dubbing-System/Nativox/3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | KeyBERT / spaCy / Rake-NLTK | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
-| [`4. Keyword Translate/`](file:///d:/Projects/AI-Powered-Multilingual-Real-Time-Dubbing-System/Nativox/4.%20Keyword%20Translate) | **Contextual Terminology Translation** | Deep-Translator / MarianMT / LLMs | Accurately translates technical vocabulary into Indic & European languages without literal distortion. |
+| [`1. mp4 to mp3/`](1.%20mp4%20to%20mp3) | **Audio Extractor & Stem Separator** | FFmpeg / Demucs | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates vocal tracks, and preserves background ambient audio. |
+| [`2. mp3 to Text/`](2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | OpenAI Whisper / Faster-Whisper | Generates timestamped word-level and sentence-level transcripts with speaker pitch/gender detection. |
+| [`3. Text to Keyword/`](3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | KeyBERT / spaCy / Rake-NLTK | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
+| [`4. Keyword Translate/`](4.%20Keyword%20Translate) | **Contextual Terminology Translation** | Deep-Translator / MarianMT / LLMs | Accurately translates technical vocabulary into Indic & European languages without literal distortion. |
 | **Pipeline Core** | **Sentence Reformation & Compression** | Local LLM / Semantic Budgeting | Contextual restructuring (SVO $\to$ SOV) and duration compression to fit strict millisecond video slots. |
 | **Synthesis & Packaging** | **Neural TTS & HLS Delivery** | Edge-TTS / XTTS-v2 / HLS-DASH | Gender-matched voice synthesis and decoupled multi-audio track streaming without re-encoding video. |
 
@@ -104,17 +112,19 @@ For detailed technical designs, architectural blueprints, and stage references:
 
 ### 🎓 Final Year Major Project — B.Tech Computer Science & Engineering
 
-<table>
+<table align="center">
   <tr>
-    <td align="center" width="60%">
-      <b>👨💻 Student Contributors</b><br/><br/>
+    <th align="center" width="60%"><b>👨‍💻 Student Contributors</b></th>
+    <th align="center" width="40%"><b>👨‍🏫 Guided Under</b></th>
+  </tr>
+  <tr>
+    <td align="center">
       <b>Atanu Saha</b><br/>
       <b>Babin Bid</b><br/>
       <b>Rohit Kr Adak</b><br/>
       <b>Sagnik Bachhar</b>
     </td>
-    <td align="center" width="40%">
-      <b>👨🏫 Guided Under</b><br/><br/>
+    <td align="center">
       <b>Dr. Debjit Ghosh</b><br/>
       <i>Department of Computer Science & Engineering</i>
     </td>
