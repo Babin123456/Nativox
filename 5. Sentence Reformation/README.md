@@ -25,14 +25,17 @@ Stage 5 addresses two critical directives set by project mentor **Dr. Debjit Gho
 ## 📐 Mathematical Formulation
 
 ### 1. Précis Word Budget Window
+
 For a source transcript paragraph with $W_{\text{orig}}$ words:
 $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
 
 ### 2. Sentence & Clause Salience Scoring
+
 Each candidate clause $c$ within sentence $s$ is ranked according to its keyword density and structural position:
 $$\text{Score}(c) = \left( 2 \cdot \frac{\text{Hits}(c, \mathcal{K})}{\text{Length}(c)} + \text{PosWeight}(s) \right) \times \text{Penalty}(s)$$
 
 Where:
+
 - $\mathcal{K}$ is the set of prominent non-stopword technical keywords.
 - $\text{PosWeight}(s) = 1.2$ for opening and thesis-concluding statements.
 - $\text{Penalty}(s) = 0.8$ for excessively long spoken run-on clauses.
@@ -55,20 +58,28 @@ cd "5. Sentence Reformation"
 
 The web interface will open at **`http://127.0.0.1:8012`**.
 
+> [!IMPORTANT]
+> **Access via `http://127.0.0.1:8012`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on the server port (`8012`). Double-clicking `index.html` locally will open it under `file:///` and fail to reach `/api/pipeline` or `/api/reconstruct` due to browser CORS and network restrictions. Do **not** delete `frontend/index.html`, as it is required by the backend to serve the web interface.
+
 ---
 
 ## 🔌 API Specification
 
 ### 1. Reconstruct Broken Sentence
+
 - **Endpoint:** `POST /api/reconstruct`
 - **Request Body:**
+
   ```json
   {
     "text": "uh video we basically train neural network computer vision model you know",
     "target_language": "hindi"
   }
   ```
+
 - **Response Body:**
+
   ```json
   {
     "original_text": "uh video we basically train neural network computer vision model you know",
@@ -82,8 +93,10 @@ The web interface will open at **`http://127.0.0.1:8012`**.
   ```
 
 ### 2. Compress Paragraph to 35%–40% Précis
+
 - **Endpoint:** `POST /api/precis`
 - **Request Body:**
+
   ```json
   {
     "text": "Welcome back guys, in this particular tutorial today, what we are basically going to do is explore how deep learning and artificial neural networks actually work under the hood. You know, many people think that neural networks are like a magic black box, but actually, it is just basic linear algebra, matrix multiplication, and calculus with gradient descent. We will take a sample dataset of images, write a Python script using PyTorch, and see how the loss function decreases step by step until the computer learns to classify cats and dogs accurately.",
@@ -92,7 +105,9 @@ The web interface will open at **`http://127.0.0.1:8012`**.
     "target_language": "hindi"
   }
   ```
+
 - **Response Body:**
+
   ```json
   {
     "original_text": "...",
@@ -114,4 +129,3 @@ The web interface will open at **`http://127.0.0.1:8012`**.
 - **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
 - **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
-
