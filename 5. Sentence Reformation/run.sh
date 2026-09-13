@@ -14,17 +14,21 @@ fi
 
 if [ -f "venv/bin/activate" ]; then
     source venv/bin/activate
+    PY_EXEC="venv/bin/python"
 elif [ -f "venv/Scripts/activate" ]; then
     source venv/Scripts/activate
+    PY_EXEC="venv/Scripts/python"
+else
+    PY_EXEC="python"
 fi
 
 echo "Installing dependencies..."
-python -m pip install -r requirements.txt
+"$PY_EXEC" -m pip install -r requirements.txt
 
 echo ""
 echo "Starting Stage 5 service on http://127.0.0.1:8012 ..."
 echo "(Press CTRL+C to stop)"
 echo ""
 
-python -m uvicorn main:app --reload --port 8012
+"$PY_EXEC" -m uvicorn main:app --reload --port 8012
 
