@@ -152,6 +152,7 @@ To test all modules simultaneously, you can run each stage in a separate termina
 
 > [!IMPORTANT]
 > **Always access each stage through its local URL (`http://127.0.0.1:PORT`), NOT by opening raw `index.html` files!**
+>
 > - **Why raw `index.html` fails:** Double-clicking `index.html` opens it under the `file:///` protocol. Browsers restrict local file scripts from accessing relative API routes (e.g. `/extract`, `/api/transcribe`), triggering CORS or connection refused errors.
 > - **How it works:** The FastAPI backend serves that exact `index.html` file over HTTP. Both the web UI and backend APIs run under the same origin.
 > - **Do NOT delete `index.html`:** The FastAPI server dynamically reads and delivers `frontend/index.html` to your browser on root `/`. Deleting it will cause a `404 Not Found` or `FileNotFoundError`.
