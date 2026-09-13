@@ -3,32 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nativox — Sentence Reformation & Precise Output</title>
+  <title>Nativox — Stage 5: Sentence Reformation & Précis</title>
   <link rel="icon" type="image/webp" href="/static/favicon.webp" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0F172A;
-      --surface: #1E293B;
-      --surface-alt: #27354A;
-      --border: #334155;
-      --border-focus: #3B82F6;
-      --text: #F8FAFC;
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
       --text-muted: #94A3B8;
-      --primary: #2563EB;
-      --primary-hover: #1D4ED8;
-      --success: #059669;
-      --success-bg: #064E3B;
-      --success-text: #A7F3D0;
-      --accent: #D97706;
-      --accent-bg: #78350F;
-      --accent-text: #FDE68A;
-      --danger: #DC2626;
-      --danger-bg: #7F1D1D;
-      --danger-text: #FECACA;
-      --radius: 8px;
+      --primary: #38BDF8;
+      --primary-hover: #0284C7;
+      --primary-glow: rgba(56, 189, 248, 0.15);
+      --accent: #E8A33D;
+      --accent-glow: rgba(232, 163, 61, 0.15);
+      --success: #34D399;
+      --success-glow: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --radius: 12px;
     }
 
     * {
@@ -38,11 +34,11 @@
     }
 
     body {
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       min-height: 100vh;
-      padding: 32px 16px;
+      padding: 40px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -50,723 +46,867 @@
 
     .container {
       width: 100%;
-      max-width: 860px;
+      max-width: 920px;
     }
 
     header {
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 18px;
+      margin-bottom: 28px;
+      text-align: center;
     }
 
-    .kicker {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-glow);
       color: var(--primary);
-      margin-bottom: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
     }
 
     h1 {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 6px;
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
-      font-size: 13.5px;
+      font-size: 15px;
       color: var(--text-muted);
       line-height: 1.5;
+      max-width: 680px;
+      margin: 0 auto;
     }
 
     /* Tabs */
-    .tabs {
+    .tabs-nav {
       display: flex;
-      background-color: var(--surface);
-      border: 1px solid var(--border);
+      gap: 8px;
+      background: var(--surface);
+      padding: 6px;
       border-radius: var(--radius);
-      padding: 4px;
-      margin-bottom: 18px;
-      gap: 4px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
     }
 
     .tab-btn {
       flex: 1;
       padding: 10px 14px;
-      border: none;
       background: transparent;
+      border: none;
       color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 500;
-      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.15s, color 0.15s;
-      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .tab-btn:hover {
       color: var(--text);
-      background-color: var(--surface-alt);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .tab-btn.active {
-      background-color: var(--primary);
-      color: #FFFFFF;
-      font-weight: 600;
+      background: var(--surface-alt);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    /* Cards */
     .card {
-      background-color: var(--surface);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 18px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
 
-    .card-title {
-      font-size: 14px;
+    .field-label {
+      display: block;
+      font-size: 13.5px;
       font-weight: 600;
-      color: var(--text);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #E2E8F0;
     }
 
-    /* Samples */
-    .samples-bar {
+    .field-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14.5px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .samples-row {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
       gap: 8px;
-      margin-bottom: 14px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      align-items: center;
     }
 
     .samples-label {
       font-size: 12px;
       color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-weight: 500;
     }
 
-    .sample-btn {
-      background-color: var(--surface-alt);
+    .sample-chip {
+      background: var(--surface-alt);
       border: 1px solid var(--border);
-      color: var(--text);
-      padding: 5px 10px;
-      border-radius: 4px;
+      color: #CBD5E1;
       font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.15s, border-color 0.15s;
+      transition: all 0.15s;
     }
 
-    .sample-btn:hover {
-      background-color: var(--border);
-      border-color: var(--text-muted);
+    .sample-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
-    /* Input */
-    .input-wrapper {
-      position: relative;
-      margin-bottom: 14px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 110px;
-      background-color: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 1.6;
-      resize: vertical;
-      transition: border-color 0.15s;
-      outline: none;
-    }
-
-    textarea:focus {
-      border-color: var(--border-focus);
-    }
-
-    .actions-bar {
+    .action-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-    }
-
-    .left-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .word-count-badge {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .btn {
-      padding: 9px 18px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: background-color 0.15s, opacity 0.15s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      margin-top: 18px;
     }
 
     .btn-primary {
-      background-color: var(--primary);
-      color: #FFFFFF;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background-color: var(--primary-hover);
-    }
-
-    .btn-secondary {
-      background-color: var(--surface-alt);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background-color: var(--border);
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Error Banner */
-    .error-banner {
-      display: none;
-      background-color: var(--danger-bg);
-      border: 1px solid var(--danger);
-      color: var(--danger-text);
-      padding: 12px 14px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      margin-bottom: 18px;
-    }
-
-    /* Output Sections */
-    .output-container {
-      display: none;
-    }
-
-    .step-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .step-tag {
-      font-size: 11px;
+      background: linear-gradient(135deg, #0284C7, #38BDF8);
+      color: #04121E;
+      border: none;
+      font-family: inherit;
+      font-size: 14.5px;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
     }
 
-    .tag-blue {
-      background-color: #1E3A8A;
-      color: #93C5FD;
-      border: 1px solid #3B82F6;
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
     }
 
-    .tag-green {
-      background-color: var(--success-bg);
-      color: var(--success-text);
-      border: 1px solid var(--success);
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
-    .tag-amber {
-      background-color: var(--accent-bg);
-      color: var(--accent-text);
-      border: 1px solid var(--accent);
+    /* Output Section */
+    .output-section {
+      display: none;
     }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
+    .output-section.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
     }
 
-    @media (max-width: 640px) {
-      .grid-2 {
-        grid-template-columns: 1fr;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .result-box {
-      background-color: var(--bg);
+    .result-block {
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 105px;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      position: relative;
     }
 
-    .result-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--primary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 8px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 6px;
+    }
+
+    .btn-copy {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-copy:hover {
+      color: var(--text);
+      border-color: #475569;
     }
 
     .result-text {
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.6;
-      color: var(--text);
-      white-space: pre-wrap;
-      word-break: break-word;
+      color: #F8FAFC;
     }
 
     .result-text.hindi {
       font-family: 'Noto Serif Devanagari', serif;
-      font-size: 15px;
+      font-size: 17px;
+      color: #FEF08A;
       line-height: 1.7;
     }
 
-    .copy-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
-    }
-
-    .copy-btn:hover {
-      color: var(--text);
-      border-color: var(--text-muted);
-    }
-
-    /* Metrics Row */
-    .metrics-row {
-      display: flex;
-      flex-wrap: wrap;
+    /* Metrics & Badges */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 12px;
-      background-color: var(--surface-alt);
+      margin-bottom: 16px;
+    }
+
+    .metric-card {
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      margin-top: 10px;
+      border-radius: 8px;
+      padding: 12px 14px;
     }
 
-    .metric-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      margin-right: 14px;
-    }
-
-    .metric-label {
-      font-size: 11px;
+    .metric-lbl {
+      font-size: 11.5px;
       color: var(--text-muted);
       text-transform: uppercase;
+      margin-bottom: 4px;
     }
 
     .metric-val {
-      font-size: 14px;
-      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
       color: var(--text);
     }
 
-    .metric-val.highlight {
-      color: #34D399;
+    .budget-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 6px;
+    }
+
+    .budget-badge.success {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      color: var(--success);
+    }
+
+    .budget-badge.warning {
+      background: var(--accent-glow);
+      border: 1px solid rgba(232, 163, 61, 0.4);
+      color: var(--accent);
+    }
+
+    /* Progress bar */
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284C7, #34D399);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* Fillers Box */
+    .fillers-box {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: rgba(232, 163, 61, 0.08);
+      border: 1px dashed rgba(232, 163, 61, 0.3);
+      border-radius: 8px;
+      display: none;
+    }
+
+    .fillers-label {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .filler-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .filler-tag {
+      background: rgba(232, 163, 61, 0.2);
+      color: #FDE68A;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-decoration: line-through;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      width: 100%;
     }
   </style>
 </head>
 <body>
+
   <div class="container">
     <header>
-      <div class="kicker">Nativox Suite &middot; Stage 5</div>
-      <h1>Sentence Reformation & Precise Output</h1>
+      <div class="badge">Nativox • Stage 5 Engine</div>
+      <h1>Sentence Reformation & Précis</h1>
       <p class="subtitle">
-        Constructs grammatically complete, meaningful sentences from input keywords or broken speech, and condenses paragraph transcripts into a precise 35% to 40% output in Hindi.
+        Transform broken, disfluent speech into natural, meaningful Hindi, and compress full audio transcripts into strict 35%–40% duration-budgeted précis summaries.
       </p>
     </header>
 
-    <!-- Mode Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" id="tab-pipeline" onclick="setMode('pipeline')">
-        Unified Pipeline (Step 1 to Step 2)
+    <!-- Tabs Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tabPipeline" onclick="switchTab('pipeline')">
+        ⚡ Unified 2-Step Pipeline
       </button>
-      <button class="tab-btn" id="tab-reconstruct" onclick="setMode('reconstruct')">
-        Task 1: Sentence Formulation
+      <button class="tab-btn" id="tabReconstruct" onclick="switchTab('reconstruct')">
+        🛠️ Task 1: Meaningful Sentence
       </button>
-      <button class="tab-btn" id="tab-precis" onclick="setMode('precis')">
-        Task 2: Precise Output (35%-40%)
+      <button class="tab-btn" id="tabPrecis" onclick="switchTab('precis')">
+        ⏱️ Task 2: 35%–40% Précis
       </button>
     </div>
 
-    <!-- Input Card -->
-    <div class="card">
-      <div class="card-title">
-        <span id="input-title">Input Keywords or Spoken Transcript</span>
-      </div>
-
-      <div class="samples-bar">
-        <span class="samples-label">Try Sample:</span>
-        <button class="sample-btn" type="button" onclick="loadSample('keywords')">Keywords</button>
-        <button class="sample-btn" type="button" onclick="loadSample('fillers')">Spoken Speech</button>
-        <button class="sample-btn" type="button" onclick="loadSample('paragraph')">Lecture Paragraph</button>
-      </div>
-
-      <div class="input-wrapper">
-        <textarea
-          id="inputText"
-          placeholder="Enter comma-separated keywords, fragmented spoken phrases, or a full transcript paragraph..."
-          oninput="updateWordCount()"
-        ></textarea>
-      </div>
-
-      <div class="actions-bar">
-        <div class="left-actions">
-          <span class="word-count-badge" id="wordCountBadge">0 words</span>
-          <button class="btn btn-secondary" type="button" onclick="clearInput()">Clear</button>
+    <!-- TAB 1: UNIFIED 2-STEP PIPELINE -->
+    <div id="viewPipeline" class="tab-view">
+      <div class="card">
+        <label class="field-label" for="pipelineInput">Source Input (Keywords or Speech Transcript)</label>
+        <p class="field-desc">
+          Step 1: Reformulate input keywords into natural sentences. Step 2: Condense the text to 35%–40% précis in Hindi and English.
+        </p>
+        <textarea id="pipelineInput" placeholder="Enter keywords or transcribed speech..."></textarea>
+        
+        <div class="samples-row">
+          <span class="samples-label">Quick Samples:</span>
+          <button class="sample-chip" onclick="loadSample('pipeline', 1)">Broken Speech</button>
+          <button class="sample-chip" onclick="loadSample('pipeline', 2)">Keyword Stream</button>
+          <button class="sample-chip" onclick="loadSample('pipeline', 3)">Full Neural Net Transcript</button>
         </div>
-        <button class="btn btn-primary" id="processBtn" type="button" onclick="handleProcess()">
-          Process
-        </button>
-      </div>
-    </div>
 
-    <!-- Error Banner -->
-    <div class="error-banner" id="errorBanner"></div>
-
-    <!-- Results Section -->
-    <div class="output-container" id="outputContainer">
-      <!-- Step 1: Meaningful Sentence Formulation -->
-      <div class="card" id="step1Card">
-        <div class="step-header">
-          <span class="step-tag tag-blue">Step 1: Meaningful Sentence Formulation</span>
-          <span class="word-count-badge" id="step1Badge">Formulated</span>
+        <div class="action-row">
+          <div style="font-size: 13px; color: var(--text-muted);">Target Budget: <strong>35% – 40%</strong></div>
+          <button class="btn-primary" id="btnRunPipeline" onclick="executePipeline()">
+            <span>Execute 2-Step Pipeline</span> →
+          </button>
         </div>
-        <div class="grid-2">
-          <div class="result-box">
-            <div class="result-label">
-              <span>English Reconstruction</span>
-              <button class="copy-btn" onclick="copyText('step1EngText', this)">Copy</button>
+      </div>
+
+      <!-- Pipeline Output -->
+      <div id="pipelineOutput" class="output-section">
+        <div class="card">
+          <div class="result-header" style="margin-bottom: 16px;">
+            <h3 style="font-size: 16px; color: #FFF;">🎯 Pipeline Execution Results</h3>
+            <span id="pipelineBudgetBadge" class="budget-badge success">Target Budget: 35% - 40%</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-lbl">Original Words</div>
+              <div class="metric-val" id="pipeOrigWords">0</div>
             </div>
-            <div class="result-text" id="step1EngText">-</div>
-          </div>
-          <div class="result-box">
-            <div class="result-label">
-              <span>Meaningful Hindi</span>
-              <button class="copy-btn" onclick="copyText('step1HiText', this)">Copy</button>
+            <div class="metric-card">
+              <div class="metric-lbl">Precise Words</div>
+              <div class="metric-val" id="pipePreciseWords">0</div>
             </div>
-            <div class="result-text hindi" id="step1HiText">-</div>
+            <div class="metric-card">
+              <div class="metric-lbl">Compression Ratio</div>
+              <div class="metric-val" id="pipeRatioVal">0%</div>
+              <div class="progress-track">
+                <div class="progress-fill" id="pipeProgressFill"></div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="word-count-badge" id="step1Fillers" style="display: none;"></div>
-      </div>
 
-      <!-- Step 2: Precise Output (35%-40%) -->
-      <div class="card" id="step2Card">
-        <div class="step-header">
-          <span class="step-tag tag-green">Step 2: Precise Output (35% - 40% Budget)</span>
-          <span class="step-tag tag-amber" id="budgetBadge">Within Budget</span>
-        </div>
-        <div class="grid-2">
-          <div class="result-box">
-            <div class="result-label">
-              <span>Precise English</span>
-              <button class="copy-btn" onclick="copyText('step2EngText', this)">Copy</button>
+          <!-- Step 1 Results -->
+          <div class="result-block" style="border-left: 3px solid var(--primary);">
+            <div class="result-header">
+              <span class="result-title">Step 1 • Meaningful English Formulation</span>
+              <button class="btn-copy" onclick="copyText('pipeStep1En')">Copy</button>
             </div>
-            <div class="result-text" id="step2EngText">-</div>
+            <div class="result-text" id="pipeStep1En"></div>
           </div>
-          <div class="result-box">
-            <div class="result-label">
-              <span>Precise Hindi</span>
-              <button class="copy-btn" onclick="copyText('step2HiText', this)">Copy</button>
+
+          <div class="result-block" style="border-left: 3px solid var(--accent);">
+            <div class="result-header">
+              <span class="result-title" style="color: var(--accent);">Step 1 • Meaningful Hindi Syntax</span>
+              <button class="btn-copy" onclick="copyText('pipeStep1Hi')">Copy Hindi</button>
             </div>
-            <div class="result-text hindi" id="step2HiText">-</div>
+            <div class="result-text hindi" id="pipeStep1Hi"></div>
+            <div class="fillers-box" id="pipeFillersBox">
+              <div class="fillers-label">Removed Spoken Disfluencies:</div>
+              <div class="filler-tags" id="pipeFillersList"></div>
+            </div>
           </div>
-        </div>
-        <div class="metrics-row" id="metricsRow">
-          <div class="metric-item">
-            <span class="metric-label">Input Words</span>
-            <span class="metric-val" id="metricInputWords">0</span>
+
+          <!-- Step 2 Results -->
+          <div class="result-block" style="border-left: 3px solid var(--success);">
+            <div class="result-header">
+              <span class="result-title" style="color: var(--success);">Step 2 • 35%–40% Precise English</span>
+              <button class="btn-copy" onclick="copyText('pipeStep2En')">Copy</button>
+            </div>
+            <div class="result-text" id="pipeStep2En"></div>
           </div>
-          <div class="metric-item">
-            <span class="metric-label">Precise Words</span>
-            <span class="metric-val" id="metricPreciseWords">0</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">Retention Ratio</span>
-            <span class="metric-val highlight" id="metricRatio">0%</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">Target Range</span>
-            <span class="metric-val">35% - 40%</span>
+
+          <div class="result-block" style="border-left: 3px solid #FCD34D;">
+            <div class="result-header">
+              <span class="result-title" style="color: #FCD34D;">Step 2 • 35%–40% Precise Hindi Output</span>
+              <button class="btn-copy" onclick="copyText('pipeStep2Hi')">Copy Hindi</button>
+            </div>
+            <div class="result-text hindi" id="pipeStep2Hi"></div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- TAB 2: TASK 1 RECONSTRUCT -->
+    <div id="viewReconstruct" class="tab-view" style="display: none;">
+      <div class="card">
+        <label class="field-label" for="reconstructInput">Disfluent or Fragmented Speech</label>
+        <p class="field-desc">
+          Restores grammatical SOV sentence structure in Hindi and strips disfluent filler words (*"uh, basically, you know"*).
+        </p>
+        <textarea id="reconstructInput" placeholder="e.g., uh video we basically train neural network computer vision model"></textarea>
+
+        <div class="samples-row">
+          <span class="samples-label">Quick Samples:</span>
+          <button class="sample-chip" onclick="loadSample('reconstruct', 1)">Sample 1 (Disfluent speech)</button>
+          <button class="sample-chip" onclick="loadSample('reconstruct', 2)">Sample 2 (Raw keywords)</button>
+          <button class="sample-chip" onclick="loadSample('reconstruct', 3)">Sample 3 (Spoken stammer)</button>
+        </div>
+
+        <div class="action-row">
+          <div></div>
+          <button class="btn-primary" id="btnRunReconstruct" onclick="runReconstruct()">
+            <span>Reconstruct Meaning</span> →
+          </button>
+        </div>
+      </div>
+
+      <!-- Task 1 Output -->
+      <div id="reconstructOutput" class="output-section">
+        <div class="card">
+          <div class="result-block" style="border-left: 3px solid var(--primary);">
+            <div class="result-header">
+              <span class="result-title">Cleaned English Sentence</span>
+              <button class="btn-copy" onclick="copyText('recEnglish')">Copy</button>
+            </div>
+            <div class="result-text" id="recEnglish"></div>
+          </div>
+
+          <div class="result-block" style="border-left: 3px solid var(--accent);">
+            <div class="result-header">
+              <span class="result-title" style="color: var(--accent);">Meaningful Hindi (SOV Grammatical Structure)</span>
+              <button class="btn-copy" onclick="copyText('recHindi')">Copy Hindi</button>
+            </div>
+            <div class="result-text hindi" id="recHindi"></div>
+            <div class="fillers-box" id="recFillersBox">
+              <div class="fillers-label">Filtered Verbal Fillers:</div>
+              <div class="filler-tags" id="recFillersList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: TASK 2 PRÉCIS -->
+    <div id="viewPrecis" class="tab-view" style="display: none;">
+      <div class="card">
+        <label class="field-label" for="precisInput">Spoken Paragraph Audio Transcript</label>
+        <p class="field-desc">
+          Generates an information-dense précis strictly within 35%–40% of source word count to match video dubbing duration.
+        </p>
+        <textarea id="precisInput" style="height: 140px;" placeholder="Paste spoken transcript paragraph..."></textarea>
+
+        <div class="samples-row">
+          <span class="samples-label">Quick Samples:</span>
+          <button class="sample-chip" onclick="loadSample('precis', 1)">Deep Learning Tutorial</button>
+          <button class="sample-chip" onclick="loadSample('precis', 2)">Microservices Architecture</button>
+        </div>
+
+        <div class="action-row">
+          <div style="font-size: 13px; color: var(--text-muted);">Duration Window: <strong>35% – 40%</strong></div>
+          <button class="btn-primary" id="btnRunPrecis" onclick="runPrecis()">
+            <span>Generate 35%–40% Précis</span> →
+          </button>
+        </div>
+      </div>
+
+      <!-- Task 2 Output -->
+      <div id="precisOutput" class="output-section">
+        <div class="card">
+          <div class="result-header" style="margin-bottom: 16px;">
+            <h3 style="font-size: 16px; color: #FFF;">📊 Précis Compression Analysis</h3>
+            <span id="precisBadge" class="budget-badge success">Target Budget: 35% - 40%</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-lbl">Original Words</div>
+              <div class="metric-val" id="precOrigWords">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-lbl">Précis Words</div>
+              <div class="metric-val" id="precWords">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-lbl">Retention Ratio</div>
+              <div class="metric-val" id="precRatio">0%</div>
+              <div class="progress-track">
+                <div class="progress-fill" id="precProgressFill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-block" style="border-left: 3px solid var(--primary);">
+            <div class="result-header">
+              <span class="result-title">Compressed Précis (English)</span>
+              <button class="btn-copy" onclick="copyText('precisEnglish')">Copy</button>
+            </div>
+            <div class="result-text" id="precisEnglish"></div>
+          </div>
+
+          <div class="result-block" style="border-left: 3px solid #FCD34D;">
+            <div class="result-header">
+              <span class="result-title" style="color: #FCD34D;">Compressed Précis (Hindi)</span>
+              <button class="btn-copy" onclick="copyText('precisHindi')">Copy Hindi</button>
+            </div>
+            <div class="result-text hindi" id="precisHindi"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Department of Computer Science & Engineering • Dr. Debjit Ghosh • Nativox AI Dubbing Suite
+    </footer>
   </div>
 
   <script>
-    let currentMode = "pipeline";
-
-    const samples = {
-      keywords: "student, library, study, exam, tomorrow",
-      fillers: "um actually we are you know going to the market tomorrow basically",
-      paragraph: "In today's lecture, we are basically going to discuss machine learning. Machine learning is, you know, a field of artificial intelligence that uses statistical techniques to give computer systems the ability to learn from data. So basically it allows computers to make decisions without being explicitly programmed for every single task."
+    const sampleData = {
+      pipeline: {
+        1: "uh video we basically train neural network computer vision model you know",
+        2: "speech recognition, machine translation, natural language processing, audio alignment",
+        3: "Welcome back guys, in this particular tutorial today, what we are basically going to do is explore how deep learning and artificial neural networks actually work under the hood. You know, many people think that neural networks are like a magic black box, but actually, it is just basic linear algebra, matrix multiplication, and calculus with gradient descent. We will take a sample dataset of images, write a Python script using PyTorch, and see how the loss function decreases step by step until the computer learns to classify cats and dogs accurately."
+      },
+      reconstruct: {
+        1: "uh video we basically train neural network computer vision model you know",
+        2: "speech recognition machine translation natural language processing",
+        3: "we we basically need to make sure that sentence becoming meaningful first"
+      },
+      precis: {
+        1: "Welcome back guys, in this particular tutorial today, what we are basically going to do is explore how deep learning and artificial neural networks actually work under the hood. You know, many people think that neural networks are like a magic black box, but actually, it is just basic linear algebra, matrix multiplication, and calculus with gradient descent. We will take a sample dataset of images, write a Python script using PyTorch, and see how the loss function decreases step by step until the computer learns to classify cats and dogs accurately.",
+        2: "So today everyone, what we are talking about in this software architecture seminar is building decoupled microservices. In traditional monolithic applications, every module is tightly bundled together, which makes maintenance, debugging, and continuous delivery very difficult. By breaking down the whole system into isolated microservices with clean API contracts, development teams can deploy independent components rapidly without risking cascading failures across the entire cluster."
+      }
     };
 
-    function setMode(mode) {
-      currentMode = mode;
-      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-      document.getElementById("tab-" + mode).classList.add("active");
+    function switchTab(tab) {
+      const tabs = ['pipeline', 'reconstruct', 'precis'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const view = document.getElementById('view' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tab) {
+          btn.classList.add('active');
+          view.style.display = 'block';
+        } else {
+          btn.classList.remove('active');
+          view.style.display = 'none';
+        }
+      });
+    }
 
-      const title = document.getElementById("input-title");
-      const step1Card = document.getElementById("step1Card");
-      const step2Card = document.getElementById("step2Card");
-
-      if (mode === "pipeline") {
-        title.textContent = "Input Keywords or Spoken Transcript";
-        if (step1Card) step1Card.style.display = "block";
-        if (step2Card) step2Card.style.display = "block";
-      } else if (mode === "reconstruct") {
-        title.textContent = "Input Broken Speech or Keywords (Task 1)";
-        if (step1Card) step1Card.style.display = "block";
-        if (step2Card) step2Card.style.display = "none";
-      } else if (mode === "precis") {
-        title.textContent = "Input Full Transcript Paragraph (Task 2)";
-        if (step1Card) step1Card.style.display = "none";
-        if (step2Card) step2Card.style.display = "block";
+    function loadSample(tab, id) {
+      if (tab === 'pipeline') {
+        document.getElementById('pipelineInput').value = sampleData.pipeline[id];
+      } else if (tab === 'reconstruct') {
+        document.getElementById('reconstructInput').value = sampleData.reconstruct[id];
+      } else if (tab === 'precis') {
+        document.getElementById('precisInput').value = sampleData.precis[id];
       }
     }
 
-    function loadSample(type) {
-      const textarea = document.getElementById("inputText");
-      textarea.value = samples[type] || "";
-      updateWordCount();
-      hideError();
-    }
-
-    function updateWordCount() {
-      const text = document.getElementById("inputText").value.trim();
-      const count = text ? text.split(/\s+/).filter(Boolean).length : 0;
-      document.getElementById("wordCountBadge").textContent = count + (count === 1 ? " word" : " words");
-    }
-
-    function clearInput() {
-      document.getElementById("inputText").value = "";
-      updateWordCount();
-      hideError();
-      document.getElementById("outputContainer").style.display = "none";
-    }
-
-    function showError(msg) {
-      const el = document.getElementById("errorBanner");
-      el.textContent = msg;
-      el.style.display = "block";
-    }
-
-    function hideError() {
-      const el = document.getElementById("errorBanner");
-      el.style.display = "none";
-      el.textContent = "";
-    }
-
-    async function handleProcess() {
-      const text = document.getElementById("inputText").value.trim();
+    // Unified 2-Step Pipeline
+    async function executePipeline() {
+      const text = document.getElementById('pipelineInput').value.trim();
       if (!text) {
-        showError("Please enter keywords, a sentence, or a transcript paragraph.");
+        alert('Please enter keywords or text first.');
         return;
       }
 
-      hideError();
-      const processBtn = document.getElementById("processBtn");
-      processBtn.disabled = true;
-      processBtn.textContent = "Processing...";
+      const btn = document.getElementById('btnRunPipeline');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Processing 2-Step Pipeline...</span>';
 
       try {
-        if (currentMode === "pipeline") {
-          await runPipeline(text);
-        } else if (currentMode === "reconstruct") {
-          await runReconstruct(text);
-        } else if (currentMode === "precis") {
-          await runPrecis(text);
+        const resp = await fetch('/api/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            min_ratio: 0.35,
+            max_ratio: 0.40,
+            target_language: 'hindi'
+          })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || 'Pipeline request failed.');
         }
+
+        const data = await resp.json();
+
+        document.getElementById('pipeOrigWords').textContent = data.original_words;
+        document.getElementById('pipePreciseWords').textContent = data.precise_words;
+        document.getElementById('pipeRatioVal').textContent = data.retention_ratio_pct + '%';
+        document.getElementById('pipeProgressFill').style.width = Math.min(100, data.retention_ratio_pct) + '%';
+
+        document.getElementById('pipeStep1En').textContent = data.step1_meaningful_english;
+        document.getElementById('pipeStep1Hi').textContent = data.step1_meaningful_hindi;
+
+        const fillersBox = document.getElementById('pipeFillersBox');
+        const fillersList = document.getElementById('pipeFillersList');
+        fillersList.innerHTML = '';
+        if (data.step1_removed_fillers && data.step1_removed_fillers.length > 0) {
+          data.step1_removed_fillers.forEach(f => {
+            const span = document.createElement('span');
+            span.className = 'filler-tag';
+            span.textContent = f;
+            fillersList.appendChild(span);
+          });
+          fillersBox.style.display = 'block';
+        } else {
+          fillersBox.style.display = 'none';
+        }
+
+        document.getElementById('pipeStep2En').textContent = data.step2_precise_english;
+        document.getElementById('pipeStep2Hi').textContent = data.step2_precise_hindi;
+
+        const badge = document.getElementById('pipelineBudgetBadge');
+        if (data.is_within_budget) {
+          badge.className = 'budget-badge success';
+          badge.innerHTML = '✓ Within 35% – 40% Budget';
+        } else {
+          badge.className = 'budget-badge warning';
+          badge.innerHTML = 'Ratio: ' + data.retention_ratio_pct + '% (Target 35%-40%)';
+        }
+
+        document.getElementById('pipelineOutput').classList.add('show');
       } catch (err) {
-        showError(err.message || "An unexpected error occurred while communicating with the server.");
+        alert('Error: ' + err.message);
       } finally {
-        processBtn.disabled = false;
-        processBtn.textContent = "Process";
+        btn.disabled = false;
+        btn.innerHTML = '<span>Execute 2-Step Pipeline</span> →';
       }
     }
 
-    async function runPipeline(text) {
-      const response = await fetch("/api/pipeline", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: text,
-          target_language: "hi",
-          min_ratio: 0.35,
-          max_ratio: 0.40
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || "Server returned an error: " + response.status);
+    // Task 1: Reconstruct Meaning
+    async function runReconstruct() {
+      const text = document.getElementById('reconstructInput').value.trim();
+      if (!text) {
+        alert('Please enter broken speech text.');
+        return;
       }
 
-      const data = await response.json();
-      document.getElementById("outputContainer").style.display = "block";
-      document.getElementById("step1Card").style.display = "block";
-      document.getElementById("step2Card").style.display = "block";
+      const btn = document.getElementById('btnRunReconstruct');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Reconstructing...</span>';
 
-      // Step 1 values
-      document.getElementById("step1EngText").textContent = data.step1_meaningful_english || "-";
-      document.getElementById("step1HiText").textContent = data.step1_meaningful_hindi || "-";
+      try {
+        const resp = await fetch('/api/reconstruct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, target_language: 'hindi' })
+        });
 
-      const fillersEl = document.getElementById("step1Fillers");
-      if (data.step1_removed_fillers && data.step1_removed_fillers.length > 0) {
-        fillersEl.style.display = "block";
-        fillersEl.textContent = "Removed disfluent fillers: " + data.step1_removed_fillers.join(", ");
-      } else {
-        fillersEl.style.display = "none";
-      }
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || 'Reconstruct request failed.');
+        }
 
-      // Step 2 values
-      document.getElementById("step2EngText").textContent = data.step2_precise_english || "-";
-      document.getElementById("step2HiText").textContent = data.step2_precise_hindi || "-";
-      document.getElementById("metricInputWords").textContent = data.original_words || "0";
-      document.getElementById("metricPreciseWords").textContent = data.precise_words || "0";
-      document.getElementById("metricRatio").textContent = (data.retention_ratio_pct || 0) + "%";
+        const data = await resp.json();
 
-      const budgetBadge = document.getElementById("budgetBadge");
-      if (data.is_within_budget) {
-        budgetBadge.className = "step-tag tag-green";
-        budgetBadge.textContent = "Optimal Budget Met";
-      } else {
-        budgetBadge.className = "step-tag tag-amber";
-        budgetBadge.textContent = "Ratio: " + data.retention_ratio_pct + "%";
-      }
-    }
+        document.getElementById('recEnglish').textContent = data.cleaned_english;
+        document.getElementById('recHindi').textContent = data.meaningful_hindi;
 
-    async function runReconstruct(text) {
-      const response = await fetch("/api/reconstruct", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: text,
-          target_language: "hi"
-        })
-      });
+        const fillersBox = document.getElementById('recFillersBox');
+        const fillersList = document.getElementById('recFillersList');
+        fillersList.innerHTML = '';
+        if (data.removed_fillers && data.removed_fillers.length > 0) {
+          data.removed_fillers.forEach(f => {
+            const span = document.createElement('span');
+            span.className = 'filler-tag';
+            span.textContent = f;
+            fillersList.appendChild(span);
+          });
+          fillersBox.style.display = 'block';
+        } else {
+          fillersBox.style.display = 'none';
+        }
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || "Server error: " + response.status);
-      }
-
-      const data = await response.json();
-      document.getElementById("outputContainer").style.display = "block";
-      document.getElementById("step1Card").style.display = "block";
-      document.getElementById("step2Card").style.display = "none";
-
-      document.getElementById("step1EngText").textContent = data.cleaned_english || "-";
-      document.getElementById("step1HiText").textContent = data.meaningful_hindi || "-";
-
-      const fillersEl = document.getElementById("step1Fillers");
-      if (data.removed_fillers && data.removed_fillers.length > 0) {
-        fillersEl.style.display = "block";
-        fillersEl.textContent = "Removed disfluent fillers: " + data.removed_fillers.join(", ");
-      } else {
-        fillersEl.style.display = "none";
+        document.getElementById('reconstructOutput').classList.add('show');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Reconstruct Meaning</span> →';
       }
     }
 
-    async function runPrecis(text) {
-      const response = await fetch("/api/precis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: text,
-          target_language: "hi",
-          min_ratio: 0.35,
-          max_ratio: 0.40
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || "Server error: " + response.status);
+    // Task 2: Précis
+    async function runPrecis() {
+      const text = document.getElementById('precisInput').value.trim();
+      if (!text) {
+        alert('Please paste transcript paragraph.');
+        return;
       }
 
-      const data = await response.json();
-      document.getElementById("outputContainer").style.display = "block";
-      document.getElementById("step1Card").style.display = "none";
-      document.getElementById("step2Card").style.display = "block";
+      const btn = document.getElementById('btnRunPrecis');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Compressing to 35%–40%...</span>';
 
-      document.getElementById("step2EngText").textContent = data.precis_english || "-";
-      document.getElementById("step2HiText").textContent = data.precis_hindi || "-";
-      document.getElementById("metricInputWords").textContent = data.original_word_count || "0";
-      document.getElementById("metricPreciseWords").textContent = data.precis_word_count || "0";
-      document.getElementById("metricRatio").textContent = (data.retention_ratio_pct || 0) + "%";
+      try {
+        const resp = await fetch('/api/precis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            min_ratio: 0.35,
+            max_ratio: 0.40,
+            target_language: 'hindi'
+          })
+        });
 
-      const budgetBadge = document.getElementById("budgetBadge");
-      if (data.is_within_budget) {
-        budgetBadge.className = "step-tag tag-green";
-        budgetBadge.textContent = "Optimal Budget Met";
-      } else {
-        budgetBadge.className = "step-tag tag-amber";
-        budgetBadge.textContent = "Ratio: " + data.retention_ratio_pct + "%";
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || 'Précis request failed.');
+        }
+
+        const data = await resp.json();
+
+        document.getElementById('precOrigWords').textContent = data.original_word_count;
+        document.getElementById('precWords').textContent = data.precis_word_count;
+        document.getElementById('precRatio').textContent = data.retention_ratio_pct + '%';
+        document.getElementById('precProgressFill').style.width = Math.min(100, data.retention_ratio_pct) + '%';
+
+        document.getElementById('precisEnglish').textContent = data.precis_english;
+        document.getElementById('precisHindi').textContent = data.precis_hindi;
+
+        const badge = document.getElementById('precisBadge');
+        if (data.is_within_budget) {
+          badge.className = 'budget-badge success';
+          badge.innerHTML = '✓ Within 35% – 40% Budget';
+        } else {
+          badge.className = 'budget-badge warning';
+          badge.innerHTML = 'Ratio: ' + data.retention_ratio_pct + '% (Target 35%-40%)';
+        }
+
+        document.getElementById('precisOutput').classList.add('show');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Generate 35%–40% Précis</span> →';
       }
     }
 
-    function copyText(elementId, btn) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      const text = el.textContent;
+    function copyText(id) {
+      const text = document.getElementById(id).textContent;
+      if (!text) return;
       navigator.clipboard.writeText(text).then(() => {
-        const originalText = btn.textContent;
-        btn.textContent = "Copied";
-        setTimeout(() => {
-          btn.textContent = originalText;
-        }, 1800);
+        alert('Copied to clipboard!');
       }).catch(() => {
-        btn.textContent = "Failed";
-        setTimeout(() => {
-          btn.textContent = "Copy";
-        }, 1800);
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Copied to clipboard!');
       });
     }
-
-    // Initialize word count on load
-    updateWordCount();
   </script>
 </body>
 </html>
