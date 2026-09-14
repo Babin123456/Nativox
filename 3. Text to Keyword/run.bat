@@ -7,10 +7,10 @@ if not exist venv (
 )
 
 call venv\Scripts\activate.bat
-pip install -q -r requirements.txt
+python -m pip install -q -r requirements.txt
 
 echo.
 echo Starting Text to Keyword at http://127.0.0.1:8010
 echo Press Ctrl+C to stop.
 echo.
-uvicorn main:app --reload --port 8010
+python -m uvicorn main:app --reload --port 8010

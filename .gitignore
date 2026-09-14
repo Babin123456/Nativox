@@ -1,0 +1,25 @@
+# Python virtual environments & packages
+venv/
+**/venv/
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary media & cache
+storage/uploads/*
+!storage/uploads/.gitkeep
+storage/outputs/*
+!storage/outputs/.gitkeep
+*.mp3
+*.mp4
+*.wav
+*.m4a
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
