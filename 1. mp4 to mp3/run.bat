@@ -1,15 +1,15 @@
 @echo off
 cd /d "%~dp0backend"
 
-if not exist venv (
+if not exist venv\Scripts\activate.bat (
     echo Creating virtual environment...
     py -3.11 -m venv venv
 )
 
-call venv\Scripts\activate
-pip install -q -r requirements.txt
+call venv\Scripts\activate.bat
+python -m pip install -q -r requirements.txt
 
 echo.
 echo Starting server at http://127.0.0.1:8000
 echo.
-uvicorn main:app --reload
+python -m uvicorn main:app --reload --port 8000
