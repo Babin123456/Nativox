@@ -36,7 +36,9 @@ from data_utils import (
     load_corpus_from_path,
     split_into_sentences,
     create_training_pairs,
-    SentenceConstructionDataset
+    SentenceConstructionDataset,
+    load_all_training_sentences,
+    CORE_SENTENCE_CORPUS
 )
 
 
@@ -53,8 +55,8 @@ def parse_args():
     parser.add_argument(
         "--model_name",
         type=str,
-        default="t5-small",
-        help="Pretrained Seq2Seq base model name (e.g. 't5-small', 'google/flan-t5-small')."
+        default="google/flan-t5-small",
+        help="Pretrained Seq2Seq base model name (e.g. 'google/flan-t5-small', 'google/flan-t5-base')."
     )
     parser.add_argument(
         "--output_dir",
@@ -65,13 +67,13 @@ def parse_args():
     parser.add_argument(
         "--epochs",
         type=int,
-        default=3,
+        default=5,
         help="Number of training epochs."
     )
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=8,
+        default=16,
         help="Training batch size per device."
     )
     parser.add_argument(
@@ -89,7 +91,7 @@ def parse_args():
     parser.add_argument(
         "--augmentations_per_sentence",
         type=int,
-        default=4,
+        default=5,
         help="Number of destructive training variants to synthesize per clean sentence."
     )
     parser.add_argument(
@@ -167,31 +169,17 @@ def train():
     print(f" - Max Sequence Length : {args.max_length}")
     print("=" * 70)
 
-    # 1. Ingest document and extract text
-    if not args.data_path or not os.path.exists(args.data_path):
-        print(f"\n[Error] No valid dataset file was provided or found.")
-        print(f"  Specified path: {args.data_path}")
-        print("\nPlease either:")
-        print("  1. Place your PDF file inside '6. Sectence Construction/' and run `python train.py`")
-        print("  2. Or provide the path directly:")
-        print("       python train.py --data_path \"path/to/your/dataset.pdf\"")
-        sys.exit(1)
-
-    print(f"\n[1/5] Extracting clean text from '{args.data_path}'...")
-    raw_text = load_corpus_from_path(args.data_path)
-    print(f"      Extracted {len(raw_text):,} raw characters.")
-
-    # 2. Extract clean, meaningful sentences
-    print("\n[2/5] Segmenting text into well-formed sentences...")
-    sentences = split_into_sentences(raw_text)
-    print(f"      Extracted {len(sentences):,} clean grammatical sentences.")
+    # 1. Ingest document and combine with core linguistic corpus
+    print(f"\n[1/5] Ingesting sentences from document and core grammatical corpus...")
+    sentences = load_all_training_sentences(args.data_path)
+    print(f"      Loaded {len(sentences):,} clean grammatical sentences.")
 
     if len(sentences) < 2:
-        print("[Error] Not enough sentences extracted from the document to train.")
+        print("[Error] Not enough sentences available to train.")
         sys.exit(1)
 
-    # 3. Generate destructive pairs
-    print(f"\n[3/5] Synthesizing destructive sentence pairs (factor={args.augmentations_per_sentence}x)...")
+    # 2. Generate destructive pairs
+    print(f"\n[2/5] Synthesizing destructive sentence pairs (factor={args.augmentations_per_sentence}x)...")
     training_pairs = create_training_pairs(
         sentences,
         augmentations_per_sentence=args.augmentations_per_sentence
@@ -199,12 +187,12 @@ def train():
     print(f"      Generated {len(training_pairs):,} (Destructive Input -> Constructive Target) pairs.")
 
     print("\n      Sample Generated Pairs:")
-    for idx, (dest, constr) in enumerate(training_pairs[:3], 1):
+    for idx, (dest, constr) in enumerate(training_pairs[:4], 1):
         print(f"      [{idx}] DESTRUCTIVE  : {dest}")
         print(f"          CONSTRUCTIVE : {constr}")
 
-    # 4. Initialize Tokenizer and Dataset
-    print(f"\n[4/5] Loading tokenizer & base model '{args.model_name}'...")
+    # 3. Initialize Tokenizer and Dataset
+    print(f"\n[3/5] Loading tokenizer & base model '{args.model_name}'...")
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
 
@@ -213,7 +201,7 @@ def train():
         tokenizer=tokenizer,
         max_source_length=args.max_length,
         max_target_length=args.max_length,
-        prefix="construct meaningful sentence: "
+        prefix="construct a complete, meaningful sentence: "
     )
 
     # Train/Validation split
@@ -249,9 +237,6 @@ def train():
         num_training_steps=total_steps
     )
 
-    use_amp = (device.type == "cuda")
-    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
-
     # 5. Training Loop
     print("\n[5/5] Starting fine-tuning loop...")
     best_val_loss = float("inf")
@@ -269,19 +254,19 @@ def train():
             attention_mask = batch["attention_mask"].to(device)
             labels = batch["labels"].to(device)
 
-            with torch.amp.autocast("cuda", enabled=use_amp):
-                outputs = model(
-                    input_ids=input_ids,
-                    attention_mask=attention_mask,
-                    labels=labels
-                )
-                loss = outputs.loss
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=labels
+            )
+            loss = outputs.loss
 
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
+            if torch.isnan(loss) or torch.isinf(loss):
+                continue
+
+            loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            scaler.step(optimizer)
-            scaler.update()
+            optimizer.step()
             scheduler.step()
 
             epoch_loss += loss.item()
@@ -310,12 +295,14 @@ def train():
     # Demonstration of inference on a few sample destructive sentences
     print("\n[*] Quick Validation Inference Test:")
     sample_destructive = [
+        "Many boys poor motivation",
         "market went yesterday she to the",
         "eating apple boy an is",
+        "he go school bus everyday by",
         "artificial intelligence rapidly world changing is"
     ]
     model.eval()
-    prefix = "construct meaningful sentence: "
+    prefix = "construct a complete, meaningful sentence: "
 
     for sent in sample_destructive:
         input_ids = tokenizer(
@@ -330,7 +317,8 @@ def train():
                 input_ids,
                 max_length=args.max_length,
                 num_beams=4,
-                length_penalty=1.0,
+                no_repeat_ngram_size=3,
+                length_penalty=1.2,
                 early_stopping=True
             )
         constructed = tokenizer.decode(outputs[0], skip_special_tokens=True)
