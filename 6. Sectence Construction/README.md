@@ -1,28 +1,108 @@
-# Nativox Stage 6: Sentence Construction & Syntax Restoration
+# Stage 6: Sentence Construction & Syntax Restoration
 
-A deep learning pipeline for learning sentence syntax from standard PDF or Word documents and reconstructing destructive, disordered, or broken sentences into fluent, constructive, and meaningful English sentences.
+## Document-Trained Sequence-to-Sequence Syntax Reconstruction Engine
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+Part of the **Nativox** AI Multilingual Dubbing Suite.
+
+[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
+[![Stage 5](https://img.shields.io/badge/Prev_Stage-Stage_5:_Reformation-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../5.%20Sentence%20Reformation/README.md)
+[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
-[![HuggingFace Transformers](https://img.shields.io/badge/Transformers-Seq2Seq-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co)
+[![Transformers](https://img.shields.io/badge/Transformers-Seq2Seq-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co)
 
 ---
 
-## 📖 Overview
+## 📖 Operational Overview
 
-In spoken audio transcription, noisy OCR, or second-language drafting, raw text often appears in a **destructive** state:
-- Jumbled word order (e.g., Object-Verb-Subject or Subject-Object-Verb scrambles).
-- Omitted function words (articles *a, an, the*, prepositions *in, on, to*, auxiliaries *is, are, was*).
-- Broken grammatical inflection and subject-verb agreements.
-- Stripped punctuation and flat lowercase casing.
+In spoken speech transcription, noisy OCR, and second-language drafting, input text often arrives in a **destructive** state:
 
-This module learns how meaningful sentences are structured directly from your **standard PDF (`.pdf`) or Word (`.docx`) documents**, trains a Sequence-to-Sequence (Seq2Seq) Transformer model, and provides an inference engine to transform any destructive input sentence into a constructive, meaningful sentence.
+- **Jumbled word order:** Tokens appear out of place (e.g., Object-Verb-Subject scrambles).
+- **Omitted function words:** Missing articles (*a, an, the*), prepositions (*in, on, to*), and auxiliary verbs (*is, are, was*).
+- **Broken grammatical agreement:** Distorted singular/plural inflections and verb tenses.
+- **Missing casing and punctuation:** Completely unpunctuated lowercase streams.
+
+Stage 6 learns canonical sentence syntax directly from standard **PDF (`.pdf`)** or **Word (`.docx`)** documents, trains a Sequence-to-Sequence (Seq2Seq) Transformer model using self-supervised synthetic corruption, and provides an inference engine to transform any destructive input sentence into a constructive, meaningful sentence.
+
+---
+
+## 🛠️ Tech Stack & Key Features
+
+- **Model Architecture:** Google Flan-T5 (`flan-t5-small` default, scalable to `flan-t5-base` or `flan-t5-large`)
+- **Deep Learning Framework:** PyTorch 2.0+ & Hugging Face Transformers
+- **Document Ingestion:** `pypdf` for PDF text extraction and `python-docx` for `.docx` documents
+- **Decoding Mechanism:** Multi-beam search with repetition penalty and length normalization
+- **Execution Target:** GPU (CUDA accelerated) or optimized multi-core CPU inference
+
+---
+
+## 📋 Prerequisites & Requirements
+
+- **Python:** **3.11** (Repository pinned via root `.python-version`)
+- **Dependencies:** `torch`, `transformers`, `pypdf`, `python-docx`, `tqdm`
+- **CUDA:** Optional but recommended for faster training on GPU
+
+---
+
+## 🚀 Setup & Execution
+
+### 1. Navigate to Stage Directory
+
+```bash
+cd "6. Sectence Construction"
+```
+
+### 2. Create & Activate Virtual Environment
+
+- **Create Environment (Python 3.11):**
+
+  ```bash
+  python -m venv venv
+  ```
+
+- **Activate on Windows (PowerShell):**
+
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+
+- **Activate on Windows (CMD):**
+
+  ```cmd
+  venv\Scripts\activate.bat
+  ```
+
+- **Activate on macOS / Linux / Git Bash:**
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Train Model & Run CLI
+
+- **Train Seq2Seq Model on Document Corpus:**
+
+  ```bash
+  python train.py
+  ```
+
+- **Launch Interactive Testing CLI:**
+
+  ```bash
+  python construct.py
+  ```
 
 ---
 
 ## 🏛️ Pipeline Architecture
 
-```
+```text
                                   [Training Pipeline]
                                   
 +-----------------------------+       +-----------------------------+
@@ -41,7 +121,7 @@ This module learns how meaningful sentences are structured directly from your **
                v
 +-----------------------------+       +-----------------------------+
 |  Paired Supervised Dataset  | ----> | Seq2Seq Transformer (T5)    |
-| (Destructive -> Constructive|       | Fine-Tuning & Checkpoint    |
+|(Destructive -> Constructive)|       | Fine-Tuning & Checkpoint    |
 +-----------------------------+       +-----------------------------+
                                                      |
                                                      v
@@ -57,35 +137,10 @@ This module learns how meaningful sentences are structured directly from your **
 
 ---
 
-## 📂 File Structure
-
-```
-6. Sectence Construction/
-├── data_utils.py               # Document extractors (PDF/Word), sentence splitter, corruption engine
-├── train.py                    # Seq2Seq Transformer training pipeline (T5 fine-tuning)
-├── construct.py                # Testing & inference engine (interactive, CLI, & batch modes)
-├── requirements.txt            # Dependencies (torch, transformers, pypdf, python-docx, tqdm)
-├── sample_text.pdf             # User PDF dataset (164 pages)
-├── saved_model/                # Trained model checkpoint and tokenizer weights
-└── README.md                   # Complete module documentation
-```
-
----
-
-## ⚙️ Installation
-
-1. Ensure Python 3.10+ and CUDA (optional but recommended for GPU acceleration) are installed.
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## 🚀 Quick Start Guide
+## 🔌 CLI & Usage Guide
 
 ### Step 1: Train the Model (`train.py`)
+
 Train the model directly on your PDF document (e.g. `sample_text.pdf`):
 
 ```bash
@@ -96,7 +151,8 @@ python train.py
 python train.py --data_path sample_text.pdf --epochs 12 --batch_size 8
 ```
 
-#### Key Training Arguments:
+#### Key Training Arguments
+
 | Argument | Default | Description |
 | :--- | :--- | :--- |
 | `--data_path` | `None` (auto-detect) | Path to `.pdf`, `.docx`, `.txt` file, or directory |
@@ -107,11 +163,12 @@ python train.py --data_path sample_text.pdf --epochs 12 --batch_size 8
 | `--lr` | `3e-4` | Learning rate for AdamW optimizer |
 | `--augmentations_per_sentence` | `5` | Number of destructive variants generated per clean sentence |
 
-### Step 3: Test Sentence Construction (`construct.py`)
+### Step 2: Test Sentence Construction (`construct.py`)
 
 `construct.py` supports three versatile modes:
 
 #### Mode 1: Interactive Live CLI (Default)
+
 Run interactive testing to enter destructive sentences and see real-time constructive outputs:
 
 ```bash
@@ -130,11 +187,13 @@ Constructive Output > Artificial intelligence is rapidly changing the world.
 ```
 
 #### Mode 2: Single Sentence Command-Line Argument
+
 ```bash
 python construct.py --sentence "plants sunlight into chemical energy convert photosynthesis"
 ```
 
 Output:
+
 ```text
 ======================================================================
 [*] SENTENCE CONSTRUCTION RESULT
@@ -146,17 +205,14 @@ Output:
 ```
 
 #### Mode 3: Batch File Processing
+
 Construct sentences for an entire file (one destructive sentence per line):
 
 ```bash
 python construct.py --batch_file test_destructive_sentences.txt
 ```
 
----
-
-## 🎯 Verification Benchmark Results
-
-Below are actual results produced by the fine-tuned model:
+### Verification Benchmark Results
 
 | # | Destructive Input (Jumbled / Broken) | Constructive Output (Fluent & Meaningful) |
 | :---: | :--- | :--- |
@@ -171,11 +227,33 @@ Below are actual results produced by the fine-tuned model:
 
 ---
 
-## 💡 How it Understands Sentence Formation
+## 📁 Project Structure
 
-1. **Document Ground Truth**: When ingesting PDF or Word documents, the parser extracts well-formed sentences written with correct subject-verb-object (SVO) sequence, accurate prepositional phrases, and proper punctuation.
-2. **Self-Supervised Destruction (`SentenceCorrupter`)**: The model is taught the rules of grammar by exposing it to synthetically destroyed versions of clean sentences:
-   - *Jumble noise*: Shuffles token order to destroy clause boundaries.
-   - *Omission noise*: Drops function words (articles, auxiliary verbs, prepositions) forcing the model to infer missing grammatical glue.
-   - *Inflection noise*: Distorts verb forms and plurals.
-3. **Seq2Seq Mapping**: The Transformer learns an attention-based mapping from fragmented, disorderly token sequences to complete, capitalized, punctuated, and grammatically harmonious sentences.
+```text
+6. Sectence Construction/
+├── data_utils.py               # Document extractors (PDF/Word), sentence splitter, corruption engine
+├── train.py                    # Seq2Seq Transformer training pipeline (T5 fine-tuning)
+├── construct.py                # Testing & inference engine (interactive, CLI, & batch modes)
+├── requirements.txt            # Dependencies (torch, transformers, pypdf, python-docx, tqdm)
+├── sample_text.pdf             # User PDF dataset (164 pages)
+├── saved_model/                # Trained model checkpoint and tokenizer weights
+└── README.md                   # Complete module documentation
+```
+
+---
+
+## 👥 Authors & Academic Context
+
+- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 6 Documentation</b></sub>
+</p>

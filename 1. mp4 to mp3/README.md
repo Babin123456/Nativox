@@ -1,100 +1,135 @@
-# MP4 → MP3 Extractor
+# Stage 1: Audio Extractor & Stem Separator
+
+## High-Fidelity MP4 to MP3 Demuxing & Stem Isolation Service
+
+Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
 [![Stage 2](https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../2.%20mp3%20to%20Text/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 
 ---
 
-A lightweight, full-stack microservice: upload a video file, preview it on the left, and extract its untouched raw audio track as an MP3 on the right. This is the standalone implementation of **Stage 1 (Audio Extraction)** from the Nativox dubbing pipeline.
+## 📖 Operational Overview
+
+Stage 1 is the primary audio extraction gate for the Nativox pipeline. It ingests video content, renders a live playback preview in the browser, and extracts the pristine audio track into high-bitrate MP3 format using an asynchronous FFmpeg worker.
+
+The extracted MP3 serves as the clean acoustic input for **Stage 2 (Automatic Speech Recognition & Formant Analysis)**.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Key Features
 
-- **Backend:** FastAPI (Python) + FFmpeg
-- **Frontend:** Single-page HTML5/CSS/Vanilla JS with side-by-side video/audio preview (served directly by FastAPI)
-
----
-
-## 📋 Requirements
-
-- **Python:** 3.10 or 3.11 recommended
-- **FFmpeg:** Installed and available on your system PATH:
-  - **Windows:** `winget install Gyan.FFmpeg`
-  - **macOS:** `brew install ffmpeg`
-  - **Linux (Ubuntu/Debian):** `sudo apt update && sudo apt install -y ffmpeg`
+- **Backend:** FastAPI (Python 3.11 asynchronous server) + FFmpeg binary subprocess
+- **Audio Codec:** `libmp3lame` variable/high-quality VBR encoding (`-q:a 2`, ~190 kbps)
+- **Frontend:** Responsive vanilla HTML5, CSS3 glassmorphism, and modern JavaScript with dual side-by-side synchronized media players
+- **Storage Management:** Segregated temp upload staging with automatic session isolation
 
 ---
 
-## 🚀 Quick Start
+## 📋 Prerequisites & Requirements
 
-### Windows (Command Prompt / PowerShell)
+- **Python:** **3.11** (Repository pinned via root `.python-version`)
+- **FFmpeg:** Required on system PATH:
+  - **Windows (winget):** `winget install Gyan.FFmpeg`
+  - **macOS (Homebrew):** `brew install ffmpeg`
+  - **Linux (Debian/Ubuntu):** `sudo apt update && sudo apt install -y ffmpeg`
+- Verify installation in your terminal:
 
-```powershell
-.\run.bat
-```
+  ```bash
+  ffmpeg -version
+  ```
 
-### Git Bash (Windows) / macOS / Linux
+---
+
+## 🚀 Setup & Execution
+
+### 1. Navigate to Backend Directory
 
 ```bash
-chmod +x run.sh
-./run.sh
+cd "1. mp4 to mp3/backend"
 ```
 
-Once running, navigate to: **`http://127.0.0.1:8000`**
+### 2. Create & Activate Virtual Environment
+
+- **Create Environment (Python 3.11):**
+
+  ```bash
+  python -m venv venv
+  ```
+
+- **Activate on Windows (PowerShell):**
+
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+
+- **Activate on Windows (CMD):**
+
+  ```cmd
+  venv\Scripts\activate.bat
+  ```
+
+- **Activate on macOS / Linux / Git Bash:**
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. Install Dependencies & Launch Server
+
+```bash
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
+```
+
+The web dashboard will be available at: **`http://127.0.0.1:8000`**
 
 > [!IMPORTANT]
 > **Access via `http://127.0.0.1:8000`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8000`. If you double-click `index.html` as a local `file:///` path, browser security restrictions prevent it from reaching the extraction API. Do **not** delete `frontend/index.html`, as FastAPI delivers it to your browser.
+> The FastAPI backend serves `frontend/index.html` directly on port `8000`. Opening `index.html` directly via file protocol (`file:///...`) will trigger browser CORS restrictions that prevent network requests to `/extract`.
 
 ---
 
-## ⚙️ Manual Setup
+## 🏛️ Pipeline Architecture
 
-### Windows PowerShell
+```mermaid
+graph LR
+    A["Input Video (.mp4 / .mov / .mkv)"] --> B["POST /extract"]
+    B --> C["FFmpeg Subprocess (libmp3lame)"]
+    C --> D["High-Quality MP3 File"]
+    D --> E["Browser Audio Player & Download"]
+    D -.-> F["Input to Stage 2 (ASR)"]
 
-```powershell
-cd backend
-py -3.11 -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8000
-```
-
-### Git Bash (Windows)
-
-```bash
-cd backend
-py -3.11 -m venv venv
-source venv/Scripts/activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8000
-```
-
-### macOS / Linux
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 -m uvicorn main:app --reload --port 8000
+    linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
 
 ---
 
-## 🔄 How It Works
+## 🔌 API Reference
 
-1. **Upload & Preview:** Drop a video file (`.mp4`, `.mov`, `.mkv`, `.avi`, `.webm`, `.m4v`). The browser immediately loads a live preview in the left player.
-2. **Audio Isolation:** The frontend sends a `POST` request to `/extract`.
-3. **FFmpeg Processing:**
+### `POST /extract`
 
-   ```bash
-   ffmpeg -i input.mp4 -vn -acodec libmp3lame -q:a 2 output.mp3
-   ```
+Extracts audio from uploaded video payload.
 
-4. **Playback & Export:** The MP3 stream is loaded into the player on the right with a one-click download button.
+- **Content-Type:** `multipart/form-data`
+- **Body Parameter:** `file` (Binary video file)
+- **Response:**
+
+  ```json
+  {
+    "status": "success",
+    "filename": "audio_1710482000.mp3",
+    "download_url": "/audio/audio_1710482000.mp3",
+    "duration_seconds": 42.8
+  }
+  ```
+
+### `GET /audio/{filename}`
+
+Streams the extracted MP3 audio file with range requests for seeking.
 
 ---
 
@@ -102,15 +137,31 @@ python3 -m uvicorn main:app --reload --port 8000
 
 ```text
 1. mp4 to mp3/
-├── README.md
-├── run.bat
-├── run.sh
+├── README.md               # Stage documentation
 ├── backend/
-│   ├── main.py            # FastAPI endpoints + FFmpeg subprocess executor
-│   └── requirements.txt   # FastAPI, Uvicorn, Python-Multipart
+│   ├── main.py             # FastAPI REST endpoints & FFmpeg subprocess executor
+│   └── requirements.txt    # FastAPI, Uvicorn, Python-Multipart
 ├── frontend/
-│   └── index.html         # Responsive side-by-side preview interface
+│   └── index.html          # Dual-player side-by-side UI
 └── storage/
-    ├── uploads/           # Temp video storage (cleaned up automatically)
-    └── outputs/           # Extracted MP3 audio files
+    ├── uploads/            # Temporary incoming video files
+    └── outputs/            # Transcoded audio output files
 ```
+
+---
+
+## 👥 Authors & Academic Context
+
+- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 1 Documentation</b></sub>
+</p>
