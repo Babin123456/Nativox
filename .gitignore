@@ -23,10 +23,3 @@ storage/outputs/*
 Thumbs.db
 .vscode/
 .idea/
-
-# Trained ML models
-*.safetensors
-saved_model/
-
-# Training / source documents
-*.pdf
