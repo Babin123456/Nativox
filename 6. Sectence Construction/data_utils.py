@@ -201,6 +201,92 @@ def split_into_sentences(text: str, min_words: int = 4, max_words: int = 45) -> 
     return unique_sentences
 
 
+# Comprehensive core corpus of high-quality, diverse grammatical patterns
+CORE_SENTENCE_CORPUS = [
+    # Quantifier & determiner patterns with mental states and attributes
+    "Many of the boys have very poor motivation.",
+    "Many of the boys have poor motivation.",
+    "Most of the students passed the examination with excellent grades.",
+    "A few of the children were playing happily in the park.",
+    "Several students in the classroom need extra attention from the teacher.",
+    "All of the workers completed their assignments on time.",
+    "Some of the answers given during the test were completely incorrect.",
+    "A large number of young people lack sufficient self confidence.",
+    "Many students struggle with difficult mathematical concepts.",
+    "Most of the boys have great passion for playing football.",
+    "Some of the girls showed wonderful artistic talent in the exhibition.",
+    "Many of the candidates lacked proper preparation for the interview.",
+    "Few of the committee members attended the annual meeting yesterday.",
+    "None of the passengers were injured in the minor traffic accident.",
+    "Each of the participants received a certificate of completion.",
+    "Both of the brothers work hard to support their family.",
+
+    # Daily actions, food, and activities
+    "Yesterday she went to the market with her mother to buy vegetables.",
+    "Yesterday she went to the market.",
+    "She went to the market yesterday.",
+    "The boy is eating an apple.",
+    "The young boy is eating a fresh red apple in the garden.",
+    "He goes to school by bus every single day.",
+    "He goes to school by bus everyday.",
+    "She drinks a warm cup of coffee before starting her daily work.",
+    "The chef prepared a delicious dinner for all the invited guests.",
+    "My older sister loves reading mystery novels before going to bed.",
+    "They are playing football in the school playground after class.",
+    "The doctor examined the sick patient very carefully in the clinic.",
+    "We walked through the quiet forest beside the clear blue lake.",
+    "The diligent gardener watered all the flowering plants in the yard.",
+    "He returned the lost wallet to its rightful owner at the police station.",
+    "The family visited their grandparents during the summer holidays.",
+    "She bought a beautiful blue dress for the wedding ceremony.",
+    "The children were laughing and running around the water fountain.",
+    "He forgot to bring his umbrella on a very rainy afternoon.",
+    "There are very beautiful flowers in the garden.",
+    "The flowers in the garden are very beautiful.",
+
+    # School, education, and learning
+    "The teacher explained the complex scientific lesson with simple examples.",
+    "Students should read good books to improve their vocabulary and writing.",
+    "The professor gave an inspiring lecture on modern world history.",
+    "She completed her master's degree in computer science with top honors.",
+    "The university library remains open until late evening on weekdays.",
+    "Learning a second language opens up many career opportunities.",
+    "The principal praised the students for their outstanding sports performance.",
+    "He asked several thoughtful questions during the chemistry laboratory class.",
+    "Practicing grammar exercises regularly helps build fluent communication skills.",
+    "The research team published their groundbreaking findings in an academic journal.",
+
+    # Technology, science, and modern world
+    "Artificial intelligence is rapidly changing how people live and work.",
+    "The software engineer fixed several critical bugs in the mobile application.",
+    "Computers process vast amounts of complex data in milliseconds.",
+    "Renewable solar energy will play a vital role in protecting our planet.",
+    "The new smartphone features an advanced high resolution camera system.",
+    "Electric vehicles are becoming more popular across the entire country.",
+    "The company launched an innovative cloud platform for small businesses.",
+    "Scientists discovered a fascinating new species of plant in the rainforest.",
+    "Internet connectivity allows people to communicate instantly across the globe.",
+    "Data security and privacy protection are essential in the digital era.",
+
+    # Descriptive, environmental, and emotional states
+    "There are very colorful and fragrant flowers blooming in the garden.",
+    "The sudden heavy rain caused waterlogging along the main road.",
+    "The driver slowed down cautiously because the road was wet and slippery.",
+    "The sunset painted the evening sky in vibrant shades of pink and gold.",
+    "He felt extremely proud when he received the employee of the year award.",
+    "She spoke with confidence and clarity during the business presentation.",
+    "Fresh morning air and physical exercise are beneficial for overall health.",
+    "The old museum in the city center contains priceless historical artifacts.",
+    "A gentle cool breeze blew across the sandy beach at twilight.",
+    "Traveling to distant places exposes travelers to rich foreign cultures.",
+    "Honesty and integrity are the most valuable virtues a person can possess.",
+    "The loud thunder shook the windows during the midnight storm.",
+    "The photographer captured a breathtaking photograph of the snow covered mountain.",
+    "They celebrated their team's hard earned victory with great excitement.",
+    "Patience and persistent effort lead to long term success in life."
+]
+
+
 class SentenceCorrupter:
     """
     Generates realistic destructive sentence variations from clean,
@@ -214,9 +300,11 @@ class SentenceCorrupter:
     def corrupt(self, sentence: str, style: str = "hybrid") -> str:
         """
         Generate a destructive sentence according to specified strategy.
-        Styles: 'jumble', 'omission', 'grammar_noise', 'hybrid'
+        Styles: 'telegraphic', 'jumble', 'omission', 'grammar_noise', 'hybrid'
         """
-        if style == "jumble":
+        if style == "telegraphic":
+            return self._telegraphic(sentence)
+        elif style == "jumble":
             return self._jumble(sentence)
         elif style == "omission":
             return self._omit_words(sentence)
@@ -228,6 +316,37 @@ class SentenceCorrupter:
     def _strip_punct(self, word: str) -> str:
         return re.sub(r"[^\w\s]", "", word)
 
+    def _telegraphic(self, sentence: str) -> str:
+        """
+        Simulates telegraphic / keyword-only input (e.g. 'Many of the boys have very poor motivation.'
+        -> 'Many boys poor motivation' or 'boys poor motivation many').
+        Strips closed-class function words: articles, partitives ('of'), auxiliaries ('have', 'is'),
+        intensifiers ('very', 'really'), and converts to clean lowercase keywords.
+        """
+        droppable = ARTICLES | PREPOSITIONS | AUXILIARY_VERBS | {"very", "really", "quite", "extremely", "a", "an", "the", "of"}
+        words = sentence.split()
+        retained = []
+        for w in words:
+            clean = self._strip_punct(w).lower()
+            if clean in droppable:
+                continue
+            if clean:
+                retained.append(clean)
+
+        # If too many were dropped, keep first and last content words
+        if len(retained) < 2:
+            retained = [self._strip_punct(w).lower() for w in words if self._strip_punct(w)]
+
+        # 30% chance to lightly swap order to simulate jumbled keywords
+        if len(retained) >= 3 and random.random() < 0.35:
+            # Shift first word or swap two words
+            if random.random() < 0.5:
+                retained = retained[1:] + [retained[0]]
+            else:
+                retained[0], retained[1] = retained[1], retained[0]
+
+        return " ".join(retained)
+
     def _jumble(self, sentence: str) -> str:
         """Heavily scrambles the word order to destroy SVO syntax."""
         words = [_w for _w in [self._strip_punct(w).lower() for w in sentence.split()] if _w]
@@ -235,7 +354,6 @@ class SentenceCorrupter:
             return " ".join(reversed(words))
 
         jumbled = words[:]
-        # Ensure it actually gets shuffled differently from original
         for _ in range(5):
             random.shuffle(jumbled)
             if jumbled != words:
@@ -248,13 +366,14 @@ class SentenceCorrupter:
         remaining = []
         for w in words:
             clean_w = self._strip_punct(w).lower()
-            # 65% chance to drop articles, prepositions, or auxiliaries
-            if (clean_w in ARTICLES or clean_w in PREPOSITIONS or clean_w in AUXILIARY_VERBS) and random.random() < 0.65:
+            if (clean_w in ARTICLES or clean_w in PREPOSITIONS or clean_w in AUXILIARY_VERBS or clean_w in {"of", "very"}) and random.random() < 0.70:
                 continue
-            remaining.append(self._strip_punct(w).lower())
+            clean = self._strip_punct(w).lower()
+            if clean:
+                remaining.append(clean)
 
         if len(remaining) < 2:
-            remaining = [self._strip_punct(w).lower() for w in words]
+            remaining = [self._strip_punct(w).lower() for w in words if self._strip_punct(w)]
 
         return " ".join(remaining)
 
@@ -275,8 +394,12 @@ class SentenceCorrupter:
             elif lw == "has":
                 corrupted.append("have")
             elif lw == "have":
-                corrupted.append("has")
-            elif lw.endswith("ing") and len(lw) > 5 and random.random() < 0.3:
+                corrupted.append("has" if random.random() < 0.5 else "had")
+            elif lw == "goes":
+                corrupted.append("go")
+            elif lw == "went":
+                corrupted.append("go")
+            elif lw.endswith("ing") and len(lw) > 5 and random.random() < 0.4:
                 corrupted.append(lw[:-3])  # running -> run
             else:
                 corrupted.append(lw)
@@ -292,10 +415,10 @@ class SentenceCorrupter:
         if not words:
             return sentence.lower()
 
-        # Step 1: Omission (drop some function words)
+        # Step 1: Omission (drop function words)
         retained = []
         for w in words:
-            if (w in ARTICLES or w in PREPOSITIONS or w in AUXILIARY_VERBS) and random.random() < 0.55:
+            if (w in ARTICLES or w in PREPOSITIONS or w in AUXILIARY_VERBS or w in {"of", "very"}) and random.random() < 0.60:
                 continue
             retained.append(w)
 
@@ -305,14 +428,11 @@ class SentenceCorrupter:
         # Step 2: Inversion / Jumbling
         n = len(retained)
         if n >= 3:
-            # Cut into chunks and swap or partial shuffle
             split_idx = random.randint(1, n - 1)
             chunk1, chunk2 = retained[:split_idx], retained[split_idx:]
-            # 60% chance to swap chunks
-            if random.random() < 0.60:
+            if random.random() < 0.55:
                 retained = chunk2 + chunk1
 
-            # 40% chance of random local swap
             if random.random() < 0.40 and n > 2:
                 i, j = random.sample(range(n), 2)
                 retained[i], retained[j] = retained[j], retained[i]
@@ -322,29 +442,50 @@ class SentenceCorrupter:
 
 def create_training_pairs(
     sentences: List[str],
-    augmentations_per_sentence: int = 3
+    augmentations_per_sentence: int = 5
 ) -> List[Tuple[str, str]]:
     """
     Generate multiple (destructive_sentence, constructive_sentence) pairs
-    from a collection of clean sentences.
+    from a collection of clean sentences using diverse corruption strategies.
     """
     corrupter = SentenceCorrupter()
     pairs = []
-    styles = ["hybrid", "jumble", "omission", "grammar_noise"]
+    styles = ["telegraphic", "hybrid", "jumble", "omission", "grammar_noise"]
 
     for sent in sentences:
-        # Original clean sentence is the target
         target = sent.strip()
 
         # Create diverse destructive variants
         for i in range(augmentations_per_sentence):
             style = styles[i % len(styles)]
             destructive = corrupter.corrupt(target, style=style)
-            # Ensure destructive is not identical to target
             if destructive.strip() and destructive.lower() != target.lower():
                 pairs.append((destructive, target))
 
     return pairs
+
+
+def load_all_training_sentences(source_path: Optional[str] = None) -> List[str]:
+    """
+    Combines extracted sentences from user documents with the comprehensive core corpus,
+    ensuring robust grammatical coverage and vocabulary breadth.
+    """
+    sentences = list(CORE_SENTENCE_CORPUS)
+    seen = {s.lower().strip() for s in sentences}
+
+    if source_path and os.path.exists(source_path):
+        try:
+            doc_text = load_corpus_from_path(source_path)
+            doc_sentences = split_into_sentences(doc_text)
+            for s in doc_sentences:
+                clean_s = s.strip()
+                if clean_s.lower() not in seen:
+                    seen.add(clean_s.lower())
+                    sentences.append(clean_s)
+        except Exception as e:
+            print(f"[Warning] Could not ingest sentences from {source_path}: {e}")
+
+    return sentences
 
 
 class SentenceConstructionDataset(Dataset):
@@ -359,7 +500,7 @@ class SentenceConstructionDataset(Dataset):
         tokenizer,
         max_source_length: int = 64,
         max_target_length: int = 64,
-        prefix: str = "construct meaningful sentence: "
+        prefix: str = "construct a complete, meaningful sentence: "
     ):
         self.pairs = pairs
         self.tokenizer = tokenizer

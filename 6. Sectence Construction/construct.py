@@ -38,7 +38,7 @@ class SentenceConstructor:
     Sentence Construction Engine powered by fine-tuned Seq2Seq Transformer.
     """
 
-    def __init__(self, model_path: str = "./saved_model", base_fallback: str = "t5-small"):
+    def __init__(self, model_path: str = "./saved_model", base_fallback: str = "google/flan-t5-small"):
         self.model_path = model_path
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -58,7 +58,7 @@ class SentenceConstructor:
         self.model.to(self.device)
         self.model.eval()
 
-        self.prefix = "construct meaningful sentence: "
+        self.prefix = "construct a complete, meaningful sentence: "
 
     def construct(
         self,
@@ -87,7 +87,7 @@ class SentenceConstructor:
                 max_length=max_length,
                 num_beams=num_beams,
                 no_repeat_ngram_size=3,
-                length_penalty=1.0,
+                length_penalty=1.2,
                 early_stopping=True
             )
 
@@ -115,11 +115,11 @@ def run_interactive(constructor: SentenceConstructor, num_beams: int = 4, max_le
     print("=" * 75 + "\n")
 
     examples = [
+        "Many boys poor motivation",
         "market went yesterday she to the",
         "eating apple boy an is",
-        "artificial intelligence changing world rapidly is",
         "he go school bus everyday by",
-        "beautiful very flowers garden the in are"
+        "artificial intelligence rapidly world changing is"
     ]
 
     print("[*] Example destructive sentences you can test:")

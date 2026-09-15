@@ -99,13 +99,13 @@ python train.py --data_path sample_text.pdf --epochs 12 --batch_size 8
 #### Key Training Arguments:
 | Argument | Default | Description |
 | :--- | :--- | :--- |
-| `--data_path` | `./sample_dataset.docx` | Path to `.pdf`, `.docx`, `.txt` file, or directory |
-| `--model_name` | `t5-small` | Base Seq2Seq model (`t5-small`, `google/flan-t5-small`, etc.) |
+| `--data_path` | `None` (auto-detect) | Path to `.pdf`, `.docx`, `.txt` file, or directory |
+| `--model_name` | `google/flan-t5-small` | Base Seq2Seq model (`google/flan-t5-small`, `google/flan-t5-base`, etc.) |
 | `--output_dir` | `./saved_model` | Directory to save trained model weights & tokenizer |
-| `--epochs` | `3` | Number of training epochs |
-| `--batch_size` | `8` | Training batch size (auto-scaled on GPU/CPU) |
+| `--epochs` | `5` | Number of training epochs |
+| `--batch_size` | `16` | Training batch size (auto-scaled on GPU/CPU) |
 | `--lr` | `3e-4` | Learning rate for AdamW optimizer |
-| `--augmentations_per_sentence` | `4` | Number of destructive variants generated per clean sentence |
+| `--augmentations_per_sentence` | `5` | Number of destructive variants generated per clean sentence |
 
 ### Step 3: Test Sentence Construction (`construct.py`)
 
