@@ -1,88 +1,107 @@
-# Text to Keyword Extractor
+# Stage 3: Salient Keyword Extractor
+
+## Multilingual RAKE & Cross-Script Salient Terminology Engine
+
+Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
 [![Stage 2](https://img.shields.io/badge/Prev_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../2.%20mp3%20to%20Text/README.md)
 [![Stage 4](https://img.shields.io/badge/Next_Stage-Stage_4:_Translate-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../4.%20Keyword%20Translate/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 
 ---
 
-A standalone microservice that extracts **salient single-word keywords** — filtering stopwords and non-content words — from text in **English**, **Hindi**, **Bengali**, and **freely code-mixed combinations of all three**. This is the standalone implementation of **Stage 3 (Keyword Extraction)** from the Nativox pipeline.
+## 📖 Operational Overview
+
+Stage 3 extracts salient, content-bearing domain terminology and named entities from transcripts generated in **Stage 2**. It supports text in **English**, **Hindi (Devanagari)**, **Bengali (Bangla script)**, and freely code-mixed speech without requiring heavy deep-learning model downloads.
+
+The extracted keyword lexicon is transferred to **Stage 4 (Keyword Translation)** for technical terminology mapping and to **Stage 5 (Sentence Reformation)** to guide keyword retention budgets.
 
 ---
 
-## 🛠️ Tech Stack & Working Principle
+## 🛠️ Tech Stack & Key Features
 
-- **Backend:** FastAPI (Python)
+- **Backend:** FastAPI (Python 3.11)
 - **Algorithm:** Multilingual **RAKE (Rapid Automatic Keyword Extraction)**
-  - Applies a combined English + Hindi + Bengali stopword list in a single pass.
-  - Handles code-mixed sentences (e.g. *"ei video ta te amra automated dubbing model use korchi"*) seamlessly without needing language segmentation.
-  - Scores words based on word degree and co-occurrence frequency within candidate phrases.
-  - Tags detected Unicode scripts (Latin, Devanagari, Bengali) for visual highlighting.
-- **Frontend:** Single-page dashboard with real-time script-mix meter and ranked keyword pills.
+  - Joint English + Hindi + Bengali stopword elimination in a single pass.
+  - Seamless handling of code-mixed spoken phrases (e.g., *"ei video te amra automated dubbing model use korchi"*).
+  - Co-occurrence matrix scoring ($W_{\text{deg}} / W_{\text{freq}}$) on candidate multi-word and single-word units.
+  - Unicode block classification (Latin, Devanagari, Bengali) for script tagging.
+- **Frontend:** Interactive dashboard with script balance visualizer and ranked keyword pill view.
 
 ---
 
-## 📋 Requirements
+## 📋 Prerequisites & Requirements
 
-- **Python:** 3.10 or 3.11 recommended
-- **Dependencies:** Pure Python NLP algorithms (no heavy GPU model weights required).
+- **Python:** **3.11** (Repository pinned via root `.python-version`)
+- **Dependencies:** Lightweight pure-Python NLP routines (no GPU or model weight downloads required)
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Setup & Execution
 
-### Windows (Command Prompt / PowerShell)
-
-```powershell
-.\run.bat
-```
-
-### Git Bash (Windows) / macOS / Linux
+### 1. Navigate to Backend Directory
 
 ```bash
-chmod +x run.sh
-./run.sh
+cd "3. Text to Keyword/backend"
 ```
 
-Once running, navigate to: **`http://127.0.0.1:8002`** (or configured port `8010`)
+### 2. Create & Activate Virtual Environment
+
+- **Create Environment (Python 3.11):**
+
+  ```bash
+  python -m venv venv
+  ```
+
+- **Activate on Windows (PowerShell):**
+
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+
+- **Activate on Windows (CMD):**
+
+  ```cmd
+  venv\Scripts\activate.bat
+  ```
+
+- **Activate on macOS / Linux / Git Bash:**
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. Install Dependencies & Launch Server
+
+```bash
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8010
+```
+
+The web interface will be available at: **`http://127.0.0.1:8010`**
 
 > [!IMPORTANT]
-> **Access via `http://127.0.0.1:8002`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on the server port. Double-clicking `index.html` locally will open it under `file:///` and fail to connect to `/api/extract-keywords`. Do **not** delete `frontend/index.html`, as it is required by the backend to serve the frontend interface.
+> **Access via `http://127.0.0.1:8010`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on port `8010`. Opening `index.html` as a local `file:///` path causes browser CORS errors that block requests to `/api/extract-keywords`.
 
 ---
 
-## ⚙️ Manual Setup
+## 🏛️ Pipeline Architecture
 
-### Windows PowerShell
+```mermaid
+graph LR
+    A["Input Transcript Text"] --> B["Multilingual Stopword Filter (En/Hi/Bn)"]
+    B --> C["Co-occurrence Matrix Scoring (RAKE)"]
+    D["Script Block Tagger"]
+    B --> D
+    C --> E["Ranked Salient Keywords"]
+    D --> E
+    E -.-> F["Input to Stage 4 & Stage 5"]
 
-```powershell
-cd backend
-py -3.11 -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8002
-```
-
-### Git Bash (Windows)
-
-```bash
-cd backend
-py -3.11 -m venv venv
-source venv/Scripts/activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8002
-```
-
-### macOS / Linux
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 -m uvicorn main:app --reload --port 8002
+    linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
 
 ---
@@ -91,41 +110,44 @@ python3 -m uvicorn main:app --reload --port 8002
 
 ### `POST /api/extract-keywords`
 
-**Request:**
+Extracts and ranks salient keywords from multilingual or code-mixed input.
 
-```json
-{
-  "text": "Artificial intelligence and machine learning are transforming multilingual dubbing in Kolkata and Delhi.",
-  "top_n": 10
-}
-```
+- **Content-Type:** `application/json`
+- **Request Body:**
 
-**Response:**
-
-```json
-{
-  "keywords": [
-    {
-      "word": "intelligence",
-      "score": 4.0,
-      "relative_score": 100.0,
-      "language": "en"
-    },
-    {
-      "word": "dubbing",
-      "score": 3.5,
-      "relative_score": 87.5,
-      "language": "en"
-    }
-  ],
-  "language_labels": {
-    "en": "English",
-    "hi": "Hindi",
-    "bn": "Bengali",
-    "mixed": "Mixed"
+  ```json
+  {
+    "text": "Artificial intelligence and machine learning are transforming multilingual dubbing in Kolkata and Delhi.",
+    "top_n": 10
   }
-}
-```
+  ```
+
+- **Response Body:**
+
+  ```json
+  {
+    "keywords": [
+      {
+        "word": "intelligence",
+        "score": 4.0,
+        "relative_score": 100.0,
+        "language": "en"
+      },
+      {
+        "word": "dubbing",
+        "score": 3.5,
+        "relative_score": 87.5,
+        "language": "en"
+      }
+    ],
+    "language_labels": {
+      "en": "English",
+      "hi": "Hindi",
+      "bn": "Bengali",
+      "mixed": "Mixed"
+    }
+  }
+  ```
 
 ---
 
@@ -133,16 +155,32 @@ python3 -m uvicorn main:app --reload --port 8002
 
 ```text
 3. Text to Keyword/
-├── README.md
-├── run.bat
-├── run.sh
+├── README.md                  # Stage documentation
 ├── backend/
-│   ├── main.py                  # FastAPI app + REST endpoints
-│   ├── requirements.txt
+│   ├── main.py                # FastAPI endpoints and static file routing
+│   ├── requirements.txt       # FastAPI, Uvicorn, Pydantic
 │   └── app/
 │       ├── keyword_extractor.py # Multilingual RAKE co-occurrence engine
 │       ├── language_utils.py    # Unicode-script tagging (Latin/Devanagari/Bengali)
-│       └── stopwords.py         # Curated English, Hindi, and Bengali stopword dictionaries
+│       └── stopwords.py         # Curated English, Hindi, and Bengali stopword sets
 └── frontend/
-    └── index.html               # Interactive input, script meter, and keyword cards
+    └── index.html             # Interactive text input, script meter, and keyword cards
 ```
+
+---
+
+## 👥 Authors & Academic Context
+
+- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 3 Documentation</b></sub>
+</p>

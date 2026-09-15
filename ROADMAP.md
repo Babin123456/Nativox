@@ -15,63 +15,83 @@ This roadmap outlines the evolution of the **Nativox** suite from standalone mod
 
 ```mermaid
 graph TD
-    DOC["📚 Bulky Documents / PDFs<br/>(Domain Knowledge Base)"]
-    INGEST["⚙️ <b>Module 2: Sentence Train Engine</b><br/>Extraction • Chunking • Semantic Vector Embedding"]
-    ASR_IN["🗣️ Raw Whisper ASR Segment"]
-    REFORM["🧠 <b>Module 1: Sentence Reformation</b><br/>Grammar Correction • Idiomatic Alignment"]
-    COMPRESS["⏱️ <b>Module 3: Useful-to-Short Compression</b><br/>Syllable Fitting • Time Window Budgeting"]
-    TTS_OUT["🔊 Neural Voice Synthesis Engine"]
+    DOC["Standard PDF / Word Documents"]
+    INGEST["Stage 6: Syntax Learning Engine (pypdf / Flan-T5)"]
+    ASR_IN["Stage 2: Raw Speech Transcript (faster-whisper)"]
+    REFORM["Stage 5: Meaningful Sentence Restorer (SOV Hindi)"]
+    COMPRESS["Stage 5: 35%-40% Précis Compression"]
+    SYNTH["Downstream: Neural Voice Synthesis & HLS Multi-Track"]
 
     DOC --> INGEST
-    INGEST -.->|Context Embeddings / Few-Shot Prompts| REFORM
+    INGEST -.->|Canonical Syntax Constraints| REFORM
     ASR_IN --> REFORM
     REFORM --> COMPRESS
-    COMPRESS --> TTS_OUT
+    COMPRESS --> SYNTH
 
-    style DOC fill:#14171C,stroke:#E8A33D,stroke-width:1.5px,color:#EDEDE6
-    style INGEST fill:#3A2E18,stroke:#E8A33D,stroke-width:2px,color:#EDEDE6
-    style ASR_IN fill:#14171C,stroke:#3E8FC4,stroke-width:1.5px,color:#EDEDE6
-    style REFORM fill:#152530,stroke:#3E8FC4,stroke-width:2px,color:#EDEDE6
-    style COMPRESS fill:#2E1A1A,stroke:#D96257,stroke-width:2px,color:#EDEDE6
-    style TTS_OUT fill:#1A2E1A,stroke:#4FAE7A,stroke-width:2px,color:#EDEDE6
+    linkStyle default stroke:#0284C7,stroke-width:2.5px;
+
+    classDef stageNode fill:#1E293B,stroke:#0284C7,stroke-width:2px,color:#FFFFFF;
+    classDef finalNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
+
+    class DOC,INGEST,ASR_IN,REFORM,COMPRESS stageNode;
+    class SYNTH finalNode;
 ```
 
 ---
 
-### Directive 1: Sentence Reformation (Contextual Restructuring)
+### Directive 1: Sentence Reformation (Contextual Restructuring) — [Completed: Stage 5]
 
-* **Goal:** Convert raw transcribed speech into natural, spoken colloquial syntax.
-* **Key Tasks:**
-  * Remove speech fillers (*um, uh, you know, like*) and false starts.
-  * Reconstruct Subject-Verb-Object (SVO, English) into natural Subject-Object-Verb (SOV, Indic languages like Hindi/Bengali).
-  * Match gender and honorific registers (*आप* vs. *तुम*; *আপনি* vs. *তুমি*).
-
----
-
-### Directive 2: Sentence Training Engine (Document/PDF Ingestion)
-
-* **Goal:** Ingest domain-specific bulky documents (research papers, textbooks, scripts) so technical terms are accurately translated.
-* **Key Tasks:**
-  * PDF/DOCX text extraction using `pypdf` and semantic sliding-window chunking.
-  * ChromaDB / FAISS vector database embedding for real-time terminology retrieval (RAG).
-  * Retain specialized nomenclature in source English or officially accepted vernacular translations.
+- **Status:** **Completed** in [`5. Sentence Reformation/`](5.%20Sentence%20Reformation/README.md)
+- **Implemented Capabilities:**
+  - Removes verbal fillers (*um, uh, basically, you know*) and false speech starts.
+  - Reconstructs Subject-Verb-Object (SVO, English) into natural Subject-Object-Verb (SOV, Indic languages like Hindi/Bengali).
+  - Automatically inserts Hindi case markers (*ne, ko, se, mein*) and restores predicate coherence.
 
 ---
 
-### Directive 3: Useful-to-Short Sentence Compression (Duration Budgeting)
+### Directive 2: Sentence Training Engine (Document/PDF Ingestion) — [Completed: Stage 6]
 
-* **Goal:** Prevent speech overflow and overlap when translated sentences require more syllables than the video time gap allows.
-* **Key Tasks:**
-  * Calculate segment duration budget: $T = \text{segment.end} - \text{segment.start}$.
-  * Compute maximum allowable characters based on natural speaking rate ($\sim 14$ characters/second).
-  * Dynamically prompt compact LLM rewriting to fit the exact millisecond time window without robotic `atempo` warping.
+- **Status:** **Completed** in [`6. Sectence Construction/`](6.%20Sectence%20Construction/README.md)
+- **Implemented Capabilities:**
+  - PDF/DOCX text extraction using `pypdf` and `python-docx`.
+  - Self-supervised synthetic corruption engine (`SentenceCorrupter`) applying word jumbling, function word dropping, and grammatical inflection distortion.
+  - Seq2Seq Transformer fine-tuning pipeline on Google Flan-T5 with multi-beam search decoding in `construct.py`.
 
 ---
 
-### Directive 4: YouTube-Style Decoupled Multi-Audio Track Delivery (HLS/DASH)
+### Directive 3: Useful-to-Short Sentence Compression (Duration Budgeting) — [Completed: Stage 5 & Ongoing]
 
-* **Goal:** Zero video re-encoding and instant, buffer-free language switching in the player.
-* **Key Tasks:**
-  * Keep the original master video track untouched.
-  * Stream dubbed speech on secondary AAC audio tracks linked through an HLS manifest (`master.m3u8`).
-  * Allow instant audio language switching in frontend video players.
+- **Status:** **Core Engine Completed** in [`5. Sentence Reformation/`](5.%20Sentence%20Reformation/README.md)
+- **Implemented Capabilities & Next Steps:**
+  - Enforces strict 35%–40% word budget window:
+    $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
+  - Prevents speech overflow when translated Indic syllables exceed the original video duration window.
+  - Next milestone: Dynamic phoneme-level duration matching with millisecond speech timestamps.
+
+---
+
+### Directive 4: YouTube-Style Decoupled Multi-Audio Track Delivery (HLS/DASH) — [Upcoming Milestone]
+
+- **Status:** **In Design & Implementation**
+- **Target Milestones:**
+  - Zero video re-encoding: Keeps the master video track untouched and streams dubbed speech on secondary AAC audio tracks linked through an HLS manifest (`master.m3u8`).
+  - Seamless buffer-free language switching in frontend HTML5 video players.
+  - Multi-speaker voice cloning and pitch-preserving gender-matched neural TTS synthesis.
+
+---
+
+## 👥 Authors & Academic Context
+
+- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Roadmap Specification</b></sub>
+</p>

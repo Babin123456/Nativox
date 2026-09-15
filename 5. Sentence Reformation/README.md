@@ -1,12 +1,15 @@
 # Stage 5: Sentence Reformation & Précis Compression
 
-**English $\to$ Hindi Meaningful Sentence Reformation & 35%–40% Duration Budgeting Engine**
+## English to Hindi Meaningful Sentence Reformation & 35%–40% Duration Budgeting
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Roadmap](https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white)](../ROADMAP.md)
+[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
+[![Stage 4](https://img.shields.io/badge/Prev_Stage-Stage_4:_Translate-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../4.%20Keyword%20Translate/README.md)
+[![Stage 6](https://img.shields.io/badge/Next_Stage-Stage_6:_Construction-FF6B6B?style=for-the-badge&logo=pytorch&logoColor=white)](../6.%20Sectence%20Construction/README.md)
+[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 
 ---
 
@@ -22,53 +25,94 @@ Stage 5 addresses two critical directives set by project mentor **Dr. Debjit Gho
 
 ---
 
-## 📐 Mathematical Formulation
+## 🛠️ Tech Stack & Key Features
 
-### 1. Précis Word Budget Window
-
-For a source transcript paragraph with $W_{\text{orig}}$ words:
-$$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
-
-### 2. Sentence & Clause Salience Scoring
-
-Each candidate clause $c$ within sentence $s$ is ranked according to its keyword density and structural position:
-$$\text{Score}(c) = \left( 2 \cdot \frac{\text{Hits}(c, \mathcal{K})}{\text{Length}(c)} + \text{PosWeight}(s) \right) \times \text{Penalty}(s)$$
-
-Where:
-
-- $\mathcal{K}$ is the set of prominent non-stopword technical keywords.
-- $\text{PosWeight}(s) = 1.2$ for opening and thesis-concluding statements.
-- $\text{Penalty}(s) = 0.8$ for excessively long spoken run-on clauses.
+- **Backend:** FastAPI (Python 3.11 asynchronous server)
+- **Frontend:** Glassmorphic dashboard with live disfluency pill badges, word-budget progress bars, and dual English/Hindi comparison
+- **Compression Engine:** Salience-guided clause ranker with strictly enforced $[0.35, 0.40]$ retention window
+- **Grammar Restorer:** SOV syntax synthesis and Hindi case marker (*ne, ko, se, mein*) insertion
 
 ---
 
-## ⚡ Quick Start
+## 📋 Prerequisites & Requirements
 
-### Running the Service
+- **Python:** **3.11** (Repository pinned via root `.python-version`)
+- **Dependencies:** `fastapi`, `uvicorn`, `deep-translator`, `pydantic`
+
+---
+
+## 🚀 Setup & Execution
+
+### 1. Navigate to Backend Directory
 
 ```bash
-cd "5. Sentence Reformation"
+cd "5. Sentence Reformation/backend"
+```
 
-# Linux / macOS / Git Bash
-./run.sh
+### 2. Create & Activate Virtual Environment
 
-# Windows (CMD / PowerShell)
-.\run.bat
+- **Create Environment (Python 3.11):**
+
+  ```bash
+  python -m venv venv
+  ```
+
+- **Activate on Windows (PowerShell):**
+
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+
+- **Activate on Windows (CMD):**
+
+  ```cmd
+  venv\Scripts\activate.bat
+  ```
+
+- **Activate on macOS / Linux / Git Bash:**
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. Install Dependencies & Launch Server
+
+```bash
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8012
 ```
 
 The web interface will open at **`http://127.0.0.1:8012`**.
 
 > [!IMPORTANT]
 > **Access via `http://127.0.0.1:8012`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on the server port (`8012`). Double-clicking `index.html` locally will open it under `file:///` and fail to reach `/api/pipeline` or `/api/reconstruct` due to browser CORS and network restrictions. Do **not** delete `frontend/index.html`, as it is required by the backend to serve the web interface.
+> The FastAPI backend serves `frontend/index.html` directly on port `8012`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/reconstruct` and `/api/precis`.
 
 ---
 
-## 🔌 API Specification
+## 🏛️ Pipeline Architecture
 
-### 1. Reconstruct Broken Sentence
+```mermaid
+graph LR
+    A["Raw Spoken Transcript / Keywords"] --> B["Disfluency Filter ('um, basically')"]
+    B --> C["Predicate & SOV Hindi Restorer"]
+    D --> E["Meaningful & Précis Hindi Output"]
+    B --> D["35%-40% Word Budget Sizer"]
+    C --> D
+    E -.-> F["Input to Stage 6 (Voice Synthesis)"]
 
-- **Endpoint:** `POST /api/reconstruct`
+    linkStyle default stroke:#0284C7,stroke-width:2.5px;
+```
+
+---
+
+## 🔌 API Reference
+
+### `POST /api/reconstruct`
+
+Reconstructs fragmented or disfluent English sentences into grammatically sound Hindi.
+
+- **Content-Type:** `application/json`
 - **Request Body:**
 
   ```json
@@ -88,13 +132,15 @@ The web interface will open at **`http://127.0.0.1:8012`**.
     "removed_fillers": ["uh", "basically", "you know"],
     "input_word_count": 12,
     "output_word_count": 12,
-    "notes": "Disfluencies removed and sentence syntax restored with proper SOV grammar in Hindi. Filtered verbal fillers: uh, basically, you know."
+    "notes": "Disfluencies removed and sentence syntax restored with proper SOV grammar in Hindi."
   }
   ```
 
-### 2. Compress Paragraph to 35%–40% Précis
+### `POST /api/precis`
 
-- **Endpoint:** `POST /api/precis`
+Compresses full transcript paragraphs into a 35%–40% Hindi précis summary.
+
+- **Content-Type:** `application/json`
 - **Request Body:**
 
   ```json
@@ -124,8 +170,39 @@ The web interface will open at **`http://127.0.0.1:8012`**.
 
 ---
 
+## 📁 Project Structure
+
+```text
+5. Sentence Reformation/
+├── README.md                  # Stage documentation
+├── main.py                    # Root convenience entrypoint
+├── backend/
+│   ├── main.py                # FastAPI REST endpoints & static server
+│   ├── requirements.txt       # FastAPI, Uvicorn, deep-translator, pydantic
+│   ├── test_reformation.py    # Unit & validation test suite
+│   └── app/
+│       ├── precis.py          # 35%-40% paragraph précis compression engine
+│       ├── reformer.py        # Disfluency cleaner & SOV Hindi reconstruction
+│       └── schemas.py         # Pydantic request & response models
+└── frontend/
+    ├── favicon.webp           # WebP brand favicon
+    └── index.html             # Real-time sentence reformation & précis dashboard
+```
+
+---
+
 ## 👥 Authors & Academic Context
 
 - **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
 - **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 5 Documentation</b></sub>
+</p>
