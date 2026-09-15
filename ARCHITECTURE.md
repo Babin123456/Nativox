@@ -13,59 +13,72 @@ This document details the modular component architecture of **Nativox**, trackin
 
 ```mermaid
 graph TD
-    VID["🎬 Input Video (.mp4 / .mov)"]
+    VID["Input Video (.mp4 / .mov / .mkv)"]
     
-    subgraph S1["Stage 1: Audio Extraction & Separation"]
-        EXTRACT["FFmpeg Audio Extractor"]
-        DEMUCS["Demucs Vocal / Ambience Splitter"]
+    subgraph S1["Stage 1: Audio Extraction & Isolation"]
+        EXTRACT["FFmpeg Audio Extractor (libmp3lame)"]
+        DEMUCS["Vocal & Ambience Demuxer"]
     end
     
-    subgraph S2["Stage 2: Speech Recognition & Gender Pitch"]
-        WHISPER["OpenAI Whisper / Faster-Whisper"]
-        PITCH["Acoustic Pitch & Formant Analyzer"]
+    subgraph S2["Stage 2: Speech Recognition (ASR)"]
+        WHISPER["faster-whisper Engine (CTranslate2)"]
+        VAD["Silero Voice Activity Detector"]
     end
     
-    subgraph S3["Stage 3: Terminology & Keyword Extraction"]
-        KEYBERT["KeyBERT / spaCy Entity Extraction"]
+    subgraph S3["Stage 3: Salient Keyword Extraction"]
+        RAKE["Multilingual RAKE Co-occurrence Matrix"]
+        SCRIPT_TAG["Unicode Script Tagger (En / Hi / Bn)"]
     end
     
-    subgraph S4["Stage 4: Multilingual Terminology Mapping"]
-        TRANS_KW["Contextual Keyword Translation"]
+    subgraph S4["Stage 4: Terminology Translation"]
+        TRANS_KW["deep-translator Batch Engine"]
+        PHONETIC["indic-transliteration (ITRANS)"]
     end
     
-    subgraph S5["Stage 5: Reformation & Duration Budgeting"]
-        REFORM["Spoken Disfluency Cleaner (Ollama / LLM)"]
-        COMPRESS["Semantic Syllable & Character Budgeting"]
+    subgraph S5["Stage 5: Reformation & Précis Compression"]
+        REFORM["Disfluency Cleaner & SOV Restorer"]
+        COMPRESS["35%-40% Word Budget Précis Engine"]
+    end
+
+    subgraph S6["Stage 6: Sentence Construction & Syntax Restoration"]
+        DOC_INGEST["Document Parser (pypdf / python-docx)"]
+        CORRUPT["Synthetic Noise Generator"]
+        T5_TRAIN["Flan-T5 Seq2Seq Model & Beam Search"]
     end
     
-    subgraph S6["Stage 6: Voice Synthesis & Delivery"]
-        TTS["Edge-TTS / XTTS-v2 Voice Cloning"]
+    subgraph S7["Downstream: Voice Synthesis & Multi-Track Streaming"]
+        TTS["Neural TTS Voice Synthesis"]
         STITCH["FFmpeg Overlap-Safe Audio Multiplexer"]
         HLS["Decoupled Multi-Track HLS / DASH Packager"]
     end
 
     VID --> EXTRACT
     EXTRACT --> DEMUCS
-    DEMUCS -->|Isolated Vocals| WHISPER
-    DEMUCS -->|Reference Clip| PITCH
-    WHISPER -->|Timestamped Segments| KEYBERT
-    KEYBERT --> TRANS_KW
+    DEMUCS -->|Isolated Vocals| VAD
+    VAD --> WHISPER
+    WHISPER -->|Timestamped Segments| RAKE
+    RAKE --> SCRIPT_TAG
+    SCRIPT_TAG --> TRANS_KW
+    TRANS_KW --> PHONETIC
     WHISPER --> REFORM
     TRANS_KW -.->|Domain Lexicon| REFORM
     REFORM --> COMPRESS
-    COMPRESS --> TTS
-    PITCH -->|"Gender Tag (M/F)"| TTS
+    COMPRESS --> T5_TRAIN
+    DOC_INGEST --> CORRUPT
+    CORRUPT --> T5_TRAIN
+    T5_TRAIN --> TTS
     TTS --> STITCH
     DEMUCS -->|Preserved Background Bed| STITCH
     STITCH --> HLS
-    HLS --> DUBBED["🎧 YouTube-Style Multi-Track Stream"]
+    HLS --> DUBBED["YouTube-Style Multi-Track Stream"]
 
-    style S1 fill:#152530,stroke:#3E8FC4,stroke-width:2px,color:#EDEDE6
-    style S2 fill:#14171C,stroke:#3E8FC4,stroke-width:2px,color:#EDEDE6
-    style S3 fill:#3A2E18,stroke:#E8A33D,stroke-width:2px,color:#EDEDE6
-    style S4 fill:#2E1A2E,stroke:#B06AE0,stroke-width:2px,color:#EDEDE6
-    style S5 fill:#2E1A1A,stroke:#D96257,stroke-width:2px,color:#EDEDE6
-    style S6 fill:#1A2E1A,stroke:#4FAE7A,stroke-width:2px,color:#EDEDE6
+    linkStyle default stroke:#0284C7,stroke-width:2.5px;
+
+    classDef stageNode fill:#1E293B,stroke:#0284C7,stroke-width:2px,color:#FFFFFF;
+    classDef finalNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
+
+    class VID,EXTRACT,DEMUCS,WHISPER,VAD,RAKE,SCRIPT_TAG,TRANS_KW,PHONETIC,REFORM,COMPRESS,DOC_INGEST,CORRUPT,T5_TRAIN,TTS,STITCH,HLS stageNode;
+    class DUBBED finalNode;
 ```
 
 ---
@@ -74,47 +87,87 @@ graph TD
 
 ### 1. Stage 1: `1. mp4 to mp3/`
 
-- **Responsibility:** Ingest incoming media and decouple audio streams.
-- **Port:** `8000` (standalone)
+- **Responsibility:** Ingest incoming media and extract pristine audio.
+- **Port:** `http://127.0.0.1:8000`
 - **Core Operations:**
-  - FFmpeg audio extraction (`-vn -acodec libmp3lame -q:a 2`).
-  - Vocal and background instrumental separation.
+  - FFmpeg high-bitrate audio extraction (`-vn -acodec libmp3lame -q:a 2`).
+  - Web-based side-by-side synchronized video and audio playback preview.
 
 ### 2. Stage 2: `2. mp3 to Text/`
 
-- **Responsibility:** High-precision acoustic transcription and speaker feature extraction.
-- **Port:** `8001` (standalone)
+- **Responsibility:** High-precision acoustic transcription with timestamped speech segments.
+- **Port:** `http://127.0.0.1:8001`
 - **Core Operations:**
-  - Whisper ASR with millisecond start/end timestamps per sentence segment.
-  - Formant and pitch detection for automatic gender identification (Male/Female voice selection).
+  - Silero VAD for non-speech and silence filtering.
+  - `faster-whisper` (CTranslate2) with INT8 CPU and FP16 GPU inference.
+  - Tri-lingual support with automatic script classification for English, Hindi (Devanagari), and Bengali (Bangla script).
 
 ### 3. Stage 3: `3. Text to Keyword/`
 
-- **Responsibility:** Identify technical vocabulary and domain terms that require specialized translation.
-- **Port:** `8002` (standalone)
+- **Responsibility:** Extract salient content-bearing keywords and domain terminology.
+- **Port:** `http://127.0.0.1:8010`
 - **Core Operations:**
-  - KeyBERT sentence-transformers embeddings with MMR (Maximal Marginal Relevance) diversification.
-  - Filtering stopwords and highlighting critical technical jargon.
+  - Multilingual RAKE co-occurrence matrix scoring ($W_{\text{deg}} / W_{\text{freq}}$).
+  - Curated joint stopword lists for English, Hindi, and Bengali.
+  - Code-mixed spoken sentence processing without language segmentation overhead.
 
 ### 4. Stage 4: `4. Keyword Translate/`
 
-- **Responsibility:** Multilingual glossary resolution.
-- **Port:** `8003` (standalone)
+- **Responsibility:** Multilingual terminology translation and phonetic guide generation.
+- **Port:** `http://127.0.0.1:8011`
 - **Core Operations:**
-  - Translates isolated domain entities and noun phrases.
-  - Guarantees technical words (e.g. "Transformer", "Backpropagation") are either preserved in English or matched to accepted standardized vernacular terms.
+  - `deep-translator` batch terminology mapping with failover resilience.
+  - `indic-transliteration` (ITRANS / Harvard-Kyoto) phonetic pronunciation guide synthesis for Indic text.
+  - Fast Unicode script detection without expensive model overhead.
 
 ### 5. Stage 5: `5. Sentence Reformation/`
 
-- **Responsibility:** Spoken disfluency cleaning, syntax restoration, and duration-budgeted 35%–40% précis compression (English to Hindi).
-- **Port:** `8012` (standalone)
+- **Responsibility:** Disfluency removal, SOV grammar restoration, and 35%–40% précis compression.
+- **Port:** `http://127.0.0.1:8012`
 - **Core Operations:**
-  - Removal of spoken disfluencies (*um, uh, you know, like*) and predicate restructuring (SVO to Indic SOV).
-  - Algorithmic précis compression reducing full MP3 transcript paragraphs to 35%–40% length while preserving semantic integrity and core technical facts.
+  - Strips verbal disfluencies (*um, uh, basically, you know*) and restores predicate structure.
+  - Enforces the faculty-directed 35%–40% paragraph word budget window:
+    $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
   - Contextual Hindi translation with proper postpositions (*vibhakti*) and grammatical case markers.
+
+### 6. Stage 6: `6. Sectence Construction/`
+
+- **Responsibility:** Document-trained sentence syntax learning and destructive-to-constructive sentence reconstruction.
+- **Interface:** CLI & Script Runner (`train.py`, `construct.py`)
+- **Core Operations:**
+  - Ingestion of standard PDF (`.pdf`) and Word (`.docx`) documents using `pypdf` and `python-docx`.
+  - Self-supervised synthetic corruption (`SentenceCorrupter`): token jumbling, function word dropping, and grammatical inflection noise.
+  - Fine-tuning of Google Flan-T5 Seq2Seq Transformer model using AdamW optimizer.
+  - Multi-beam search decoding for real-time reconstruction of fragmented input sentences.
 
 ---
 
 ## ⚡ Integration into Unified Delivery
 
-While each stage runs independently for research evaluation and testing, the modular pipeline stages chain together with asynchronous job management, real-time status events, and decoupled HLS output generation.
+While each stage runs independently for academic evaluation and unit benchmarking, the modular pipeline stages chain together with asynchronous job management, real-time status events, and decoupled HLS output generation:
+
+1. Stage 1 extracts raw audio from incoming video.
+2. Stage 2 transcribes speech into timestamped tokens.
+3. Stage 3 isolates domain keywords.
+4. Stage 4 maps keywords to the target language and generates phonetic guides.
+5. Stage 5 removes fillers and compresses paragraphs to a strict 35%–40% duration budget.
+6. Stage 6 provides neural syntax reconstruction trained on reference documents.
+7. Downstream neural TTS synthesizes voice tracks that are muxed into decoupled HLS multi-track streams.
+
+---
+
+## 👥 Authors & Academic Context
+
+- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Architecture Specification</b></sub>
+</p>
