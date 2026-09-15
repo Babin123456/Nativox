@@ -31,29 +31,30 @@ Each standalone stage can run completely independently as a self-contained micro
 
 | Stage Directory | Module Name | Documentation & Guide | Core Technology | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| [`1. mp4 to mp3/`](1.%20mp4%20to%20mp3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](1.%20mp4%20to%20mp3/README.md) | FFmpeg / Demucs | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates vocal tracks, and preserves background ambient audio. |
-| [`2. mp3 to Text/`](2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](2.%20mp3%20to%20Text/README.md) | OpenAI Whisper / Faster-Whisper | Generates timestamped word-level and sentence-level transcripts with speaker pitch/gender detection. |
-| [`3. Text to Keyword/`](3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](3.%20Text%20to%20Keyword/README.md) | KeyBERT / spaCy / Rake-NLTK | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
-| [`4. Keyword Translate/`](4.%20Keyword%20Translate) | **Contextual Terminology Translation** | [📖 Stage 4 Guide](4.%20Keyword%20Translate/README.md) | Deep-Translator / MarianMT / LLMs | Accurately translates technical vocabulary into Indic & European languages without literal distortion. |
+| [`1. mp4 to mp3/`](1.%20mp4%20to%20mp3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](1.%20mp4%20to%20mp3/README.md) | FFmpeg (libmp3lame) | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates audio tracks, and renders side-by-side synchronized preview. |
+| [`2. mp3 to Text/`](2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](2.%20mp3%20to%20Text/README.md) | faster-whisper / Silero VAD | Generates timestamped word-level and sentence-level transcripts with automatic language classification. |
+| [`3. Text to Keyword/`](3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](3.%20Text%20to%20Keyword/README.md) | Multilingual RAKE / Script Tagger | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
+| [`4. Keyword Translate/`](4.%20Keyword%20Translate) | **Contextual Terminology Translation** | [📖 Stage 4 Guide](4.%20Keyword%20Translate/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
 | [`5. Sentence Reformation/`](5.%20Sentence%20Reformation) | **Sentence Reformation & Précis** | [📖 Stage 5 Guide](5.%20Sentence%20Reformation/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
+| [`6. Sectence Construction/`](6.%20Sectence%20Construction) | **Sentence Construction & Syntax Restoration** | [📖 Stage 6 Guide](6.%20Sectence%20Construction/README.md) | Flan-T5 / Seq2Seq / PyTorch | Learns canonical syntax from PDF/DOCX documents to reconstruct fragmented/destructive sentences into fluent English. |
 | **Synthesis & Packaging** | **Neural TTS & HLS Delivery** | *Internal Service* | Edge-TTS / XTTS-v2 / HLS-DASH | Gender-matched voice synthesis and decoupled multi-audio track streaming without re-encoding video. |
 
 ---
 
-## 🚀 Quick Execution Guide
+## 🚀 Setup & Execution Guide
 
-Each module provides native one-click execution scripts (`run.bat` for Windows and `run.sh` for Git Bash / Linux / macOS). For detailed line-by-line setup, requirements, and manual venv commands, click into each stage's dedicated README:
+Each module provides an independent service that can be set up and run manually using standard Python virtual environments. For detailed line-by-line setup, requirements, and API specifications, click into each stage's dedicated README:
 
 ### Running Individual Stages
 
 - **Stage 1 (MP4 $\rightarrow$ MP3):** ➔ *[Read Stage 1 Manual & Line-by-Line Guide](1.%20mp4%20to%20mp3/README.md)*
 
   ```bash
-  cd "1. mp4 to mp3"
-  # Windows (CMD / PowerShell)
-  .\run.bat
-  # Git Bash / macOS / Linux
-  ./run.sh
+  cd "1. mp4 to mp3/backend"
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8000
   ```
 
   *Accessible at `http://127.0.0.1:8000`*
@@ -61,11 +62,11 @@ Each module provides native one-click execution scripts (`run.bat` for Windows a
 - **Stage 2 (MP3 $\rightarrow$ Text):** ➔ *[Read Stage 2 Manual & Line-by-Line Guide](2.%20mp3%20to%20Text/README.md)*
 
   ```bash
-  cd "2. mp3 to Text"
-  # Windows (CMD / PowerShell)
-  .\run.bat
-  # Git Bash / macOS / Linux
-  ./run.sh
+  cd "2. mp3 to Text/backend"
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8001
   ```
 
   *Accessible at `http://127.0.0.1:8001`*
@@ -73,38 +74,49 @@ Each module provides native one-click execution scripts (`run.bat` for Windows a
 - **Stage 3 (Text $\rightarrow$ Keyword):** ➔ *[Read Stage 3 Manual & Line-by-Line Guide](3.%20Text%20to%20Keyword/README.md)*
 
   ```bash
-  cd "3. Text to Keyword"
-  # Windows (CMD / PowerShell)
-  .\run.bat
-  # Git Bash / macOS / Linux
-  ./run.sh
+  cd "3. Text to Keyword/backend"
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8010
   ```
 
-  *Accessible at `http://127.0.0.1:8002`*
+  *Accessible at `http://127.0.0.1:8010`*
 
 - **Stage 4 (Keyword Translate):** ➔ *[Read Stage 4 Manual & Line-by-Line Guide](4.%20Keyword%20Translate/README.md)*
 
   ```bash
-  cd "4. Keyword Translate"
-  # Windows (CMD / PowerShell)
-  .\run.bat
-  # Git Bash / macOS / Linux
-  ./run.sh
+  cd "4. Keyword Translate/backend"
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8011
   ```
 
-  *Accessible at `http://127.0.0.1:8003`*
+  *Accessible at `http://127.0.0.1:8011`*
 
 - **Stage 5 (Sentence Reformation & Précis):** ➔ *[Read Stage 5 Manual & Line-by-Line Guide](5.%20Sentence%20Reformation/README.md)*
 
   ```bash
-  cd "5. Sentence Reformation"
-  # Windows (CMD / PowerShell)
-  .\run.bat
-  # Git Bash / macOS / Linux
-  ./run.sh
+  cd "5. Sentence Reformation/backend"
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8012
   ```
 
   *Accessible at `http://127.0.0.1:8012`*
+
+- **Stage 6 (Sentence Construction & Syntax Restoration):** ➔ *[Read Stage 6 Manual & Line-by-Line Guide](6.%20Sectence%20Construction/README.md)*
+
+  ```bash
+  cd "6. Sectence Construction"
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python train.py      # Train Seq2Seq Transformer on PDF corpus
+  python construct.py  # Interactive sentence reconstruction testing
+  ```
 
 ---
 
@@ -152,8 +164,12 @@ For detailed technical designs, architectural blueprints, and stage references:
 </p>
 
 <p align="center">
+  <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
   <sub>
     Made with ❤️ by <b>Atanu, Babin, Rohit & Sagnik</b> • Guided by <b>Dr. Debjit Ghosh</b><br/>
-    <b>🎙️ Nativox</b> — Empowering Multilingual Communication
+    <b>🎙️ Nativox</b> — Empowering Multilingual Communication &bull; <b>End of Suite Documentation</b>
   </sub>
 </p>

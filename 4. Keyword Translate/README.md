@@ -1,86 +1,106 @@
-# Keyword Translation Stage
+# Stage 4: Contextual Keyword Translation
+
+## Cross-Lingual Terminology Mapping & Phonetic Pronunciation Guide
+
+Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
 [![Stage 3](https://img.shields.io/badge/Prev_Stage-Stage_3:_Keyword-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../3.%20Text%20to%20Keyword/README.md)
+[![Stage 5](https://img.shields.io/badge/Next_Stage-Stage_5:_Reformation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../5.%20Sentence%20Reformation/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 
 ---
 
-A standalone microservice that translates a **batch of keywords or domain terminology** — in any combination of **English**, **Hindi**, and **Bengali** — into a single target language while preserving technical meaning and order. This is the standalone implementation of **Stage 4 (Keyword Translation)** from the Nativox pipeline.
+## 📖 Operational Overview
+
+Stage 4 is the multilingual translation and transliteration bridge of the Nativox pipeline. It takes the domain terminology and keyword clusters extracted in **Stage 3** and translates them into the target language (**English**, **Hindi**, or **Bengali**) while preserving context, technical precision, and original token sequence.
+
+It also generates Romanized phonetic pronunciation guides (transliterations) to assist speech synthesis in downstream stages.
+
+The translated vocabulary is provided to **Stage 5 (Sentence Reformation & Précis)** to ensure domain terms are accurately preserved during sentence reconstruction.
 
 ---
 
-## 🛠️ Tech Stack & Working Principle
+## 🛠️ Tech Stack & Key Features
 
-- **Backend:** FastAPI (Python) + `deep-translator` + `indic-transliteration`
-- **Frontend:** Single-page reactive UI with Romanized pronunciation guides.
-- **Workflow:**
-  1. **Unicode Detection:** Automatically identifies input script (Devanagari $\rightarrow$ Hindi, Bengali script $\rightarrow$ Bengali, Latin $\rightarrow$ English) without running expensive language models.
-  2. **Batch Translation:** Translates terms into the selected target language via translation endpoints with built-in resilient fallback.
-  3. **Phonetic Pronunciation Guide:** Generates readable Latin transliterations for Hindi and Bengali terms (e.g. *पानी* $\rightarrow$ `pani`, *জল* $\rightarrow$ `jala`).
-
----
-
-## 📋 Requirements
-
-- **Python:** **3.10 or 3.11** (Recommended: avoids pre-release compatibility issues)
-- **Internet Access:** Required for translation endpoints.
+- **Backend:** FastAPI (Python 3.11 asynchronous server)
+- **Translation Services:** `deep-translator` with multi-engine fallback resilience
+- **Phonetic Transliteration:** `indic-transliteration` (ITRANS / Harvard-Kyoto scheme for Devanagari and Bengali scripts)
+- **Script Detection:** High-speed Unicode block inspection (Devanagari $\to$ Hindi, Bengali $\to$ Bengali, Basic Latin $\to$ English) without heavy model overhead
+- **Frontend:** Single-page reactive dashboard with script detection tags and phonetic pronunciation badges
 
 ---
 
-## 🚀 Quick Start
+## 📋 Prerequisites & Requirements
 
-### Windows (Command Prompt / PowerShell)
+- **Python:** **3.11** (Repository pinned via root `.python-version`)
+- **Internet Access:** Required for translation API requests
+- **Dependencies:** `fastapi`, `uvicorn`, `deep-translator`, `indic-transliteration`, `pydantic`
 
-```powershell
-.\run.bat
-```
+---
 
-### Git Bash (Windows) / macOS / Linux
+## 🚀 Setup & Execution
+
+### 1. Navigate to Backend Directory
 
 ```bash
-chmod +x run.sh
-./run.sh
+cd "4. Keyword Translate/backend"
 ```
 
-Once running, navigate to: **`http://127.0.0.1:8003`** (or configured port `8011`)
+### 2. Create & Activate Virtual Environment
+
+- **Create Environment (Python 3.11):**
+
+  ```bash
+  python -m venv venv
+  ```
+
+- **Activate on Windows (PowerShell):**
+
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+
+- **Activate on Windows (CMD):**
+
+  ```cmd
+  venv\Scripts\activate.bat
+  ```
+
+- **Activate on macOS / Linux / Git Bash:**
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. Install Dependencies & Launch Server
+
+```bash
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8011
+```
+
+The web interface will be available at: **`http://127.0.0.1:8011`**
 
 > [!IMPORTANT]
-> **Access via `http://127.0.0.1:8003`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on the server port. Opening `index.html` directly as a local `file:///` path will cause browser CORS / network errors when calling `/api/translate-batch`. Do **not** delete `frontend/index.html`, as FastAPI renders it on root `/`.
+> **Access via `http://127.0.0.1:8011`, not raw `index.html`:**
+> The FastAPI backend serves `frontend/index.html` directly on port `8011`. Opening `index.html` directly via local `file:///` causes browser CORS errors that block requests to `/api/translate-batch`.
 
 ---
 
-## ⚙️ Manual Setup
+## 🏛️ Pipeline Architecture
 
-### Windows PowerShell
+```mermaid
+graph LR
+    A["Salient Keywords from Stage 3"] --> B["Unicode Script Detector"]
+    B --> C["Batch Translation Engine"]
+    C --> D["Indic Transliteration (ITRANS)"]
+    D --> E["Translated Vocabulary & Phonetic Guides"]
+    E -.-> F["Input to Stage 5 (Reformation)"]
 
-```powershell
-cd backend
-py -3.11 -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8003
-```
-
-### Git Bash (Windows)
-
-```bash
-cd backend
-py -3.11 -m venv venv
-source venv/Scripts/activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8003
-```
-
-### macOS / Linux
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 -m uvicorn main:app --reload --port 8003
+    linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
 
 ---
@@ -89,43 +109,46 @@ python3 -m uvicorn main:app --reload --port 8003
 
 ### `POST /api/translate-batch`
 
-**Request:**
+Translates an array of multilingual keywords into the specified target language.
 
-```json
-{
-  "keywords": ["water", "पानी", "আকাশ", "computer"],
-  "target_language": "hindi"
-}
-```
+- **Content-Type:** `application/json`
+- **Request Body:**
 
-**Response:**
+  ```json
+  {
+    "keywords": ["water", "कंप्यूटर", "বই", "neural network"],
+    "target_language": "hindi"
+  }
+  ```
 
-```json
-{
-  "target_language": "hindi",
-  "target_label": "Hindi",
-  "results": [
-    {
-      "original": "water",
-      "detected_language": "english",
-      "detected_label": "English",
-      "translated_text": "पानी",
-      "target_language": "hindi",
-      "target_label": "Hindi",
-      "pronunciation": "pani"
-    },
-    {
-      "original": "computer",
-      "detected_language": "english",
-      "detected_label": "English",
-      "translated_text": "कंप्यूटर",
-      "target_language": "hindi",
-      "target_label": "Hindi",
-      "pronunciation": "kampyutara"
-    }
-  ]
-}
-```
+- **Response Body:**
+
+  ```json
+  {
+    "target_language": "hindi",
+    "target_label": "Hindi",
+    "results": [
+      {
+        "original": "water",
+        "detected_language": "english",
+        "detected_label": "English",
+        "translated_text": "पानी",
+        "target_language": "hindi",
+        "target_label": "Hindi",
+        "pronunciation": "pani"
+      },
+      {
+        "original": "neural network",
+        "detected_language": "english",
+        "detected_label": "English",
+        "translated_text": "न्यूरल नेटवर्क",
+        "target_language": "hindi",
+        "target_label": "Hindi",
+        "pronunciation": "nyurala netavarka"
+      }
+    ]
+  }
+  ```
 
 ---
 
@@ -133,15 +156,31 @@ python3 -m uvicorn main:app --reload --port 8003
 
 ```text
 4. Keyword Translate/
-├── README.md
-├── run.bat
-├── run.sh
+├── README.md                  # Stage documentation
 ├── backend/
-│   ├── main.py                  # FastAPI app + translation endpoints
-│   ├── requirements.txt         # deep-translator, indic-transliteration, fastapi
+│   ├── main.py                # FastAPI REST endpoints & static server
+│   ├── requirements.txt       # deep-translator, indic-transliteration, fastapi
 │   └── app/
-│       ├── translate_service.py # Batch translation logic & error fallback
-│       └── detect.py            # Fast Unicode block script detection
+│       ├── translate_service.py # Batch translation handler with error fallback
+│       └── detect.py          # Fast Unicode block script detector
 └── frontend/
-    └── index.html               # Batch keyword translation UI with phonetic badges
+    └── index.html             # Interactive UI with phonetic badge cards
 ```
+
+---
+
+## 👥 Authors & Academic Context
+
+- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+
+---
+
+<p align="center">
+  <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
+</p>
+
+<p align="center">
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 4 Documentation</b></sub>
+</p>
