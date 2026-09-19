@@ -1,32 +1,58 @@
-# Python virtual environments & packages
+# =============================================================================
+# Python & Environment Ignore Rules
+# =============================================================================
 venv/
 **/venv/
 .venv/
 **/.venv/
+env/
+**/env/
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 **/__pycache__/
 *.py[cod]
 *$py.class
+*.pyd
 
-# Temporary media & cache
-storage/uploads/*
-!storage/uploads/.gitkeep
-storage/outputs/*
-!storage/outputs/.gitkeep
+# =============================================================================
+# Audio & Video Media Cache (Storage)
+# =============================================================================
+**/storage/uploads/*
+!**/storage/uploads/.gitignore
+!**/storage/uploads/.gitkeep
+
+**/storage/outputs/*
+!**/storage/outputs/.gitignore
+!**/storage/outputs/.gitkeep
+
 *.mp3
 *.mp4
 *.wav
 *.m4a
+*.mov
+*.mkv
+*.avi
+*.webm
+*.flac
 
-# OS & Editor
+# =============================================================================
+# Machine Learning Checkpoints & Datasets (Stage 4)
+# =============================================================================
+**/saved_model/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+*.pdf
+*.docx
+
+# =============================================================================
+# OS & Editor Artifacts
+# =============================================================================
 .DS_Store
 Thumbs.db
+desktop.ini
 .vscode/
 .idea/
-
-# Trained ML models
-*.safetensors
-saved_model/
-
-# Training / source documents
-*.pdf
