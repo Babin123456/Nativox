@@ -14,11 +14,11 @@ class SynthesizeRequest(BaseModel):
         ...,
         min_length=1,
         max_length=5000,
-        description="Hindi (or English) text to synthesize into speech.",
+        description="Target dubbed text in Hindi or Bengali to synthesize into speech.",
     )
     voice: str = Field(
         default="hi-IN-SwaraNeural",
-        description="Edge-TTS voice short name (e.g. hi-IN-SwaraNeural, hi-IN-MadhurNeural).",
+        description="Edge-TTS voice short name (e.g. hi-IN-SwaraNeural, bn-IN-BashkarNeural).",
     )
     rate: str = Field(
         default="+0%",
@@ -37,6 +37,12 @@ class SynthesizeResponse(BaseModel):
         ..., description="Relative URL to download the synthesized MP3."
     )
     voice_used: str = Field(..., description="The voice short name that was used.")
+    detected_language: str = Field(
+        default="Hindi", description="Detected language name (Bengali or Hindi)."
+    )
+    detected_lang_code: str = Field(
+        default="hi", description="Detected language code (bn or hi)."
+    )
     text_length: int = Field(..., description="Character count of the input text.")
     word_count: int = Field(..., description="Word count of the input text.")
 
