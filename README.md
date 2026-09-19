@@ -1,6 +1,5 @@
-# Nativox: Modular Real-Time AI Multilingual Dubbing Suite
+<!-- markdownlint-disable MD033 MD041 -->
 
-<!-- markdownlint-disable MD033 -->
 <div align="center">
 
 ![Nativox Header](https://capsule-render.vercel.app/api?type=waving&color=0:4E65FF,50:92EFFD,100:3E8FC4&height=220&section=header&text=NATIVOX&fontSize=60&fontColor=FFFFFF&fontAlignY=38&desc=Modular%20Real-Time%20AI%20Multilingual%20Dubbing%20Suite&descFontSize=20&descColor=FFFFFF&descAlignY=62&animation=fadeIn)
