@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nativox — Stage 6: Hindi Text to MP3</title>
-  <meta name="description" content="Convert Hindi text into natural-sounding MP3 speech using Microsoft Edge Neural TTS voices. Part of the Nativox AI Multilingual Dubbing Suite." />
+  <title>Nativox — Stage 6: Text to MP3 Synthesis</title>
+  <meta name="description" content="Convert Bengali, English, and Hindi text into natural-sounding MP3 speech using Microsoft Edge Neural TTS voices. Part of the Nativox AI Multilingual Dubbing Suite." />
   <link rel="icon" type="image/webp" href="favicon.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0B0F17;
@@ -98,34 +97,37 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      align-items: center;
       gap: 6px;
-      margin: 20px 0 8px;
+      margin-top: 18px;
     }
 
     .flow-step {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      border-radius: 6px;
+      gap: 5px;
       background: var(--surface);
       border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
       color: var(--text-muted);
+      font-weight: 500;
       transition: all 0.2s;
     }
 
     .flow-step.active {
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(167, 139, 250, 0.15));
-      border-color: var(--primary);
+      background: var(--primary-glow);
+      border-color: rgba(56, 189, 248, 0.4);
       color: var(--primary);
+      font-weight: 700;
       box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
     }
 
     .flow-arrow {
-      color: var(--border);
-      font-size: 12px;
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.5;
     }
 
     /* ── Card ─────────────────────────────────────────────────── */
@@ -135,13 +137,19 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 24px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
     }
 
     .card-title {
       font-size: 16px;
       font-weight: 700;
+      color: #FFFFFF;
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -150,16 +158,16 @@
 
     .field-label {
       display: block;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 600;
-      margin-bottom: 8px;
-      color: #E2E8F0;
+      margin-bottom: 6px;
+      color: #CBD5E1;
     }
 
     .field-desc {
-      font-size: 12.5px;
+      font-size: 12px;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       line-height: 1.4;
     }
 
@@ -173,7 +181,7 @@
       border-radius: 8px;
       padding: 14px;
       color: var(--text);
-      font-family: 'Noto Serif Devanagari', 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Noto Serif Devanagari', 'Noto Serif Bengali', 'Plus Jakarta Sans', sans-serif;
       font-size: 15px;
       line-height: 1.7;
       resize: vertical;
@@ -284,13 +292,14 @@
 
     input[type="range"] {
       flex: 1;
+      accent-color: var(--primary);
+      cursor: pointer;
+      height: 6px;
       -webkit-appearance: none;
       appearance: none;
-      height: 6px;
       background: var(--border);
       border-radius: 3px;
       outline: none;
-      cursor: pointer;
     }
 
     input[type="range"]::-webkit-slider-thumb {
@@ -310,10 +319,10 @@
 
     .slider-val {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12.5px;
+      font-size: 13px;
       color: var(--primary);
       font-weight: 600;
-      min-width: 48px;
+      min-width: 45px;
       text-align: right;
     }
 
@@ -321,16 +330,16 @@
 
     .samples-row {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
-      margin-top: 14px;
       align-items: center;
+      gap: 8px;
+      margin-top: 10px;
     }
 
     .samples-label {
       font-size: 12px;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .sample-chip {
@@ -338,16 +347,17 @@
       border: 1px solid var(--border);
       color: #CBD5E1;
       font-size: 12px;
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s;
-      font-family: 'Noto Serif Devanagari', sans-serif;
+      font-family: 'Noto Serif Devanagari', 'Noto Serif Bengali', sans-serif;
     }
 
     .sample-chip:hover {
       border-color: var(--primary);
       color: var(--primary);
+      background: var(--primary-glow);
     }
 
     /* ── Action Button ───────────────────────────────────────── */
@@ -357,34 +367,37 @@
       justify-content: space-between;
       align-items: center;
       margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #0284C7, #38BDF8);
+      background: linear-gradient(135deg, var(--primary), #0284C7);
       color: #04121E;
       border: none;
       font-family: inherit;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 700;
-      padding: 12px 28px;
+      padding: 11px 24px;
       border-radius: 8px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       transition: all 0.2s;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
     }
 
     .btn-primary:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
     }
 
     .btn-primary:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
     .btn-secondary {
@@ -424,7 +437,7 @@
       animation: spin 0.6s linear infinite;
     }
 
-    /* ── Output Section ──────────────────────────────────────── */
+    /* ── Output Section ────────────────────────────────        */
 
     .output-section {
       display: none;
@@ -471,15 +484,16 @@
       height: 48px;
       border-radius: 8px;
       outline: none;
+      filter: invert(1) hue-rotate(180deg);
     }
 
     audio::-webkit-media-controls-panel {
-      background: var(--bg);
+      background: #FFFFFF;
     }
 
     .audio-meta {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 12px;
       margin-top: 16px;
     }
@@ -509,6 +523,7 @@
 
     .meta-value.accent { color: var(--accent); }
     .meta-value.purple { color: var(--purple); }
+    .meta-value.success { color: var(--success); }
 
     .download-row {
       display: flex;
@@ -596,7 +611,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 14px;
-      font-family: 'Noto Serif Devanagari', serif;
+      font-family: 'Noto Serif Devanagari', 'Noto Serif Bengali', 'Plus Jakarta Sans', serif;
       font-size: 15px;
       line-height: 1.8;
       color: var(--text);
@@ -627,6 +642,12 @@
       background: var(--primary-glow);
       color: var(--primary);
       border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .voice-tag.lang {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.3);
     }
 
     /* ── Status Toast ────────────────────────────────────────── */
@@ -765,48 +786,48 @@
         <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
         Stage 6 — Final Output
       </div>
-      <h1>Hindi Text → MP3 Synthesis</h1>
+      <h1>Text → MP3 Speech Synthesis</h1>
       <p class="subtitle">
-        Convert reformed Hindi text from Stage 5(b) into natural-sounding speech
-        using Microsoft Edge Neural TTS. Select from multiple Hindi voices, adjust
-        speed and pitch, and download production-ready MP3 audio.
+        Convert text into natural-sounding speech using Microsoft Edge Neural TTS.
+        Supports <strong>Bengali</strong>, <strong>English</strong>, and <strong>Hindi</strong>
+        with automatic language detection, dedicated neural voices, speed and pitch adjustments.
       </p>
 
       <!-- Pipeline Flow Visualization -->
       <div class="pipeline-flow">
         <span class="flow-step">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
-          1 MP4→MP3
+          1. MP4→MP3
         </span>
         <span class="flow-arrow">→</span>
         <span class="flow-step">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
-          2 MP3→Text
+          2. MP3→Text
         </span>
         <span class="flow-arrow">→</span>
         <span class="flow-step">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
-          3 Keywords
+          3. Keywords
         </span>
         <span class="flow-arrow">→</span>
         <span class="flow-step">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-          4 Sentences
+          4. Sentences
         </span>
         <span class="flow-arrow">→</span>
         <span class="flow-step">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
-          5a Translate
+          5a. Translate
         </span>
         <span class="flow-arrow">→</span>
         <span class="flow-step">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
-          5b Reform
+          5b. Reform
         </span>
         <span class="flow-arrow">→</span>
         <span class="flow-step active">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>
-          6 Speech
+          6. Speech
         </span>
       </div>
     </header>
@@ -816,18 +837,17 @@
     <div class="card" id="inputCard">
       <div class="card-title">
         <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
-        Hindi Text Input
+        Target Dubbed Text Input (Hindi · Bengali)
       </div>
 
-      <label class="field-label" for="ttsInput">Paste Hindi text from Stage 5(b)</label>
+      <label class="field-label" for="ttsInput">Paste or enter reformed target text in Hindi (हिन्दी) or Bengali (বাংলা)</label>
       <p class="field-desc">
-        Enter the reformed Hindi sentence or précis output. The text will be
-        synthesized into natural speech audio.
+        The system detects whether the text is Hindi or Bengali and synthesizes studio-grade neural dubbing speech.
       </p>
 
       <textarea
         id="ttsInput"
-        placeholder="यहाँ हिंदी टेक्स्ट पेस्ट करें... (Paste Hindi text here)"
+        placeholder="यहाँ हिन्दी टेक्स्ट पेस्ट करें... / এখানে বাংলা টেক্সট লিখুন..."
         oninput="updateCharCount()"
       ></textarea>
       <div class="char-count">
@@ -837,9 +857,9 @@
       <!-- Sample Chips -->
       <div class="samples-row">
         <span class="samples-label">Try a sample →</span>
-        <span class="sample-chip" onclick="loadSample(0)">नमस्ते, यह एक परीक्षण है।</span>
-        <span class="sample-chip" onclick="loadSample(1)">डीप लर्निंग मॉडल</span>
-        <span class="sample-chip" onclick="loadSample(2)">कंप्यूटर विज़न ट्यूटोरियल</span>
+        <span class="sample-chip" onclick="loadSample(0)">🇮🇳 नमूना १: नमस्ते, यह एक परीक्षण है</span>
+        <span class="sample-chip" onclick="loadSample(1)">🇮🇳 नमूना २: आज हम न्यूरल नेटवर्क सीखेंगे</span>
+        <span class="sample-chip" onclick="loadSample(2)">🇮🇳 नमूना ३: नेटिवॉक्स रीयल-टाइम एआई डबिंग</span>
       </div>
 
       <!-- Controls Grid -->
@@ -850,8 +870,16 @@
             Voice
           </label>
           <select id="voiceSelect">
-            <option value="hi-IN-SwaraNeural">Swara (Female, Hindi)</option>
-            <option value="hi-IN-MadhurNeural">Madhur (Male, Hindi)</option>
+            <optgroup label="Hindi (हिन्दी)">
+              <option value="hi-IN-SwaraNeural" selected>Swara (Female, Hindi India)</option>
+              <option value="hi-IN-MadhurNeural">Madhur (Male, Hindi India)</option>
+            </optgroup>
+            <optgroup label="Bengali (বাংলা)">
+              <option value="bn-IN-BashkarNeural">Bashkar (Male, Bengali India)</option>
+              <option value="bn-IN-TanishaaNeural">Tanishaa (Female, Bengali India)</option>
+              <option value="bn-BD-NabanitaNeural">Nabanita (Female, Bengali Bangladesh)</option>
+              <option value="bn-BD-PradeepNeural">Pradeep (Male, Bengali Bangladesh)</option>
+            </optgroup>
           </select>
         </div>
 
@@ -911,6 +939,7 @@
         <div class="card-title">
           <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>
           Synthesized Audio
+          <span class="voice-tag lang" id="langTag">Hindi</span>
           <span class="voice-tag female" id="voiceTag">hi-IN-SwaraNeural</span>
         </div>
 
@@ -924,6 +953,10 @@
 
         <!-- Meta Stats -->
         <div class="audio-meta">
+          <div class="meta-item">
+            <div class="meta-label">Language</div>
+            <div class="meta-value success" id="metaLang">Hindi</div>
+          </div>
           <div class="meta-item">
             <div class="meta-label">Characters</div>
             <div class="meta-value" id="metaChars">0</div>
@@ -983,16 +1016,61 @@
     // ── State ──────────────────────────────────────────────────
     let currentAudioUrl = null;
 
-    // ── Sample Data ───────────────────────────────────────────
+    // ── Sample Data (Hindi Texts) ─────────────────────────────
     const samples = [
       "नमस्ते, यह एक परीक्षण है। हम न्यूरल नेटवर्क कंप्यूटर विज़न मॉडल को प्रशिक्षित करते हैं।",
-      "आज, पता लगाएँ कि डीप लर्निंग और आर्टिफ़िशियल न्यूरल नेटवर्क वास्तव में कैसे काम करते हैं। यह सिर्फ बुनियादी रैखिक बीजगणित और मैट्रिक्स गुणा है।",
-      "इस ट्यूटोरियल में, हम कंप्यूटर विज़न का उपयोग करके छवियों का वर्गीकरण करना सीखेंगे। PyTorch का उपयोग करके एक पायथन स्क्रिप्ट लिखेंगे।"
+      "आज हम सीखेंगे कि डीप लर्निंग और आर्टिफिशियल न्यूरल नेटवर्क कैसे काम करते हैं। यह बुनियादी रैखिक बीजगणित और कैलकुलस पर आधारित है।",
+      "नेटिवॉक्स रीयल-टाइम एआई बहुभाषी डबिंग और भाषण संश्लेषण सूट में आपका स्वागत है। यह तकनीक उच्च गुणवत्ता वाली प्राकृतिक ध्वनि उत्पन्न करती है।"
     ];
 
     function loadSample(index) {
       document.getElementById('ttsInput').value = samples[index];
       updateCharCount();
+      autoSelectVoiceForText(samples[index]);
+    }
+
+    // ── Language Auto-Detection Helper (Hindi & Bengali) ───────
+    function detectClientLanguage(text) {
+      const cleaned = text.replace(/[\s\d\W_]+/g, '');
+      if (!cleaned) return null;
+      const bn = (cleaned.match(/[\u0980-\u09FF]/g) || []).length;
+      const hi = (cleaned.match(/[\u0900-\u097F]/g) || []).length;
+      const en = (cleaned.match(/[a-zA-Z]/g) || []).length;
+
+      // Warn if user pastes English source text
+      if (en > 0 && en >= (bn + hi)) return 'english_not_allowed';
+
+      const total = bn + hi;
+      if (total / cleaned.length < 0.5) return 'unsupported';
+      if (bn >= hi && bn > 0) return 'bn';
+      if (hi >= bn && hi > 0) return 'hi';
+      return null;
+    }
+
+    function autoSelectVoiceForText(text) {
+      const lang = detectClientLanguage(text);
+      const select = document.getElementById('voiceSelect');
+      if (!lang || lang === 'unsupported' || lang === 'english_not_allowed' || !select) return;
+
+      // If current voice already matches the detected language, don't change
+      const currentVoice = select.value;
+      if (
+        (lang === 'bn' && currentVoice.startsWith('bn-')) ||
+        (lang === 'hi' && currentVoice.startsWith('hi-'))
+      ) {
+        return;
+      }
+
+      // Find first matching option in select
+      for (let opt of select.options) {
+        if (
+          (lang === 'bn' && opt.value.startsWith('bn-')) ||
+          (lang === 'hi' && opt.value.startsWith('hi-'))
+        ) {
+          select.value = opt.value;
+          break;
+        }
+      }
     }
 
     // ── Character / Word Counter ──────────────────────────────
@@ -1001,6 +1079,7 @@
       document.getElementById('charCount').textContent = text.length;
       const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
       document.getElementById('wordCount').textContent = words;
+      autoSelectVoiceForText(text);
     }
 
     // ── Slider Labels & Reset ─────────────────────────────────
@@ -1039,7 +1118,7 @@
     // ── Toast Icons ───────────────────────────────────────────
     const ICONS = {
       success: '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
-      warning: '<svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      warning: '<svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="19" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
       error: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
       mic: '<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>',
       download: '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
@@ -1048,33 +1127,48 @@
 
     // ── Toast ─────────────────────────────────────────────────
     let toastTimeout = null;
-    let toastRemaining = 3000;
     let toastStartTime = 0;
-    const toastEl = document.getElementById('toast');
+    let toastRemaining = 0;
 
-    function hideToast() {
-      toastEl.classList.remove('show', 'success');
+    function startToastTimer(duration) {
+      toastStartTime = Date.now();
+      toastRemaining = duration;
+      toastTimeout = setTimeout(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => {
+          toast.classList.remove('hide');
+        }, 350);
+        toastTimeout = null;
+      }, duration);
+    }
+
+    function showToast(msg, iconSvg = null, duration = 3000) {
+      const toast = document.getElementById('toast');
+      const iconEl = document.getElementById('toastIcon');
+      const msgEl = document.getElementById('toastMsg');
+
       if (toastTimeout) {
         clearTimeout(toastTimeout);
         toastTimeout = null;
       }
-    }
 
-    function startToastTimer(duration) {
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastRemaining = duration;
-      toastStartTime = Date.now();
-      toastTimeout = setTimeout(hideToast, duration);
-    }
+      if (iconSvg) {
+        iconEl.innerHTML = iconSvg;
+        iconEl.style.display = 'inline-flex';
+      } else {
+        iconEl.style.display = 'none';
+      }
 
-    function showToast(msg, iconSvg = ICONS.success, duration = 3000) {
-      document.getElementById('toastMsg').textContent = msg;
-      document.getElementById('toastIcon').innerHTML = iconSvg;
-      toastEl.classList.add('show', 'success');
+      msgEl.textContent = msg;
+      toast.classList.remove('hide');
+      toast.classList.add('show');
+
       startToastTimer(duration);
     }
 
-    // Hover pause & resume
+    const toastEl = document.getElementById('toast');
     toastEl.addEventListener('mouseenter', () => {
       if (toastTimeout) {
         clearTimeout(toastTimeout);
@@ -1091,7 +1185,6 @@
     });
 
     // ── API Origin Resolution ─────────────────────────────────
-    // If opened via VS Code Live Server (e.g. port 5500) or file:///, route to Uvicorn on 8013
     const API_BASE = (window.location.port === '8013')
       ? ''
       : 'http://127.0.0.1:8013';
@@ -1099,17 +1192,37 @@
     // ── Fetch Voices ──────────────────────────────────────────
     async function fetchVoices() {
       try {
-        const resp = await fetch(`${API_BASE}/api/voices?locale=hi-IN`);
+        const resp = await fetch(`${API_BASE}/api/voices?locale=all`);
         if (!resp.ok) return;
         const data = await resp.json();
         const select = document.getElementById('voiceSelect');
+        const prevVal = select.value;
         select.innerHTML = '';
+
+        const groups = {
+          'Hindi (हिन्दी)': [],
+          'Bengali (বাংলা)': []
+        };
+
         data.voices.forEach(v => {
-          const opt = document.createElement('option');
-          opt.value = v.short_name;
-          opt.textContent = v.friendly_name + ' (' + v.gender + ')';
-          select.appendChild(opt);
+          if (v.locale.startsWith('hi')) groups['Hindi (हिन्दी)'].push(v);
+          else if (v.locale.startsWith('bn')) groups['Bengali (বাংলা)'].push(v);
         });
+
+        for (const [groupLabel, voiceList] of Object.entries(groups)) {
+          if (!voiceList.length) continue;
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = groupLabel;
+          voiceList.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.short_name;
+            opt.textContent = `${v.friendly_name} (${v.gender})`;
+            optgroup.appendChild(opt);
+          });
+          select.appendChild(optgroup);
+        }
+
+        if (prevVal) select.value = prevVal;
       } catch (e) {
         // Keep default options on failure
       }
@@ -1119,7 +1232,13 @@
     async function synthesize() {
       const text = document.getElementById('ttsInput').value.trim();
       if (!text) {
-        showToast('Please enter Hindi text first.', ICONS.warning);
+        showToast('Please enter Hindi or Bengali text first.', ICONS.warning);
+        return;
+      }
+
+      const clientLang = detectClientLanguage(text);
+      if (clientLang === 'english_not_allowed') {
+        showToast('English text detected! Please use Stage 5 to translate to Hindi or Bengali first.', ICONS.warning, 5000);
         return;
       }
 
@@ -1159,6 +1278,13 @@
         audioPlayer.load();
 
         // Update metadata
+        const langVal = data.detected_language || 'Hindi';
+        const metaLang = document.getElementById('metaLang');
+        if (metaLang) metaLang.textContent = langVal;
+
+        const langTag = document.getElementById('langTag');
+        if (langTag) langTag.textContent = langVal;
+
         document.getElementById('metaChars').textContent = data.text_length;
         document.getElementById('metaWords').textContent = data.word_count;
         document.getElementById('metaVoice').textContent = data.voice_used;
@@ -1166,8 +1292,15 @@
         // Update voice tag
         const voiceTag = document.getElementById('voiceTag');
         voiceTag.textContent = data.voice_used;
-        voiceTag.className = 'voice-tag ' +
-          (data.voice_used.includes('Swara') ? 'female' : 'male');
+        const vLower = data.voice_used.toLowerCase();
+        const isFemale = vLower.includes('swara') ||
+                         vLower.includes('tanishaa') ||
+                         vLower.includes('nabanita') ||
+                         vLower.includes('neerja') ||
+                         vLower.includes('ava') ||
+                         vLower.includes('emma') ||
+                         vLower.includes('jenny');
+        voiceTag.className = 'voice-tag ' + (isFemale ? 'female' : 'male');
 
         // Update text preview
         document.getElementById('textPreview').textContent = text;
@@ -1196,7 +1329,7 @@
           audioPlayer.play().catch(() => {});
         } catch (_) {}
 
-        showToast('Speech synthesized successfully!', ICONS.mic);
+        showToast(`${langVal} speech synthesized successfully!`, ICONS.mic);
 
       } catch (err) {
         showToast('Error: ' + err.message, ICONS.error, 5000);
