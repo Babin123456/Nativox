@@ -5,46 +5,32 @@ venv/
 **/venv/
 .venv/
 **/.venv/
-env/
-**/env/
 
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / cache files
 __pycache__/
-**/__pycache__/
+/**/__pycache__/
 *.py[cod]
 *$py.class
 *.pyd
+.pytest_cache/
+**/.pytest_cache/
 
 # =============================================================================
-# Audio & Video Media Cache (Storage)
+# Storage & Media Cache
 # =============================================================================
-**/storage/uploads/*
-!**/storage/uploads/.gitignore
-!**/storage/uploads/.gitkeep
-
-**/storage/outputs/*
-!**/storage/outputs/.gitignore
-!**/storage/outputs/.gitkeep
-
+**/storage/
 *.mp3
 *.mp4
 *.wav
-*.m4a
-*.mov
-*.mkv
-*.avi
-*.webm
-*.flac
 
 # =============================================================================
-# Machine Learning Checkpoints & Datasets (Stage 4)
+# Machine Learning Checkpoints & Training Data (Stage 4)
 # =============================================================================
 **/saved_model/
 *.safetensors
 *.bin
 *.pt
 *.pth
-*.onnx
 *.pdf
 *.docx
 
@@ -53,6 +39,5 @@ __pycache__/
 # =============================================================================
 .DS_Store
 Thumbs.db
-desktop.ini
 .vscode/
 .idea/

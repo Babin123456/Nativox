@@ -4,12 +4,15 @@
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 1](https://img.shields.io/badge/Prev_Stage-Stage_1:_Extractor-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../01_MP4_to_MP3/README.md)
-[![Stage 3](https://img.shields.io/badge/Next_Stage-Stage_3:_Keyword-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../03_Text_to_Keyword/README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![faster-whisper](https://img.shields.io/badge/faster--whisper-CTranslate2-blueviolet?style=for-the-badge&logo=openai&logoColor=white)](https://github.com/SYSTRAN/faster-whisper)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Nativox Suite" /></a>
+  <a href="../01_MP4_to_MP3/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_1:_Extractor-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Previous Stage" /></a>
+  <a href="../03_Text_to_Keyword/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_3:_Keyword-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white" alt="Next Stage" /></a>
+  <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://github.com/SYSTRAN/faster-whisper"><img src="https://img.shields.io/badge/faster--whisper-CTranslate2-blueviolet?style=for-the-badge&logo=openai&logoColor=white" alt="faster-whisper" /></a>
+</p>
 
 ---
 
@@ -21,13 +24,14 @@ The resulting transcript feeds directly into **Stage 3 (Salient Keyword Extracti
 
 ---
 
-## 🛠️ Tech Stack & Key Features
+## 🛠️ Tech Stack: Architectural Rationale & Comparative Evaluation
 
-- **Inference Engine:** [faster-whisper](https://github.com/SYSTRAN/faster-whisper) (CTranslate2-accelerated implementation of OpenAI Whisper)
-- **Execution Target:** CPU (INT8 quantized) or GPU (FP16 / CUDA accelerated)
-- **Local & Privacy-Preserving:** 100% offline inference with zero third-party API dependencies
-- **Language Detection:** Real-time automatic language identification and confidence scoring across English, Hindi, and Bengali
-- **Frontend Interface:** Synchronized waveform audio player on the left with formatted transcript viewer on the right
+| Technology | Purpose in Pipeline | Why It Is Chosen Over Existing Alternatives | Viable Alternatives & Trade-Off Analysis |
+| :--- | :--- | :--- | :--- |
+| **`faster-whisper` (CTranslate2)** | High-throughput multilingual speech transcription and automatic language identification | Up to 4x faster execution speed and uses 2x less RAM/VRAM than standard PyTorch Whisper via CTranslate2 INT8 quantization and customized fused kernels. 100% offline, zero cloud API recurring cost, zero vendor lock-in. | **OpenAI Whisper (Vanilla PyTorch):** 4x slower inference, larger memory requirements, lacks streaming VAD filter. <br>**Google Cloud STT / AWS Transcribe:** Expensive recurring pay-per-second cloud costs, network latency, and privacy compliance issues with sensitive audio. |
+| **Silero VAD** | Deep-learning Voice Activity Detection preprocessing | Filters silent pauses, breathing sounds, and non-speech background noises before feeding frames to Whisper. Eliminates hallucinations and empty hallucinated subtitle loops common in pure Whisper on silence. | **WebRTC VAD:** Rule-based energy thresholding that fails on noisy speech, background music, or dynamic vocal ranges. |
+| **FastAPI Backend** | Streaming ASR request coordinator, CORS gateway, and audio receiver | Provides asynchronous streaming support, non-blocking audio ingest, and auto-generated API specifications for seamless stage-to-stage orchestration. | **Flask:** Synchronous execution blocks during long transcription jobs unless coupled with Celery worker pools. |
+| **Vanilla HTML5 / Web Audio API** | Real-time waveform rendering and interactive timestamp navigation | Allows instantaneous interactive seeking in the browser without framework overhead or third-party audio player bundle bloat. | **WaveSurfer.js / React-Player:** Introduces heavy client-side JavaScript dependencies and build pipelines. |
 
 ---
 

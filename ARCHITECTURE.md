@@ -2,10 +2,14 @@
 
 This document details the modular component architecture of **Nativox**, tracking how each standalone stage interfaces with the pipeline to deliver real-time, contextually accurate video dubbing.
 
-[![Suite Readme](https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white)](README.md)
-[![Instructions](https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-3E8FC4?style=for-the-badge&logo=googledocs&logoColor=white)](INSTRUCTIONS.md)
-[![Roadmap](https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white)](ROADMAP.md)
-[![MIT License](https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE.md)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="README.md"><img src="https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
+  <a href="INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-3E8FC4?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions" /></a>
+  <a href="ROADMAP.md"><img src="https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white" alt="Roadmap" /></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
+</p>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -46,8 +50,13 @@ graph TD
         COMPRESS["35%-40% Word Budget Précis Engine"]
     end
 
-    subgraph S6["Downstream: Voice Synthesis & Multi-Track Streaming"]
-        TTS["Neural TTS Voice Synthesis"]
+    subgraph S6["Stage 6: Hindi Text → MP3 Speech Synthesis"]
+        TTS["Edge Neural TTS (hi-IN voices)"]
+        PROSODY["Rate & Pitch Prosody Control"]
+        MP3OUT["MP3 Audio File Generator"]
+    end
+
+    subgraph S7["Downstream: Multi-Track Streaming"]
         STITCH["FFmpeg Overlap-Safe Audio Multiplexer"]
         HLS["Decoupled Multi-Track HLS / DASH Packager"]
     end
@@ -68,7 +77,9 @@ graph TD
     REFORM --> COMPRESS
     COMPRESS --> TTS
     T5_TRAIN --> TTS
-    TTS --> STITCH
+    TTS --> PROSODY
+    PROSODY --> MP3OUT
+    MP3OUT --> STITCH
     DEMUCS -->|Preserved Background Bed| STITCH
     STITCH --> HLS
     HLS --> DUBBED["YouTube-Style Multi-Track Stream"]
@@ -78,7 +89,7 @@ graph TD
     classDef stageNode fill:#1E293B,stroke:#0284C7,stroke-width:2px,color:#FFFFFF;
     classDef finalNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
 
-    class VID,EXTRACT,DEMUCS,WHISPER,VAD,RAKE,SCRIPT_TAG,TRANS_KW,PHONETIC,REFORM,COMPRESS,DOC_INGEST,CORRUPT,T5_TRAIN,TTS,STITCH,HLS stageNode;
+    class VID,EXTRACT,DEMUCS,WHISPER,VAD,RAKE,SCRIPT_TAG,TRANS_KW,PHONETIC,REFORM,COMPRESS,DOC_INGEST,CORRUPT,T5_TRAIN,TTS,PROSODY,MP3OUT,STITCH,HLS stageNode;
     class DUBBED finalNode;
 ```
 
@@ -141,6 +152,16 @@ graph TD
     $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
   - Contextual Hindi translation with proper postpositions (*vibhakti*) and grammatical case markers.
 
+### 7. Stage 6: `06_Converted_Text_to_MP3/`
+
+- **Responsibility:** Convert reformed Hindi text into natural-sounding MP3 speech audio.
+- **Port:** `http://127.0.0.1:8013`
+- **Core Operations:**
+  - Microsoft Edge Neural TTS synthesis via `edge-tts` — zero API keys, zero GPU.
+  - Multi-voice selection: female (`hi-IN-SwaraNeural`) and male (`hi-IN-MadhurNeural`) Hindi voices.
+  - Prosody control with adjustable speech rate and pitch parameters.
+  - Produces standard MP3 files ready for downstream HLS multi-track packaging.
+
 ---
 
 ## ⚡ Integration into Unified Delivery
@@ -153,7 +174,8 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 4. Stage 4 reconstructs grammatically sound sentences from keywords using document-trained models.
 5. Stage 5(a) maps keywords to the target language and generates phonetic guides.
 6. Stage 5(b) removes fillers and compresses paragraphs to a strict 35%–40% duration budget.
-7. Downstream neural TTS synthesizes voice tracks that are muxed into decoupled HLS multi-track streams.
+7. **Stage 6 synthesizes the reformed Hindi text into natural MP3 speech using Edge Neural TTS.**
+8. Downstream neural TTS tracks are muxed into decoupled HLS multi-track streams.
 
 ---
 

@@ -4,11 +4,15 @@
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 2](https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../02_MP3_to_Text/README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Nativox Suite" /></a>
+  <a href="../02_MP3_to_Text/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Next Stage" /></a>
+  <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+</p>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -20,12 +24,14 @@ The extracted MP3 serves as the clean acoustic input for **Stage 2 (Automatic Sp
 
 ---
 
-## 🛠️ Tech Stack & Key Features
+## 🛠️ Tech Stack: Architectural Rationale & Comparative Evaluation
 
-- **Backend:** FastAPI (Python 3.11 asynchronous server) + FFmpeg binary subprocess
-- **Audio Codec:** `libmp3lame` variable/high-quality VBR encoding (`-q:a 2`, ~190 kbps)
-- **Frontend:** Responsive vanilla HTML5, CSS3 glassmorphism, and modern JavaScript with dual side-by-side synchronized media players
-- **Storage Management:** Segregated temp upload staging with automatic session isolation
+| Technology | Purpose in Pipeline | Why It Is Chosen Over Existing Alternatives | Viable Alternatives & Trade-Off Analysis |
+| :--- | :--- | :--- | :--- |
+| **FastAPI (0.111.0)** | Asynchronous microservice API engine and static file server | Provides non-blocking native async I/O with automatic Pydantic validation and high concurrency. Outperforms Flask and Django with significantly lower latency and smaller memory footprint during large multi-megabyte file uploads. | **Flask / Django:** Slower throughput on concurrent upload/download streams; synchronous by default unless paired with complex gevent/Celery infrastructure. |
+| **FFmpeg (`libmp3lame`)** | Binary-level video-to-audio demuxing, stream isolation, and MP3 encoding | Industry gold-standard C library executing direct stream demuxing via hardware/OS subprocesses. Encodes using VBR `-q:a 2` (~190 kbps) for optimal acoustic fidelity and speech clarity with minimal CPU overhead. | **MoviePy / PyAV / pydub:** Higher memory consumption (MoviePy loads frames into RAM using NumPy arrays); slower extraction times and prone to Python Global Interpreter Lock (GIL) bottlenecks. |
+| **Vanilla HTML5 / CSS3 / ES6 JS** | Dual-player synchronized preview and glassmorphic user dashboard | Zero dependency build footprint; loads instantaneously without npm/Node.js tooling or compilation overhead. Dual synchronized `<video>` and `<audio>` tags give immediate verification before proceeding downstream. | **React / Vue / Next.js:** Introduces heavy Node.js build pipelines, node_modules bloat, and hydration lag for a focused media tool. |
+| **Pydantic v2** | Request validation, filename sanitization, and structured error schemas | Rust-backed validation core provides near-zero overhead parsing and strict typing, preventing directory traversal and malformed payload injection. | **Marshmallow / Cerberus:** Pure-Python parsing that is 5x–10x slower on payload validation and lacks native OpenAPI schema generation. |
 
 ---
 

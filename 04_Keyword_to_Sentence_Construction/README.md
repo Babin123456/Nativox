@@ -4,13 +4,16 @@
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 3](https://img.shields.io/badge/Prev_Stage-Stage_3:_Keywords-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../03_Text_to_Keyword/README.md)
-[![Stage 5](https://img.shields.io/badge/Next_Stage-Stage_5:_Translation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../05a_Keyword_Translation__Sagnik/README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
-[![Transformers](https://img.shields.io/badge/Transformers-Seq2Seq-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Nativox Suite" /></a>
+  <a href="../03_Text_to_Keyword/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_3:_Keywords-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Previous Stage" /></a>
+  <a href="../05a_Keyword_Translation__Sagnik/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_5:_Translation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white" alt="Next Stage" /></a>
+  <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://pytorch.org"><img src="https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch 2.0+" /></a>
+  <a href="https://huggingface.co"><img src="https://img.shields.io/badge/Transformers-Seq2Seq-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face Transformers" /></a>
+</p>
 
 ---
 
@@ -27,13 +30,14 @@ Stage 4 learns canonical sentence syntax directly from standard **PDF (`.pdf`)**
 
 ---
 
-## 🛠️ Tech Stack & Key Features
+## 🛠️ Tech Stack: Architectural Rationale & Comparative Evaluation
 
-- **Model Architecture:** Google Flan-T5 (`flan-t5-small` default, scalable to `flan-t5-base` or `flan-t5-large`)
-- **Deep Learning Framework:** PyTorch 2.0+ & Hugging Face Transformers
-- **Document Ingestion:** `pypdf` for PDF text extraction and `python-docx` for `.docx` documents
-- **Decoding Mechanism:** Multi-beam search with repetition penalty and length normalization
-- **Execution Target:** GPU (CUDA accelerated) or optimized multi-core CPU inference
+| Technology | Purpose in Pipeline | Why It Is Chosen Over Existing Alternatives | Viable Alternatives & Trade-Off Analysis |
+| :--- | :--- | :--- | :--- |
+| **Google Flan-T5 (`flan-t5-small` / `base`)** | Sequence-to-Sequence encoder-decoder restoring broken token order and grammar | Instruction-finetuned text-to-text architecture naturally excels at structural rewriting, token insertion, and grammatical re-ordering without hallucinating extraneous facts. Compact size (300MB weights) allows local fine-tuning on consumer hardware and low-latency CPU inference. | **OpenAI GPT-4 / Anthropic Claude API:** Requires continuous cloud connectivity, introduces 500ms–2s API latency, carries recurring per-token inference charges, and risks hallucinating new non-existent facts into scientific transcripts. <br>**BART / mBART:** Higher parameter count with slower inference; Flan-T5 produces tighter syntactic reconstructions. |
+| **PyTorch 2.0+ & Hugging Face Transformers** | Model training, self-supervised corruption loss, and beam-search generation | Industry standard deep-learning ecosystem with native mixed-precision (FP16/BF16), efficient gradient accumulation, and modular Seq2Seq training APIs (`Seq2SeqTrainer`). | **TensorFlow / Keras:** Steeper boilerplate for sequence-to-sequence beam search customization; less vibrant open-source Hugging Face model ecosystem. |
+| **`pypdf` & `python-docx`** | Direct document corpus text extraction | Pure-Python, headless parsers capable of ingesting PDF textbooks and DOCX manuals locally with zero external binary or OS-level dependencies. | **PyMuPDF / pdfminer.six:** PyMuPDF requires external AGPL C-libraries that complicate commercial distribution; pdfminer is significantly slower on large 500-page textbooks. |
+| **Beam Search Decoding (`num_beams=4`)** | Constrained probability decoding with repetition penalty and length penalty | Explores multiple generation paths concurrently, eliminating cyclic loops and ensuring restored sentences maintain natural cadence. | **Greedy Search:** Fast but prone to grammatical traps and repetitive token loops. <br>**Top-p / Top-k Sampling:** Introduces non-deterministic stochastic variations undesirable for precise academic dubbing. |
 
 ---
 
