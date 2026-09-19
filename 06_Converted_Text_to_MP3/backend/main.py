@@ -50,7 +50,8 @@ def health():
         "status": "ok",
         "service": "stage-6-text-to-mp3",
         "engine": "edge-tts",
-        "supported_locale": "hi-IN",
+        "supported_languages": ["Bengali", "English", "Hindi"],
+        "supported_locales": ["bn-IN", "bn-BD", "en-IN", "en-US", "hi-IN"],
     }
 
 
@@ -60,10 +61,10 @@ def health():
 @app.post("/api/synthesize", response_model=SynthesizeResponse)
 async def synthesize_endpoint(request: SynthesizeRequest):
     """
-    Synthesize Hindi text into an MP3 audio file.
+    Synthesize Bengali, English, or Hindi text into an MP3 audio file.
 
-    Accepts text, voice selection, rate, and pitch parameters.
-    Returns a URL to download the generated audio.
+    Validates text to ensure only supported languages are accepted.
+    Returns audio URL and detected language details.
     """
     text = request.text.strip()
     if not text:
@@ -71,12 +72,14 @@ async def synthesize_endpoint(request: SynthesizeRequest):
 
     try:
         from app.tts_engine import _synthesize_async
-        output_path = await _synthesize_async(
+        output_path, lang_code, lang_name = await _synthesize_async(
             text=text,
             voice=request.voice,
             rate=request.rate,
             pitch=request.pitch,
         )
+    except ValueError as val_err:
+        raise HTTPException(status_code=400, detail=str(val_err)) from val_err
     except Exception as exc:
         raise HTTPException(
             status_code=500, detail=f"Speech synthesis failed: {exc}"
@@ -85,6 +88,8 @@ async def synthesize_endpoint(request: SynthesizeRequest):
     return {
         "audio_url": f"/api/audio/{output_path.name}",
         "voice_used": request.voice,
+        "detected_language": lang_name,
+        "detected_lang_code": lang_code,
         "text_length": len(text),
         "word_count": len(text.split()),
     }
@@ -96,7 +101,6 @@ async def synthesize_endpoint(request: SynthesizeRequest):
 @app.get("/api/audio/{filename}")
 def serve_audio(filename: str):
     """Serve a previously synthesized MP3 file."""
-    # Sanitize filename to prevent directory traversal
     safe_name = Path(filename).name
     audio_path = STORAGE_DIR / safe_name
 
@@ -114,26 +118,57 @@ def serve_audio(filename: str):
 
 
 @app.get("/api/voices", response_model=VoicesResponse)
-async def list_voices(locale: str = "hi-IN"):
-    """Return all available Edge-TTS voices for the given locale."""
+async def list_voices(locale: str = "all"):
+    """Return available Edge-TTS voices for Bengali, English, and Hindi."""
     try:
         voices = await get_available_voices(locale)
     except Exception:
-        # Fallback: return the two known Hindi voices if network fetch fails
-        voices = [
+        # Fallback voices for Bengali, English, and Hindi
+        all_fallbacks = [
+            # Bengali
+            {
+                "short_name": "bn-IN-BashkarNeural",
+                "friendly_name": "Bashkar (Male, Bengali India)",
+                "gender": "Male",
+                "locale": "bn-IN",
+            },
+            {
+                "short_name": "bn-IN-TanishaaNeural",
+                "friendly_name": "Tanishaa (Female, Bengali India)",
+                "gender": "Female",
+                "locale": "bn-IN",
+            },
+            # English
+            {
+                "short_name": "en-IN-NeerjaNeural",
+                "friendly_name": "Neerja (Female, English India)",
+                "gender": "Female",
+                "locale": "en-IN",
+            },
+            {
+                "short_name": "en-IN-PrabhatNeural",
+                "friendly_name": "Prabhat (Male, English India)",
+                "gender": "Male",
+                "locale": "en-IN",
+            },
+            # Hindi
             {
                 "short_name": "hi-IN-SwaraNeural",
-                "friendly_name": "Swara (Female, Hindi)",
+                "friendly_name": "Swara (Female, Hindi India)",
                 "gender": "Female",
                 "locale": "hi-IN",
             },
             {
                 "short_name": "hi-IN-MadhurNeural",
-                "friendly_name": "Madhur (Male, Hindi)",
+                "friendly_name": "Madhur (Male, Hindi India)",
                 "gender": "Male",
                 "locale": "hi-IN",
             },
         ]
+        if locale and locale != "all":
+            voices = [v for v in all_fallbacks if v["locale"].startswith(locale)]
+        else:
+            voices = all_fallbacks
 
     return {
         "locale_filter": locale,
