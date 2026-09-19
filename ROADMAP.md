@@ -20,20 +20,24 @@ graph TD
     ASR_IN["Stage 2: Raw Speech Transcript (faster-whisper)"]
     REFORM["Stage 5(b): Meaningful Sentence Restorer (SOV Hindi)"]
     COMPRESS["Stage 5(b): 35%-40% Précis Compression"]
-    SYNTH["Downstream: Neural Voice Synthesis & HLS Multi-Track"]
+    TTS["Stage 6: Hindi Text → MP3 (Edge Neural TTS)"]
+    SYNTH["Downstream: HLS Multi-Track Streaming"]
 
     DOC --> INGEST
     INGEST -.->|Canonical Syntax Constraints| REFORM
     ASR_IN --> REFORM
     REFORM --> COMPRESS
-    COMPRESS --> SYNTH
+    COMPRESS --> TTS
+    TTS --> SYNTH
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 
     classDef stageNode fill:#1E293B,stroke:#0284C7,stroke-width:2px,color:#FFFFFF;
-    classDef finalNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
+    classDef doneNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
+    classDef finalNode fill:#1E1B3B,stroke:#A78BFA,stroke-width:2.5px,color:#FFFFFF;
 
     class DOC,INGEST,ASR_IN,REFORM,COMPRESS stageNode;
+    class TTS doneNode;
     class SYNTH finalNode;
 ```
 
@@ -77,6 +81,19 @@ graph TD
   - Zero video re-encoding: Keeps the master video track untouched and streams dubbed speech on secondary AAC audio tracks linked through an HLS manifest (`master.m3u8`).
   - Seamless buffer-free language switching in frontend HTML5 video players.
   - Multi-speaker voice cloning and pitch-preserving gender-matched neural TTS synthesis.
+  - Integration with Stage 6 MP3 output as the primary dubbed audio source.
+
+---
+
+### Directive 5: Hindi Text → MP3 Speech Synthesis — [Completed: Stage 6]
+
+- **Status:** **Completed** in [`06_Converted_Text_to_MP3/`](06_Converted_Text_to_MP3/README.md)
+- **Implemented Capabilities:**
+  - Microsoft Edge Neural TTS synthesis via `edge-tts` — zero API keys, zero GPU.
+  - Multi-voice selection: female (`hi-IN-SwaraNeural`) and male (`hi-IN-MadhurNeural`) Hindi voices.
+  - Prosody control with adjustable speech rate (`-50%` to `+50%`) and pitch (`-20Hz` to `+20Hz`).
+  - Produces standard MP3 files ready for downstream HLS multi-track packaging.
+  - Closes the full dubbing pipeline: **Video → Audio → Text → Keywords → Sentences → Translation → Reformation → Speech MP3**.
 
 ---
 
