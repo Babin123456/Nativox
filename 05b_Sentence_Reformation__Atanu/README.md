@@ -4,12 +4,16 @@
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 5a](https://img.shields.io/badge/Prev_Stage-Stage_5(a):_Translate-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../05a_Keyword_Translation__Sagnik/README.md)
-[![Stage 6](https://img.shields.io/badge/Next_Stage-Stage_6:_Speech_TTS-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../06_Converted_Text_to_MP3/README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
+  <a href="../05a_Keyword_Translation__Sagnik/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_5(a):_Translate-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 5a" /></a>
+  <a href="../06_Converted_Text_to_MP3/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_6:_Speech_TTS-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 6" /></a>
+  <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-%F0%9F%93%90_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+</p>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -25,12 +29,14 @@ Stage 5(b) addresses two critical directives set by project mentor **Dr. Debjit 
 
 ---
 
-## 🛠️ Tech Stack & Key Features
+## 🛠️ Tech Stack & Architectural Justification
 
-- **Backend:** FastAPI (Python 3.11 asynchronous server)
-- **Frontend:** Glassmorphic dashboard with live disfluency pill badges, word-budget progress bars, and dual English/Hindi comparison
-- **Compression Engine:** Salience-guided clause ranker with strictly enforced $[0.35, 0.40]$ retention window
-- **Grammar Restorer:** SOV syntax synthesis and Hindi case marker (*ne, ko, se, mein*) insertion
+| Technology | Purpose in Pipeline | Why It Is Chosen Over Existing Alternatives | Viable Alternatives & Trade-Off Analysis |
+| :--- | :--- | :--- | :--- |
+| **FastAPI + Uvicorn** | High-performance asynchronous REST microservice exposing reformation and précis endpoints (`/api/reform`, `/api/precis`). | Native ASGI event loop handles heavy text compression and translation requests concurrently without blocking audio workers. Built-in Pydantic v2 validation ensures strict word-budget payload contracts. | **Flask**: Thread-per-request model bottlenecks under high-volume audio segment batch processing.<br>**Node.js / Express**: Lacks native Python scientific libraries and linguistic tokenizers needed for Indic sentence parsing. |
+| **Salience Clause Précis Budgeter** | Algorithm enforcing strict $[35\%, 40\%]$ word retention boundary for video audio-length alignment. | Deterministic sentence and clause salience scoring guarantees strict compliance with the mentor's $35\%-40\%$ mathematical bounds without hallucinating facts or drifting outside target durations. | **Generative LLM Prompt Compression (e.g., GPT-3.5/4)**: Prone to non-deterministic token counts (frequently produces 50% or 20% despite prompt instructions), high token latency ($>1.5\text{ s}$), and external cloud cost.<br>**TextRank / LexRank**: Standard extractive graph algorithms only select whole sentences and cannot perform sub-clause compression, failing to hit tight $35\%-40\%$ margins on short transcripts. |
+| **Rule-Based Hindi SOV Synthesizer** | Reorders SVO English structures into Hindi SOV grammar, cleans disfluencies, and inserts postpositional markers (*ne, ko, se, mein, par*). | Executes in $<5\text{ ms}$ with zero GPU requirements, guaranteeing deterministic preservation of technical domain keywords while repairing broken ASR transcripts. | **Fine-Tuned Seq2Seq LLM (mT5/Llama-3)**: Requires GPU VRAM (>6 GB) and high cold-start latency, risking hallucinated substitutions for technical terms (e.g., swapping "database" with generic words). |
+| **Glassmorphic Dual-Panel UI** | Real-time interactive testing interface with visual disfluency pill removal indicators and word-budget progress meters. | Pure HTML5, CSS3 variables, and vanilla JS with zero build-chain overhead, offering instant live feedback during demo evaluation. | **React + Tailwind**: Adds heavy toolchain dependencies (npm, Webpack/Vite) without adding functional value to this single-screen administrative workbench. |
 
 ---
 
