@@ -34,9 +34,9 @@ Each standalone stage can run completely independently as a self-contained micro
 | [`1. mp4 to mp3/`](1.%20mp4%20to%20mp3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](1.%20mp4%20to%20mp3/README.md) | FFmpeg (libmp3lame) | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates audio tracks, and renders side-by-side synchronized preview. |
 | [`2. mp3 to Text/`](2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](2.%20mp3%20to%20Text/README.md) | faster-whisper / Silero VAD | Generates timestamped word-level and sentence-level transcripts with automatic language classification. |
 | [`3. Text to Keyword/`](3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](3.%20Text%20to%20Keyword/README.md) | Multilingual RAKE / Script Tagger | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
-| [`4. Keyword Translate/`](4.%20Keyword%20Translate) | **Contextual Terminology Translation** | [📖 Stage 4 Guide](4.%20Keyword%20Translate/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
-| [`5. Sentence Reformation/`](5.%20Sentence%20Reformation) | **Sentence Reformation & Précis** | [📖 Stage 5 Guide](5.%20Sentence%20Reformation/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
-| [`6. Sectence Construction/`](6.%20Sectence%20Construction) | **Sentence Construction & Syntax Restoration** | [📖 Stage 6 Guide](6.%20Sectence%20Construction/README.md) | Flan-T5 / Seq2Seq / PyTorch | Learns canonical syntax from PDF/DOCX documents to reconstruct fragmented/destructive sentences into fluent English. |
+| [`4(a). Keyword Translate/`](4(a).%20Keyword%20Translate) | **Contextual Terminology Translation** | [📖 Stage 4(a) Guide](4(a).%20Keyword%20Translate/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
+| [`4(b). Sentence Reformation/`](4(b).%20Sentence%20Reformation) | **Sentence Reformation & Précis** | [📖 Stage 4(b) Guide](4(b).%20Sentence%20Reformation/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
+| [`5. Sentence Construction/`](5.%20Sentence%20Construction) | **Sentence Construction & Syntax Restoration** | [📖 Stage 5 Guide](5.%20Sentence%20Construction/README.md) | Flan-T5 / Seq2Seq / PyTorch | Learns canonical syntax from PDF/DOCX documents to reconstruct fragmented/destructive sentences into fluent English. |
 | **Synthesis & Packaging** | **Neural TTS & HLS Delivery** | *Internal Service* | Edge-TTS / XTTS-v2 / HLS-DASH | Gender-matched voice synthesis and decoupled multi-audio track streaming without re-encoding video. |
 
 ---
@@ -83,10 +83,10 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8010`*
 
-- **Stage 4 (Keyword Translate):** ➔ *[Read Stage 4 Manual & Line-by-Line Guide](4.%20Keyword%20Translate/README.md)*
+- **Stage 4(a) (Keyword Translate):** ➔ *[Read Stage 4(a) Manual & Line-by-Line Guide](4(a).%20Keyword%20Translate/README.md)*
 
   ```bash
-  cd "4. Keyword Translate/backend"
+  cd "4(a). Keyword Translate/backend"
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -95,10 +95,10 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8011`*
 
-- **Stage 5 (Sentence Reformation & Précis):** ➔ *[Read Stage 5 Manual & Line-by-Line Guide](5.%20Sentence%20Reformation/README.md)*
+- **Stage 4(b) (Sentence Reformation & Précis):** ➔ *[Read Stage 4(b) Manual & Line-by-Line Guide](4(b).%20Sentence%20Reformation/README.md)*
 
   ```bash
-  cd "5. Sentence Reformation/backend"
+  cd "4(b). Sentence Reformation/backend"
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -107,10 +107,10 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8012`*
 
-- **Stage 6 (Sentence Construction & Syntax Restoration):** ➔ *[Read Stage 6 Manual & Line-by-Line Guide](6.%20Sectence%20Construction/README.md)*
+- **Stage 5 (Sentence Construction & Syntax Restoration):** ➔ *[Read Stage 5 Manual & Line-by-Line Guide](5.%20Sentence%20Construction/README.md)*
 
   ```bash
-  cd "6. Sectence Construction"
+  cd "5. Sentence Construction"
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
