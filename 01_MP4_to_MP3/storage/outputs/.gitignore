@@ -1,4 +1,0 @@
-# Keep directory tracked while ignoring transcoded output media files
-*
-!.gitignore
-!.gitkeep

@@ -1,4 +1,0 @@
-# Keep directory tracked while ignoring uploaded media files
-*
-!.gitignore
-!.gitkeep
