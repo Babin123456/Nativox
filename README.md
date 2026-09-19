@@ -40,7 +40,7 @@ Each standalone stage can run completely independently as a self-contained micro
 | [`04_Keyword_to_Sentence_Construction/`](04_Keyword_to_Sentence_Construction) | **Sentence Construction & Syntax Restoration** | [📖 Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md) | Flan-T5 / Seq2Seq / PyTorch | Learns canonical syntax from PDF/DOCX documents to reconstruct fragmented/destructive sentences into fluent English. |
 | [`05a_Keyword_Translation__Sagnik/`](05a_Keyword_Translation__Sagnik) | **Contextual Terminology Translation** | [📖 Stage 5(a) Guide](05a_Keyword_Translation__Sagnik/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
 | [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu) | **Sentence Reformation & Précis** | [📖 Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
-| **Synthesis & Packaging** | **Neural TTS & HLS Delivery** | *Internal Service* | Edge-TTS / XTTS-v2 / HLS-DASH | Gender-matched voice synthesis and decoupled multi-audio track streaming without re-encoding video. |
+| [`06_Converted_Text_to_MP3/`](06_Converted_Text_to_MP3) | **Hindi Text → MP3 Speech Synthesis** | [📖 Stage 6 Guide](06_Converted_Text_to_MP3/README.md) | Edge-TTS Neural Voices | Synthesizes reformed Hindi text into natural-sounding MP3 speech with multi-voice, rate, and pitch control. |
 
 ---
 
@@ -120,6 +120,18 @@ Each module provides an independent service that can be set up and run manually 
   ```
 
   *Accessible at `http://127.0.0.1:8012`*
+
+- **Stage 6 (Hindi Text → MP3):** ➔ *[Read Stage 6 Manual & Line-by-Line Guide](06_Converted_Text_to_MP3/README.md)*
+
+  ```bash
+  cd 06_Converted_Text_to_MP3/backend
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8013
+  ```
+
+  *Accessible at `http://127.0.0.1:8013`*
 
 ---
 
