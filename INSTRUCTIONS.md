@@ -2,10 +2,14 @@
 
 Complete Architecture, Working Principles, and Module-by-Module Guide.
 
-[![Suite Readme](https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white)](README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white)](ARCHITECTURE.md)
-[![Roadmap](https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white)](ROADMAP.md)
-[![MIT License](https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE.md)
+<!-- markdownlint-disable MD033 -->
+
+<p align="center">
+  <a href="README.md"><img src="https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
+  <a href="ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="ROADMAP.md"><img src="https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white" alt="Roadmap" /></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
+</p>
 
 ---
 
@@ -13,13 +17,13 @@ Complete Architecture, Working Principles, and Module-by-Module Guide.
 
 1. [Suite Overview & Modular Philosophy](#1-suite-overview--modular-philosophy)
 2. [Module-by-Module Instructions](#2-module-by-module-instructions)
-   - [Module 1: MP4 to MP3 Extraction (`01_MP4_to_MP3/`)](#module-1-mp4-to-mp3-extraction-01_mp4_to_mp3)
-   - [Module 2: MP3 to Text Transcription (`02_MP3_to_Text/`)](#module-2-mp3-to-text-transcription-02_mp3_to_text)
-   - [Module 3: Text to Keyword Extraction (`03_Text_to_Keyword/`)](#module-3-text-to-keyword-extraction-03_text_to_keyword)
-   - [Module 4: Keyword to Sentence Construction (`04_Keyword_to_Sentence_Construction/`)](#module-4-keyword-to-sentence-construction-04_keyword_to_sentence_construction)
-   - [Module 5(a): Keyword Translation Engine (`05a_Keyword_Translation__Sagnik/`)](#module-5a-keyword-translation-engine-05a_keyword_translation__sagnik)
-   - [Module 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu/`)](#module-5b-sentence-reformation--précis-05b_sentence_reformation__atanu)
-   - [Module 6: Hindi Text → MP3 (`06_Converted_Text_to_MP3/`)](#module-6-hindi-text--mp3-06_converted_text_to_mp3)
+   - [Module 1: MP4 to MP3 Extraction (`01_MP4_to_MP3/`)](#module-1-mp4-to-mp3-extraction)
+   - [Module 2: MP3 to Text Transcription (`02_MP3_to_Text/`)](#module-2-mp3-to-text-transcription)
+   - [Module 3: Text to Keyword Extraction (`03_Text_to_Keyword/`)](#module-3-text-to-keyword-extraction)
+   - [Module 4: Keyword to Sentence Construction (`04_Keyword_to_Sentence_Construction/`)](#module-4-keyword-to-sentence-construction)
+   - [Module 5(a): Keyword Translation Engine (`05a_Keyword_Translation__Sagnik/`)](#module-5a-keyword-translation-engine)
+   - [Module 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu/`)](#module-5b-sentence-reformation--precis)
+   - [Module 6: Text → MP3 Speech Synthesis (`06_Converted_Text_to_MP3/`)](#module-6-text-to-mp3)
 3. [Running the Modular Suite](#3-running-the-modular-suite)
 4. [Environment Setup & System Dependencies](#4-environment-setup--system-dependencies)
 
@@ -41,7 +45,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ## 2. Module-by-Module Instructions
 
-### Module 1: MP4 to MP3 Extraction (`01_MP4_to_MP3/`)
+### <a id="module-1-mp4-to-mp3-extraction"></a>Module 1: MP4 to MP3 Extraction (`01_MP4_to_MP3/`)
 
 - **Core Function:** Ingests video files (`.mp4`, `.mov`, `.mkv`, `.avi`, `.webm`) and extracts a clean, high-bitrate MP3 audio stream.
 - **Working Principle:**
@@ -62,7 +66,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
-### Module 2: MP3 to Text Transcription (`02_MP3_to_Text/`)
+### <a id="module-2-mp3-to-text-transcription"></a>Module 2: MP3 to Text Transcription (`02_MP3_to_Text/`)
 
 - **Core Function:** Transcribes speech into timestamped text segments with high precision and acoustic speaker feature extraction.
 - **Working Principle:**
@@ -83,7 +87,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
-### Module 3: Text to Keyword Extraction (`03_Text_to_Keyword/`)
+### <a id="module-3-text-to-keyword-extraction"></a>Module 3: Text to Keyword Extraction (`03_Text_to_Keyword/`)
 
 - **Core Function:** Identifies salient keywords, key phrases, and technical terminology from the transcribed text.
 - **Working Principle:**
@@ -104,7 +108,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
-### Module 4: Keyword to Sentence Construction (`04_Keyword_to_Sentence_Construction/`)
+### <a id="module-4-keyword-to-sentence-construction"></a>Module 4: Keyword to Sentence Construction (`04_Keyword_to_Sentence_Construction/`)
 
 - **Core Function:** Learns canonical sentence syntax directly from PDF or Word documents and reconstructs broken/disordered sentences into fluent English.
 - **Working Principle:**
@@ -129,7 +133,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
-### Module 5(a): Keyword Translation Engine (`05a_Keyword_Translation__Sagnik/`)
+### <a id="module-5a-keyword-translation-engine"></a>Module 5(a): Keyword Translation Engine (`05a_Keyword_Translation__Sagnik/`)
 
 - **Core Function:** Translates extracted keywords and domain entities and generates phonetic pronunciation transliterations.
 - **Working Principle:**
@@ -150,7 +154,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
-### Module 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu/`)
+### <a id="module-5b-sentence-reformation--precis"></a>Module 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu/`)
 
 - **Core Function:** Disfluency cleaning, syntax restoration into meaningful Hindi, and strict 35%–40% paragraph précis compression.
 - **Working Principle:**
@@ -171,12 +175,13 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
-### Module 6: Hindi Text → MP3 (`06_Converted_Text_to_MP3/`)
+### <a id="module-6-text-to-mp3"></a>Module 6: Text → MP3 Speech Synthesis (`06_Converted_Text_to_MP3/`)
 
-- **Core Function:** Converts reformed Hindi text from Stage 5(b) into natural-sounding MP3 speech audio using Microsoft Edge Neural TTS voices.
+- **Core Function:** Converts text (reformed Hindi text from Stage 5(b), Bengali, or English) into natural-sounding MP3 speech audio using Microsoft Edge Neural TTS voices.
 - **Working Principle:**
   - Uses `edge-tts` to access Microsoft Edge Neural Voices — zero API keys, zero GPU required.
-  - Supports multiple Hindi voices (`hi-IN-SwaraNeural` female, `hi-IN-MadhurNeural` male) with adjustable speech rate and pitch.
+  - Automatically validates that input text is in Bengali, English, or Hindi, rejecting unsupported languages.
+  - Supports multiple dedicated voices across all three languages with adjustable speech rate and pitch.
   - Produces standard MP3 files ready for downstream HLS multi-track packaging or direct playback.
 - **Execution:**
 
