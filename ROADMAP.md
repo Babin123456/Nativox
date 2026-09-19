@@ -16,10 +16,10 @@ This roadmap outlines the evolution of the **Nativox** suite from standalone mod
 ```mermaid
 graph TD
     DOC["Standard PDF / Word Documents"]
-    INGEST["Stage 6: Syntax Learning Engine (pypdf / Flan-T5)"]
+    INGEST["Stage 4: Syntax Learning Engine (pypdf / Flan-T5)"]
     ASR_IN["Stage 2: Raw Speech Transcript (faster-whisper)"]
-    REFORM["Stage 5: Meaningful Sentence Restorer (SOV Hindi)"]
-    COMPRESS["Stage 5: 35%-40% Précis Compression"]
+    REFORM["Stage 5(b): Meaningful Sentence Restorer (SOV Hindi)"]
+    COMPRESS["Stage 5(b): 35%-40% Précis Compression"]
     SYNTH["Downstream: Neural Voice Synthesis & HLS Multi-Track"]
 
     DOC --> INGEST
@@ -39,9 +39,9 @@ graph TD
 
 ---
 
-### Directive 1: Sentence Reformation (Contextual Restructuring) — [Completed: Stage 5]
+### Directive 1: Sentence Reformation (Contextual Restructuring) — [Completed: Stage 5(b)]
 
-- **Status:** **Completed** in [`5. Sentence Reformation/`](5.%20Sentence%20Reformation/README.md)
+- **Status:** **Completed** in [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu/README.md)
 - **Implemented Capabilities:**
   - Removes verbal fillers (*um, uh, basically, you know*) and false speech starts.
   - Reconstructs Subject-Verb-Object (SVO, English) into natural Subject-Object-Verb (SOV, Indic languages like Hindi/Bengali).
@@ -49,9 +49,9 @@ graph TD
 
 ---
 
-### Directive 2: Sentence Training Engine (Document/PDF Ingestion) — [Completed: Stage 6]
+### Directive 2: Sentence Training Engine (Document/PDF Ingestion) — [Completed: Stage 4]
 
-- **Status:** **Completed** in [`6. Sectence Construction/`](6.%20Sectence%20Construction/README.md)
+- **Status:** **Completed** in [`04_Keyword_to_Sentence_Construction/`](04_Keyword_to_Sentence_Construction/README.md)
 - **Implemented Capabilities:**
   - PDF/DOCX text extraction using `pypdf` and `python-docx`.
   - Self-supervised synthetic corruption engine (`SentenceCorrupter`) applying word jumbling, function word dropping, and grammatical inflection distortion.
@@ -59,9 +59,9 @@ graph TD
 
 ---
 
-### Directive 3: Useful-to-Short Sentence Compression (Duration Budgeting) — [Completed: Stage 5 & Ongoing]
+### Directive 3: Useful-to-Short Sentence Compression (Duration Budgeting) — [Completed: Stage 5(b) & Ongoing]
 
-- **Status:** **Core Engine Completed** in [`5. Sentence Reformation/`](5.%20Sentence%20Reformation/README.md)
+- **Status:** **Core Engine Completed** in [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu/README.md)
 - **Implemented Capabilities & Next Steps:**
   - Enforces strict 35%–40% word budget window:
     $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
@@ -88,6 +88,7 @@ graph TD
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
 </p>
@@ -95,3 +96,4 @@ graph TD
 <p align="center">
   <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Roadmap Specification</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->

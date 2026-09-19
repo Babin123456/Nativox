@@ -5,8 +5,8 @@
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 2](https://img.shields.io/badge/Prev_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../2.%20mp3%20to%20Text/README.md)
-[![Stage 4](https://img.shields.io/badge/Next_Stage-Stage_4:_Translate-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../4.%20Keyword%20Translate/README.md)
+[![Stage 2](https://img.shields.io/badge/Prev_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../02_MP3_to_Text/README.md)
+[![Stage 4](https://img.shields.io/badge/Next_Stage-Stage_4:_Construction-FF6B6B?style=for-the-badge&logo=pytorch&logoColor=white)](../04_Keyword_to_Sentence_Construction/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -17,7 +17,7 @@ Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 Stage 3 extracts salient, content-bearing domain terminology and named entities from transcripts generated in **Stage 2**. It supports text in **English**, **Hindi (Devanagari)**, **Bengali (Bangla script)**, and freely code-mixed speech without requiring heavy deep-learning model downloads.
 
-The extracted keyword lexicon is transferred to **Stage 4 (Keyword Translation)** for technical terminology mapping and to **Stage 5 (Sentence Reformation)** to guide keyword retention budgets.
+The extracted keyword lexicon is transferred downstream to **Stage 4 (Keyword to Sentence Construction)** and **Stage 5 (Sentence Reformation & Translation)** to guide keyword retention and sentence reconstruction.
 
 ---
 
@@ -45,7 +45,7 @@ The extracted keyword lexicon is transferred to **Stage 4 (Keyword Translation)*
 ### 1. Navigate to Backend Directory
 
 ```bash
-cd "3. Text to Keyword/backend"
+cd 03_Text_to_Keyword/backend
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -81,11 +81,11 @@ pip install -r requirements.txt
 python -m uvicorn main:app --reload --port 8010
 ```
 
-The web interface will be available at: **`http://127.0.0.1:8010`**
+The web interface will open at **`http://127.0.0.1:8010`**.
 
 > [!IMPORTANT]
 > **Access via `http://127.0.0.1:8010`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8010`. Opening `index.html` as a local `file:///` path causes browser CORS errors that block requests to `/api/extract-keywords`.
+> The FastAPI backend serves `frontend/index.html` directly on port `8010`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/keywords`.
 
 ---
 
@@ -93,13 +93,11 @@ The web interface will be available at: **`http://127.0.0.1:8010`**
 
 ```mermaid
 graph LR
-    A["Input Transcript Text"] --> B["Multilingual Stopword Filter (En/Hi/Bn)"]
-    B --> C["Co-occurrence Matrix Scoring (RAKE)"]
-    D["Script Block Tagger"]
-    B --> D
-    C --> E["Ranked Salient Keywords"]
-    D --> E
-    E -.-> F["Input to Stage 4 & Stage 5"]
+    A["Raw Transcript from Stage 2"] --> B["Multi-Script Tokenizer"]
+    B --> C["English / Hindi / Bengali Stopword Eliminator"]
+    C --> D["RAKE Co-occurrence Matrix Calculator"]
+    D --> E["Ranked Salient Keywords & Script Tags"]
+    E -.-> F["Input to Stage 4 (Sentence Construction)"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
@@ -108,17 +106,17 @@ graph LR
 
 ## 🔌 API Reference
 
-### `POST /api/extract-keywords`
+### `POST /api/keywords`
 
-Extracts and ranks salient keywords from multilingual or code-mixed input.
+Extracts ranked multi-word and single-word keywords from input text.
 
 - **Content-Type:** `application/json`
 - **Request Body:**
 
   ```json
   {
-    "text": "Artificial intelligence and machine learning are transforming multilingual dubbing in Kolkata and Delhi.",
-    "top_n": 10
+    "text": "In this tutorial we will train a neural network for computer vision applications.",
+    "max_keywords": 8
   }
   ```
 
@@ -126,21 +124,20 @@ Extracts and ranks salient keywords from multilingual or code-mixed input.
 
   ```json
   {
+    "total_keywords": 4,
     "keywords": [
-      {
-        "word": "intelligence",
-        "score": 4.0,
-        "relative_score": 100.0,
-        "language": "en"
-      },
-      {
-        "word": "dubbing",
-        "score": 3.5,
-        "relative_score": 87.5,
-        "language": "en"
-      }
+      { "keyword": "computer vision applications", "score": 9.0 },
+      { "keyword": "neural network", "score": 4.0 },
+      { "keyword": "tutorial", "score": 1.0 },
+      { "keyword": "train", "score": 1.0 }
     ],
-    "language_labels": {
+    "script_distribution": {
+      "en": 1.0,
+      "hi": 0.0,
+      "bn": 0.0
+    },
+    "dominant_script": "en",
+    "script_labels": {
       "en": "English",
       "hi": "Hindi",
       "bn": "Bengali",
@@ -154,7 +151,7 @@ Extracts and ranks salient keywords from multilingual or code-mixed input.
 ## 📁 Project Structure
 
 ```text
-3. Text to Keyword/
+03_Text_to_Keyword/
 ├── README.md                  # Stage documentation
 ├── backend/
 │   ├── main.py                # FastAPI endpoints and static file routing
@@ -177,6 +174,7 @@ Extracts and ranks salient keywords from multilingual or code-mixed input.
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
@@ -184,3 +182,4 @@ Extracts and ranks salient keywords from multilingual or code-mixed input.
 <p align="center">
   <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 3 Documentation</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->

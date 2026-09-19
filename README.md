@@ -1,3 +1,6 @@
+# Nativox: Modular Real-Time AI Multilingual Dubbing Suite
+
+<!-- markdownlint-disable MD033 -->
 <div align="center">
 
 ![Nativox Header](https://capsule-render.vercel.app/api?type=waving&color=0:4E65FF,50:92EFFD,100:3E8FC4&height=220&section=header&text=NATIVOX&fontSize=60&fontColor=FFFFFF&fontAlignY=38&desc=Modular%20Real-Time%20AI%20Multilingual%20Dubbing%20Suite&descFontSize=20&descColor=FFFFFF&descAlignY=62&animation=fadeIn)
@@ -16,6 +19,7 @@
 </p>
 
 </div>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -31,12 +35,12 @@ Each standalone stage can run completely independently as a self-contained micro
 
 | Stage Directory | Module Name | Documentation & Guide | Core Technology | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| [`1. mp4 to mp3/`](1.%20mp4%20to%20mp3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](1.%20mp4%20to%20mp3/README.md) | FFmpeg (libmp3lame) | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates audio tracks, and renders side-by-side synchronized preview. |
-| [`2. mp3 to Text/`](2.%20mp3%20to%20Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](2.%20mp3%20to%20Text/README.md) | faster-whisper / Silero VAD | Generates timestamped word-level and sentence-level transcripts with automatic language classification. |
-| [`3. Text to Keyword/`](3.%20Text%20to%20Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](3.%20Text%20to%20Keyword/README.md) | Multilingual RAKE / Script Tagger | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
-| [`4(a). Keyword Translate/`](4(a).%20Keyword%20Translate) | **Contextual Terminology Translation** | [📖 Stage 4(a) Guide](4(a).%20Keyword%20Translate/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
-| [`4(b). Sentence Reformation/`](4(b).%20Sentence%20Reformation) | **Sentence Reformation & Précis** | [📖 Stage 4(b) Guide](4(b).%20Sentence%20Reformation/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
-| [`5. Sentence Construction/`](5.%20Sentence%20Construction) | **Sentence Construction & Syntax Restoration** | [📖 Stage 5 Guide](5.%20Sentence%20Construction/README.md) | Flan-T5 / Seq2Seq / PyTorch | Learns canonical syntax from PDF/DOCX documents to reconstruct fragmented/destructive sentences into fluent English. |
+| [`01_MP4_to_MP3/`](01_MP4_to_MP3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](01_MP4_to_MP3/README.md) | FFmpeg (libmp3lame) | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates audio tracks, and renders side-by-side synchronized preview. |
+| [`02_MP3_to_Text/`](02_MP3_to_Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](02_MP3_to_Text/README.md) | faster-whisper / Silero VAD | Generates timestamped word-level and sentence-level transcripts with automatic language classification. |
+| [`03_Text_to_Keyword/`](03_Text_to_Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](03_Text_to_Keyword/README.md) | Multilingual RAKE / Script Tagger | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
+| [`04_Keyword_to_Sentence_Construction/`](04_Keyword_to_Sentence_Construction) | **Sentence Construction & Syntax Restoration** | [📖 Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md) | Flan-T5 / Seq2Seq / PyTorch | Learns canonical syntax from PDF/DOCX documents to reconstruct fragmented/destructive sentences into fluent English. |
+| [`05a_Keyword_Translation__Sagnik/`](05a_Keyword_Translation__Sagnik) | **Contextual Terminology Translation** | [📖 Stage 5(a) Guide](05a_Keyword_Translation__Sagnik/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
+| [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu) | **Sentence Reformation & Précis** | [📖 Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
 | **Synthesis & Packaging** | **Neural TTS & HLS Delivery** | *Internal Service* | Edge-TTS / XTTS-v2 / HLS-DASH | Gender-matched voice synthesis and decoupled multi-audio track streaming without re-encoding video. |
 
 ---
@@ -47,10 +51,10 @@ Each module provides an independent service that can be set up and run manually 
 
 ### Running Individual Stages
 
-- **Stage 1 (MP4 $\rightarrow$ MP3):** ➔ *[Read Stage 1 Manual & Line-by-Line Guide](1.%20mp4%20to%20mp3/README.md)*
+- **Stage 1 (MP4 $\rightarrow$ MP3):** ➔ *[Read Stage 1 Manual & Line-by-Line Guide](01_MP4_to_MP3/README.md)*
 
   ```bash
-  cd "1. mp4 to mp3/backend"
+  cd 01_MP4_to_MP3/backend
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -59,10 +63,10 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8000`*
 
-- **Stage 2 (MP3 $\rightarrow$ Text):** ➔ *[Read Stage 2 Manual & Line-by-Line Guide](2.%20mp3%20to%20Text/README.md)*
+- **Stage 2 (MP3 $\rightarrow$ Text):** ➔ *[Read Stage 2 Manual & Line-by-Line Guide](02_MP3_to_Text/README.md)*
 
   ```bash
-  cd "2. mp3 to Text/backend"
+  cd 02_MP3_to_Text/backend
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -71,10 +75,10 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8001`*
 
-- **Stage 3 (Text $\rightarrow$ Keyword):** ➔ *[Read Stage 3 Manual & Line-by-Line Guide](3.%20Text%20to%20Keyword/README.md)*
+- **Stage 3 (Text $\rightarrow$ Keyword):** ➔ *[Read Stage 3 Manual & Line-by-Line Guide](03_Text_to_Keyword/README.md)*
 
   ```bash
-  cd "3. Text to Keyword/backend"
+  cd 03_Text_to_Keyword/backend
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -83,10 +87,21 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8010`*
 
-- **Stage 4(a) (Keyword Translate):** ➔ *[Read Stage 4(a) Manual & Line-by-Line Guide](4(a).%20Keyword%20Translate/README.md)*
+- **Stage 4 (Keyword to Sentence Construction):** ➔ *[Read Stage 4 Manual & Line-by-Line Guide](04_Keyword_to_Sentence_Construction/README.md)*
 
   ```bash
-  cd "4(a). Keyword Translate/backend"
+  cd 04_Keyword_to_Sentence_Construction
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python train.py      # Train Seq2Seq Transformer on PDF corpus
+  python construct.py  # Interactive sentence reconstruction testing
+  ```
+
+- **Stage 5(a) (Keyword Translate):** ➔ *[Read Stage 5(a) Manual & Line-by-Line Guide](05a_Keyword_Translation__Sagnik/README.md)*
+
+  ```bash
+  cd 05a_Keyword_Translation__Sagnik/backend
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -95,10 +110,10 @@ Each module provides an independent service that can be set up and run manually 
 
   *Accessible at `http://127.0.0.1:8011`*
 
-- **Stage 4(b) (Sentence Reformation & Précis):** ➔ *[Read Stage 4(b) Manual & Line-by-Line Guide](4(b).%20Sentence%20Reformation/README.md)*
+- **Stage 5(b) (Sentence Reformation & Précis):** ➔ *[Read Stage 5(b) Manual & Line-by-Line Guide](05b_Sentence_Reformation__Atanu/README.md)*
 
   ```bash
-  cd "4(b). Sentence Reformation/backend"
+  cd 05b_Sentence_Reformation__Atanu/backend
   python -m venv venv
   # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
@@ -106,17 +121,6 @@ Each module provides an independent service that can be set up and run manually 
   ```
 
   *Accessible at `http://127.0.0.1:8012`*
-
-- **Stage 5 (Sentence Construction & Syntax Restoration):** ➔ *[Read Stage 5 Manual & Line-by-Line Guide](5.%20Sentence%20Construction/README.md)*
-
-  ```bash
-  cd "5. Sentence Construction"
-  python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
-  pip install -r requirements.txt
-  python train.py      # Train Seq2Seq Transformer on PDF corpus
-  python construct.py  # Interactive sentence reconstruction testing
-  ```
 
 ---
 
@@ -132,6 +136,7 @@ For detailed technical designs, architectural blueprints, and stage references:
 
 ## 👥 Project Team & Mentorship
 
+<!-- markdownlint-disable MD033 -->
 <div align="center">
 
 ### 🎓 Final Year Major Project — B.Tech Computer Science & Engineering
@@ -173,3 +178,4 @@ For detailed technical designs, architectural blueprints, and stage references:
     <b>🎙️ Nativox</b> — Empowering Multilingual Communication &bull; <b>End of Suite Documentation</b>
   </sub>
 </p>
+<!-- markdownlint-enable MD033 -->

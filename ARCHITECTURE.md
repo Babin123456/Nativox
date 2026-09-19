@@ -30,23 +30,23 @@ graph TD
         SCRIPT_TAG["Unicode Script Tagger (En / Hi / Bn)"]
     end
     
-    subgraph S4["Stage 4: Terminology Translation"]
-        TRANS_KW["deep-translator Batch Engine"]
-        PHONETIC["indic-transliteration (ITRANS)"]
-    end
-    
-    subgraph S5["Stage 5: Reformation & Précis Compression"]
-        REFORM["Disfluency Cleaner & SOV Restorer"]
-        COMPRESS["35%-40% Word Budget Précis Engine"]
-    end
-
-    subgraph S6["Stage 6: Sentence Construction & Syntax Restoration"]
+    subgraph S4["Stage 4: Sentence Construction & Syntax Restoration"]
         DOC_INGEST["Document Parser (pypdf / python-docx)"]
         CORRUPT["Synthetic Noise Generator"]
         T5_TRAIN["Flan-T5 Seq2Seq Model & Beam Search"]
     end
+
+    subgraph S5a["Stage 5(a): Terminology Translation"]
+        TRANS_KW["deep-translator Batch Engine"]
+        PHONETIC["indic-transliteration (ITRANS)"]
+    end
     
-    subgraph S7["Downstream: Voice Synthesis & Multi-Track Streaming"]
+    subgraph S5b["Stage 5(b): Reformation & Précis Compression"]
+        REFORM["Disfluency Cleaner & SOV Restorer"]
+        COMPRESS["35%-40% Word Budget Précis Engine"]
+    end
+
+    subgraph S6["Downstream: Voice Synthesis & Multi-Track Streaming"]
         TTS["Neural TTS Voice Synthesis"]
         STITCH["FFmpeg Overlap-Safe Audio Multiplexer"]
         HLS["Decoupled Multi-Track HLS / DASH Packager"]
@@ -60,12 +60,13 @@ graph TD
     RAKE --> SCRIPT_TAG
     SCRIPT_TAG --> TRANS_KW
     TRANS_KW --> PHONETIC
+    SCRIPT_TAG --> T5_TRAIN
+    DOC_INGEST --> CORRUPT
+    CORRUPT --> T5_TRAIN
     WHISPER --> REFORM
     TRANS_KW -.->|Domain Lexicon| REFORM
     REFORM --> COMPRESS
-    COMPRESS --> T5_TRAIN
-    DOC_INGEST --> CORRUPT
-    CORRUPT --> T5_TRAIN
+    COMPRESS --> TTS
     T5_TRAIN --> TTS
     TTS --> STITCH
     DEMUCS -->|Preserved Background Bed| STITCH
@@ -85,7 +86,7 @@ graph TD
 
 ## 🔍 Stage Specifications
 
-### 1. Stage 1: `1. mp4 to mp3/`
+### 1. Stage 1: `01_MP4_to_MP3/`
 
 - **Responsibility:** Ingest incoming media and extract pristine audio.
 - **Port:** `http://127.0.0.1:8000`
@@ -93,7 +94,7 @@ graph TD
   - FFmpeg high-bitrate audio extraction (`-vn -acodec libmp3lame -q:a 2`).
   - Web-based side-by-side synchronized video and audio playback preview.
 
-### 2. Stage 2: `2. mp3 to Text/`
+### 2. Stage 2: `02_MP3_to_Text/`
 
 - **Responsibility:** High-precision acoustic transcription with timestamped speech segments.
 - **Port:** `http://127.0.0.1:8001`
@@ -102,7 +103,7 @@ graph TD
   - `faster-whisper` (CTranslate2) with INT8 CPU and FP16 GPU inference.
   - Tri-lingual support with automatic script classification for English, Hindi (Devanagari), and Bengali (Bangla script).
 
-### 3. Stage 3: `3. Text to Keyword/`
+### 3. Stage 3: `03_Text_to_Keyword/`
 
 - **Responsibility:** Extract salient content-bearing keywords and domain terminology.
 - **Port:** `http://127.0.0.1:8010`
@@ -111,26 +112,7 @@ graph TD
   - Curated joint stopword lists for English, Hindi, and Bengali.
   - Code-mixed spoken sentence processing without language segmentation overhead.
 
-### 4. Stage 4: `4. Keyword Translate/`
-
-- **Responsibility:** Multilingual terminology translation and phonetic guide generation.
-- **Port:** `http://127.0.0.1:8011`
-- **Core Operations:**
-  - `deep-translator` batch terminology mapping with failover resilience.
-  - `indic-transliteration` (ITRANS / Harvard-Kyoto) phonetic pronunciation guide synthesis for Indic text.
-  - Fast Unicode script detection without expensive model overhead.
-
-### 5. Stage 5: `5. Sentence Reformation/`
-
-- **Responsibility:** Disfluency removal, SOV grammar restoration, and 35%–40% précis compression.
-- **Port:** `http://127.0.0.1:8012`
-- **Core Operations:**
-  - Strips verbal disfluencies (*um, uh, basically, you know*) and restores predicate structure.
-  - Enforces the faculty-directed 35%–40% paragraph word budget window:
-    $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
-  - Contextual Hindi translation with proper postpositions (*vibhakti*) and grammatical case markers.
-
-### 6. Stage 6: `6. Sectence Construction/`
+### 4. Stage 4: `04_Keyword_to_Sentence_Construction/`
 
 - **Responsibility:** Document-trained sentence syntax learning and destructive-to-constructive sentence reconstruction.
 - **Interface:** CLI & Script Runner (`train.py`, `construct.py`)
@@ -139,6 +121,25 @@ graph TD
   - Self-supervised synthetic corruption (`SentenceCorrupter`): token jumbling, function word dropping, and grammatical inflection noise.
   - Fine-tuning of Google Flan-T5 Seq2Seq Transformer model using AdamW optimizer.
   - Multi-beam search decoding for real-time reconstruction of fragmented input sentences.
+
+### 5. Stage 5(a): `05a_Keyword_Translation__Sagnik/`
+
+- **Responsibility:** Multilingual terminology translation and phonetic guide generation.
+- **Port:** `http://127.0.0.1:8011`
+- **Core Operations:**
+  - `deep-translator` batch terminology mapping with failover resilience.
+  - `indic-transliteration` (ITRANS / Harvard-Kyoto) phonetic pronunciation guide synthesis for Indic text.
+  - Fast Unicode script detection without expensive model overhead.
+
+### 6. Stage 5(b): `05b_Sentence_Reformation__Atanu/`
+
+- **Responsibility:** Disfluency removal, SOV grammar restoration, and 35%–40% précis compression.
+- **Port:** `http://127.0.0.1:8012`
+- **Core Operations:**
+  - Strips verbal disfluencies (*um, uh, basically, you know*) and restores predicate structure.
+  - Enforces the faculty-directed 35%–40% paragraph word budget window:
+    $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
+  - Contextual Hindi translation with proper postpositions (*vibhakti*) and grammatical case markers.
 
 ---
 
@@ -149,9 +150,9 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 1. Stage 1 extracts raw audio from incoming video.
 2. Stage 2 transcribes speech into timestamped tokens.
 3. Stage 3 isolates domain keywords.
-4. Stage 4 maps keywords to the target language and generates phonetic guides.
-5. Stage 5 removes fillers and compresses paragraphs to a strict 35%–40% duration budget.
-6. Stage 6 provides neural syntax reconstruction trained on reference documents.
+4. Stage 4 reconstructs grammatically sound sentences from keywords using document-trained models.
+5. Stage 5(a) maps keywords to the target language and generates phonetic guides.
+6. Stage 5(b) removes fillers and compresses paragraphs to a strict 35%–40% duration budget.
 7. Downstream neural TTS synthesizes voice tracks that are muxed into decoupled HLS multi-track streams.
 
 ---
@@ -164,6 +165,7 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
 </p>
@@ -171,3 +173,4 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 <p align="center">
   <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Architecture Specification</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->
