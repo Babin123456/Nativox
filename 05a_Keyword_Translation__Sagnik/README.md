@@ -4,12 +4,16 @@
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 3](https://img.shields.io/badge/Prev_Stage-Stage_3:_Keyword-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../03_Text_to_Keyword/README.md)
-[![Stage 5b](https://img.shields.io/badge/Next_Stage-Stage_5(b):_Reformation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../05b_Sentence_Reformation__Atanu/README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
+  <a href="../03_Text_to_Keyword/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_3:_Keyword-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 3" /></a>
+  <a href="../05b_Sentence_Reformation__Atanu/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_5(b):_Reformation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 5b" /></a>
+  <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-%F0%9F%93%90_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+</p>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -23,13 +27,15 @@ The translated vocabulary is provided to **Stage 5(b) (Sentence Reformation & Pr
 
 ---
 
-## 🛠️ Tech Stack & Key Features
+## 🛠️ Tech Stack & Architectural Justification
 
-- **Backend:** FastAPI (Python 3.11 asynchronous server)
-- **Translation Services:** `deep-translator` with multi-engine fallback resilience
-- **Phonetic Transliteration:** `indic-transliteration` (ITRANS / Harvard-Kyoto scheme for Devanagari and Bengali scripts)
-- **Script Detection:** High-speed Unicode block inspection (Devanagari $\to$ Hindi, Bengali $\to$ Bengali, Basic Latin $\to$ English) without heavy model overhead
-- **Frontend:** Single-page reactive dashboard with script detection tags and phonetic pronunciation badges
+| Technology | Purpose in Pipeline | Why It Is Chosen Over Existing Alternatives | Viable Alternatives & Trade-Off Analysis |
+| :--- | :--- | :--- | :--- |
+| **FastAPI + Uvicorn** | High-concurrency async REST API handling real-time keyword list translation and transliteration queries. | Asynchronous event loop (`async`/`await`) natively dispatches parallel HTTP queries to translation gateways without worker thread contention. OpenAPI autodocs facilitate frontend-backend integration. | **Flask**: Synchronous blocking architecture limits throughput during concurrent external translation calls.<br>**Django**: Massive monolith with unnecessary ORM and session overhead for an isolated translation microservice. |
+| **`deep-translator`** | Multi-engine abstraction layer executing contextual neural translation across English, Hindi, and Bengali. | Lightweight, unified interface providing seamless failover across engines (Google Translate, LibreTranslate, DeepL, MyMemory) without proprietary billing keys or 5 GB local PyTorch models. | **Official Google Cloud Translation API**: Requires enterprise GCP project setup, billing keys, and per-character fees.<br>**Helsinki-NLP MarianMT**: Requires heavy PyTorch checkpoints (>1 GB per language pair) and high RAM usage.<br>**IndicTrans2**: State-of-the-art for Indic languages, but requires 4–8 GB GPU VRAM and complex CPython dependencies, whereas `deep-translator` runs instantly on lightweight machines. |
+| **`indic-transliteration`** | Generates deterministic Romanized phonetic pronunciation guides using standard Indic schemes (ITRANS / Harvard-Kyoto). | Converts complex Devanagari and Bengali conjunct ligatures into exact Roman phonetic equivalents, ensuring downstream TTS phoneme aligners pronounce vernacular terms properly without accents getting dropped. | **`epitran`**: Phoneme extraction is unmaintained for Bengali dialect edge cases and has heavy Flite/C++ dependencies.<br>**Custom regex transliterators**: Fail on complex vowel matras, halants, and conjunct clusters (e.g., क्ष, জ্ঞ) across Devanagari and Bengali. |
+| **Unicode Block Script Inspector** | Zero-latency language and script detection (Basic Latin $\to$ English, Devanagari $\to$ Hindi, Bengali $\to$ Bengali). | Inspects character Unicode codepoint ranges (`\u0900`–`\u097F`, `\u0980`–`\u09FF`) in $\mathcal{O}(N)$ CPU time with 0 MB memory footprint and zero model inference overhead. | **`langdetect` / `fastText`**: Statistical n-gram models can misclassify short 1–2 word technical terms or require loading large language model vectors. |
+| **Vanilla HTML5 / CSS3 / JS UI** | Interactive browser workbench displaying source terms, translated targets, script badges, and pronunciation chips. | Zero npm dependencies, instantaneous load time, and transparent JSON fetching via browser-native `fetch()`. | **React / Vue**: Introduces heavy node_modules build pipelines, bundle fragmentation, and SSR overhead for a single-page translation testing view. |
 
 ---
 
