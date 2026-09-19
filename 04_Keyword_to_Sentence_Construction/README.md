@@ -1,11 +1,12 @@
-# Stage 6: Sentence Construction & Syntax Restoration
+# Stage 4: Keyword to Sentence Construction
 
 ## Document-Trained Sequence-to-Sequence Syntax Reconstruction Engine
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 5](https://img.shields.io/badge/Prev_Stage-Stage_5:_Reformation-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../5.%20Sentence%20Reformation/README.md)
+[![Stage 3](https://img.shields.io/badge/Prev_Stage-Stage_3:_Keywords-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../03_Text_to_Keyword/README.md)
+[![Stage 5](https://img.shields.io/badge/Next_Stage-Stage_5:_Translation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../05a_Keyword_Translation__Sagnik/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
@@ -22,7 +23,7 @@ In spoken speech transcription, noisy OCR, and second-language drafting, input t
 - **Broken grammatical agreement:** Distorted singular/plural inflections and verb tenses.
 - **Missing casing and punctuation:** Completely unpunctuated lowercase streams.
 
-Stage 6 learns canonical sentence syntax directly from standard **PDF (`.pdf`)** or **Word (`.docx`)** documents, trains a Sequence-to-Sequence (Seq2Seq) Transformer model using self-supervised synthetic corruption, and provides an inference engine to transform any destructive input sentence into a constructive, meaningful sentence.
+Stage 4 learns canonical sentence syntax directly from standard **PDF (`.pdf`)** or **Word (`.docx`)** documents, trains a Sequence-to-Sequence (Seq2Seq) Transformer model using self-supervised synthetic corruption, and provides an inference engine to transform any destructive input sentence into a constructive, meaningful sentence.
 
 ---
 
@@ -49,7 +50,7 @@ Stage 6 learns canonical sentence syntax directly from standard **PDF (`.pdf`)**
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd "6. Sectence Construction"
+cd 04_Keyword_to_Sentence_Construction
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -201,21 +202,14 @@ Output:
 - DESTRUCTIVE INPUT   : plants sunlight into chemical energy convert photosynthesis
 - CONSTRUCTIVE OUTPUT : Photosynthesis converts sunlight into chemical energy.
 - INFERENCE TIME      : 42.1 ms
-======================================================================
 ```
 
-#### Mode 3: Batch File Processing
-
-Construct sentences for an entire file (one destructive sentence per line):
-
-```bash
-python construct.py --batch_file test_destructive_sentences.txt
-```
+---
 
 ### Verification Benchmark Results
 
 | # | Destructive Input (Jumbled / Broken) | Constructive Output (Fluent & Meaningful) |
-| :---: | :--- | :--- |
+| :--- | :--- | :--- |
 | 1 | `artificial intelligence world changing rapidly is` | **Artificial intelligence is rapidly changing the world.** |
 | 2 | `plants sunlight into chemical energy convert photosynthesis` | **Photosynthesis converts sunlight into chemical energy.** |
 | 3 | `effective communication organizations modern cornerstone essential is` | **Effective communication is an essential cornerstone of modern organizations.** |
@@ -230,7 +224,7 @@ python construct.py --batch_file test_destructive_sentences.txt
 ## 📁 Project Structure
 
 ```text
-6. Sectence Construction/
+04_Keyword_to_Sentence_Construction/
 ├── data_utils.py               # Document extractors (PDF/Word), sentence splitter, corruption engine
 ├── train.py                    # Seq2Seq Transformer training pipeline (T5 fine-tuning)
 ├── construct.py                # Testing & inference engine (interactive, CLI, & batch modes)
@@ -250,10 +244,12 @@ python construct.py --batch_file test_destructive_sentences.txt
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
 
 <p align="center">
-  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 6 Documentation</b></sub>
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 4 Documentation</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->

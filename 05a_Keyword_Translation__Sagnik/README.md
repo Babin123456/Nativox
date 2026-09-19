@@ -1,12 +1,12 @@
-# Stage 4: Contextual Keyword Translation
+# Stage 5(a): Contextual Keyword Translation (Sagnik)
 
 ## Cross-Lingual Terminology Mapping & Phonetic Pronunciation Guide
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 3](https://img.shields.io/badge/Prev_Stage-Stage_3:_Keyword-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../3.%20Text%20to%20Keyword/README.md)
-[![Stage 5](https://img.shields.io/badge/Next_Stage-Stage_5:_Reformation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../5.%20Sentence%20Reformation/README.md)
+[![Stage 3](https://img.shields.io/badge/Prev_Stage-Stage_3:_Keyword-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../03_Text_to_Keyword/README.md)
+[![Stage 5b](https://img.shields.io/badge/Next_Stage-Stage_5(b):_Reformation-FF6B6B?style=for-the-badge&logo=fastapi&logoColor=white)](../05b_Sentence_Reformation__Atanu/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -15,11 +15,11 @@ Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 ## 📖 Operational Overview
 
-Stage 4 is the multilingual translation and transliteration bridge of the Nativox pipeline. It takes the domain terminology and keyword clusters extracted in **Stage 3** and translates them into the target language (**English**, **Hindi**, or **Bengali**) while preserving context, technical precision, and original token sequence.
+Stage 5(a) is the multilingual translation and transliteration bridge of the Nativox pipeline. It takes the domain terminology and keyword clusters extracted in **Stage 3** and translates them into the target language (**English**, **Hindi**, or **Bengali**) while preserving context, technical precision, and original token sequence.
 
 It also generates Romanized phonetic pronunciation guides (transliterations) to assist speech synthesis in downstream stages.
 
-The translated vocabulary is provided to **Stage 5 (Sentence Reformation & Précis)** to ensure domain terms are accurately preserved during sentence reconstruction.
+The translated vocabulary is provided to **Stage 5(b) (Sentence Reformation & Précis)** to ensure domain terms are accurately preserved during sentence reconstruction.
 
 ---
 
@@ -46,7 +46,7 @@ The translated vocabulary is provided to **Stage 5 (Sentence Reformation & Préc
 ### 1. Navigate to Backend Directory
 
 ```bash
-cd "4. Keyword Translate/backend"
+cd 05a_Keyword_Translation__Sagnik/backend
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -98,7 +98,7 @@ graph LR
     B --> C["Batch Translation Engine"]
     C --> D["Indic Transliteration (ITRANS)"]
     D --> E["Translated Vocabulary & Phonetic Guides"]
-    E -.-> F["Input to Stage 5 (Reformation)"]
+    E -.-> F["Input to Stage 5(b) (Reformation)"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
@@ -155,7 +155,7 @@ Translates an array of multilingual keywords into the specified target language.
 ## 📁 Project Structure
 
 ```text
-4. Keyword Translate/
+05a_Keyword_Translation__Sagnik/
 ├── README.md                  # Stage documentation
 ├── backend/
 │   ├── main.py                # FastAPI REST endpoints & static server
@@ -177,10 +177,12 @@ Translates an array of multilingual keywords into the specified target language.
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
 
 <p align="center">
-  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 4 Documentation</b></sub>
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 5(a) Documentation</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->

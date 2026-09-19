@@ -1,12 +1,11 @@
-# Stage 5: Sentence Reformation & Précis Compression
+# Stage 5(b): Sentence Reformation & Précis Compression (Atanu)
 
 ## English to Hindi Meaningful Sentence Reformation & 35%–40% Duration Budgeting
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 4](https://img.shields.io/badge/Prev_Stage-Stage_4:_Translate-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../4.%20Keyword%20Translate/README.md)
-[![Stage 6](https://img.shields.io/badge/Next_Stage-Stage_6:_Construction-FF6B6B?style=for-the-badge&logo=pytorch&logoColor=white)](../6.%20Sectence%20Construction/README.md)
+[![Stage 5a](https://img.shields.io/badge/Prev_Stage-Stage_5(a):_Translate-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../05a_Keyword_Translation__Sagnik/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -15,13 +14,13 @@ Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 ## 📖 Operational Overview
 
-Stage 5 addresses two critical directives set by project mentor **Dr. Debjit Ghosh**:
+Stage 5(b) addresses two critical directives set by project mentor **Dr. Debjit Ghosh**:
 
 1. **Task 1: Meaningless $\to$ Meaningful Sentence Reformation:**  
-   Spoken audio transcripts and raw translated keyword sequences often lack grammatical coherence, case markers (*vibhakti*), and correct word order. Stage 5 takes meaningless or broken speech segments as input, eliminates verbal disfluencies (*"um, uh, basically, you know"*), restores predicate syntax, and synthesizes natural, grammatically correct Hindi sentences (Subject-Object-Verb, SOV).
+   Spoken audio transcripts and raw translated keyword sequences often lack grammatical coherence, case markers (*vibhakti*), and correct word order. Stage 5(b) takes meaningless or broken speech segments as input, eliminates verbal disfluencies (*"um, uh, basically, you know"*), restores predicate syntax, and synthesizes natural, grammatically correct Hindi sentences (Subject-Object-Verb, SOV).
 
 2. **Task 2: 35%–40% Précis Paragraph Compression:**  
-   Spoken translation from English into Indic languages naturally inflates duration and syllable count. If dubbed audio is not compressed, it overflows the video time window. Stage 5 takes the full transcribed paragraph from the MP3 audio file and compresses it into an information-dense précis strictly within **35%–40%** of the original word count in Hindi while preserving 100% of the core meaning and technical facts.
+   Spoken translation from English into Indic languages naturally inflates duration and syllable count. If dubbed audio is not compressed, it overflows the video time window. Stage 5(b) takes the full transcribed paragraph from the MP3 audio file and compresses it into an information-dense précis strictly within **35%–40%** of the original word count in Hindi while preserving 100% of the core meaning and technical facts.
 
 ---
 
@@ -46,7 +45,7 @@ Stage 5 addresses two critical directives set by project mentor **Dr. Debjit Gho
 ### 1. Navigate to Backend Directory
 
 ```bash
-cd "5. Sentence Reformation/backend"
+cd 05b_Sentence_Reformation__Atanu/backend
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -99,7 +98,7 @@ graph LR
     D --> E["Meaningful & Précis Hindi Output"]
     B --> D["35%-40% Word Budget Sizer"]
     C --> D
-    E -.-> F["Input to Stage 6 (Voice Synthesis)"]
+    E -.-> F["Downstream Pipeline / Speech Synthesis"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
@@ -173,7 +172,7 @@ Compresses full transcript paragraphs into a 35%–40% Hindi précis summary.
 ## 📁 Project Structure
 
 ```text
-5. Sentence Reformation/
+05b_Sentence_Reformation__Atanu/
 ├── README.md                  # Stage documentation
 ├── main.py                    # Root convenience entrypoint
 ├── backend/
@@ -199,10 +198,12 @@ Compresses full transcript paragraphs into a 35%–40% Hindi précis summary.
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
 
 <p align="center">
-  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 5 Documentation</b></sub>
+  <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 5(b) Documentation</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->

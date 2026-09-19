@@ -5,7 +5,7 @@
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 [![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 2](https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../2.%20mp3%20to%20Text/README.md)
+[![Stage 2](https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../02_MP3_to_Text/README.md)
 [![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -49,7 +49,7 @@ The extracted MP3 serves as the clean acoustic input for **Stage 2 (Automatic Sp
 ### 1. Navigate to Backend Directory
 
 ```bash
-cd "1. mp4 to mp3/backend"
+cd 01_MP4_to_MP3/backend
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -85,11 +85,11 @@ pip install -r requirements.txt
 python -m uvicorn main:app --reload --port 8000
 ```
 
-The web dashboard will be available at: **`http://127.0.0.1:8000`**
+The web interface will open at **`http://127.0.0.1:8000`**.
 
 > [!IMPORTANT]
 > **Access via `http://127.0.0.1:8000`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8000`. Opening `index.html` directly via file protocol (`file:///...`) will trigger browser CORS restrictions that prevent network requests to `/extract`.
+> The FastAPI backend serves `frontend/index.html` directly on port `8000`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/extract`.
 
 ---
 
@@ -97,11 +97,11 @@ The web dashboard will be available at: **`http://127.0.0.1:8000`**
 
 ```mermaid
 graph LR
-    A["Input Video (.mp4 / .mov / .mkv)"] --> B["POST /extract"]
-    B --> C["FFmpeg Subprocess (libmp3lame)"]
-    C --> D["High-Quality MP3 File"]
-    D --> E["Browser Audio Player & Download"]
-    D -.-> F["Input to Stage 2 (ASR)"]
+    A["Raw Video File (.mp4 / .mov / .mkv)"] --> B["FastAPI Upload Staging"]
+    B --> C["FFmpeg Binary Subprocess (libmp3lame)"]
+    C --> D["Extracted MP3 Audio File"]
+    D --> E["Side-by-Side Synchronized HTML5 Preview"]
+    D -.-> F["Input to Stage 2 (ASR Transcription)"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 ```
@@ -112,20 +112,27 @@ graph LR
 
 ### `POST /extract`
 
-Extracts audio from uploaded video payload.
+Extracts pristine MP3 audio from the uploaded video file.
 
 - **Content-Type:** `multipart/form-data`
-- **Body Parameter:** `file` (Binary video file)
-- **Response:**
+- **Request Body:** `video` (Binary File: `.mp4`, `.mov`, `.mkv`, `.avi`, `.webm`)
+- **Response Body:**
 
   ```json
   {
     "status": "success",
-    "filename": "audio_1710482000.mp3",
-    "download_url": "/audio/audio_1710482000.mp3",
-    "duration_seconds": 42.8
+    "video_url": "/video/session_id.mp4",
+    "audio_url": "/audio/session_id.mp3",
+    "filename": "session_id.mp3",
+    "duration_seconds": 45.2,
+    "codec": "libmp3lame",
+    "bitrate": "192k"
   }
   ```
+
+### `GET /video/{filename}`
+
+Streams the uploaded video file with range requests for seeking.
 
 ### `GET /audio/{filename}`
 
@@ -136,7 +143,7 @@ Streams the extracted MP3 audio file with range requests for seeking.
 ## 📁 Project Structure
 
 ```text
-1. mp4 to mp3/
+01_MP4_to_MP3/
 ├── README.md               # Stage documentation
 ├── backend/
 │   ├── main.py             # FastAPI REST endpoints & FFmpeg subprocess executor
@@ -158,6 +165,7 @@ Streams the extracted MP3 audio file with range requests for seeking.
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
@@ -165,3 +173,4 @@ Streams the extracted MP3 audio file with range requests for seeking.
 <p align="center">
   <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 1 Documentation</b></sub>
 </p>
+<!-- markdownlint-enable MD033 -->
