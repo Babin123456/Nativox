@@ -1,40 +1,50 @@
-# Stage 6: Hindi Text → MP3 Speech Synthesis
+# Stage 6: Text → MP3 Speech Synthesis
 
 ## Neural TTS Voice Generation for the Nativox Pipeline
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
 
-[![Suite Readme](https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white)](../README.md)
-[![Stage 5b](https://img.shields.io/badge/Prev_Stage-Stage_5(b):_Reformation-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white)](../05b_Sentence_Reformation__Atanu/README.md)
-[![Architecture](https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white)](../ARCHITECTURE.md)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
+  <a href="../05b_Sentence_Reformation__Atanu/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_5(b):_Reformation-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 5b" /></a>
+  <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-%F0%9F%93%90_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+</p>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
 ## 📖 Operational Overview
 
-Stage 6 is the **final output stage** of the Nativox pipeline. It takes the reformed Hindi text produced by Stage 5(b) and synthesizes it into natural-sounding speech as a downloadable MP3 file using **Microsoft Edge Neural TTS** voices.
+Stage 6 is the **final output stage** of the Nativox pipeline. It takes reformed target text (**Hindi** text from Stage 5(b) or **Bengali**) and synthesizes it into natural-sounding speech as a downloadable MP3 file using **Microsoft Edge Neural TTS** voices.
 
 This stage closes the complete dubbing loop:
 
-> `Video` → `Audio` → `Text` → `Keywords` → `Sentences` → `Translation` → `Reformation` → `Speech MP3`
+> `English Video` → `Audio` → `Text` → `Keywords` → `Sentences` → `Translation` → `Reformation` → `Dubbed Speech MP3 (Hindi / Bengali)`
 
 ### Key Capabilities
 
-1. **Neural Hindi Speech Synthesis:** Converts Hindi text into studio-quality speech using `edge-tts` (Microsoft Edge Neural Voices) — no API key, no GPU required.
-2. **Multi-Voice Selection:** Choose from multiple Hindi voices including female (`hi-IN-SwaraNeural`) and male (`hi-IN-MadhurNeural`) options.
-3. **Prosody Control:** Adjust speech rate and pitch to match the original video's pacing and tone.
-4. **Pipeline Integration:** Accepts direct output from Stage 5(b) (reformed Hindi sentences and précis) and produces the final dubbed audio track.
+1. **Target Dubbed Speech Synthesis:** Converts **Hindi** and **Bengali** text into studio-quality speech using `edge-tts` (Microsoft Edge Neural Voices) — no API key, no GPU required.
+2. **Language Validation & Script Gating:** Automatically inspects input text to verify it is in target dubbed scripts (Devanagari for Hindi, Bangla script for Bengali), rejecting raw English source text so users translate via Stage 5 first.
+3. **Multi-Voice Selection:** Dedicated neural voices across both target languages:
+   - **Hindi (`hi-IN`):** Swara (Female), Madhur (Male)
+   - **Bengali (`bn-IN`, `bn-BD`):** Bashkar (Male), Tanishaa (Female), Nabanita (Female), Pradeep (Male)
+4. **Prosody Control:** Adjust speech rate and pitch to match the original video's pacing and tone.
+5. **Pipeline Integration:** Accepts direct output from Stage 5(b) (reformed Hindi sentences and précis) and produces the final dubbed audio track.
 
 ---
 
-## 🛠️ Tech Stack & Key Features
+## 🛠️ Tech Stack & Architectural Justification
 
-- **Backend:** FastAPI (Python 3.11 asynchronous server)
-- **TTS Engine:** `edge-tts` — Microsoft Edge Neural TTS (free, cloud-based, neural quality)
-- **Frontend:** Glassmorphic dark-mode dashboard with voice selector, rate/pitch sliders, waveform visualization, and integrated audio player
-- **Output:** Standard MP3 audio files ready for downstream HLS multi-track packaging
+| Technology | Purpose in Pipeline | Why It Is Chosen Over Existing Alternatives | Viable Alternatives & Trade-Off Analysis |
+| :--- | :--- | :--- | :--- |
+| **FastAPI + Uvicorn** | Asynchronous streaming REST API serving synthesized MP3 audio buffers (`/api/synthesize`) and voice manifests (`/api/voices`). | Native `async`/`await` architecture interfaces seamlessly with `edge_tts.Communicate.save()` without blocking system worker threads. Provides built-in Swagger/OpenAPI documentation. | **Flask**: Synchronous blocking architecture requires WSGI thread pools (e.g., Gunicorn gevent) that stall during long neural TTS streaming sessions.<br>**Express.js**: Requires external Node child processes to run Python NLP validation scripts. |
+| **`edge-tts` (Microsoft Edge Neural Voices)** | High-fidelity neural voice synthesis for Hindi and Bengali with prosody, pitch, and rate control. | Produces state-of-the-art studio-quality natural human cadence without requiring expensive cloud subscriptions, API keys, or multi-gigabyte local GPU VRAM. Native support for Bengali regional dialects (`bn-IN`, `bn-BD`). | **Google Cloud TTS / AWS Polly**: Requires paid cloud account credentials, billing setup, and per-character fees.<br>**ElevenLabs**: Exceptional expressiveness, but extremely expensive per character and lacks rich vernacular Bengali dial-in options.<br>**Coqui TTS / VITS / XTTS-v2**: Requires 4–8 GB local GPU VRAM, heavy PyTorch dependencies (>3 GB download), and slow CPU inference speeds.<br>**gTTS (Google Translate TTS)**: Robotic, monotonic concatenative voice with no prosody/pitch control and poor Indian accent articulation. |
+| **Language & Script Character Validator** | Enforces input restriction strictly to target dubbed languages: Bengali (`\u0980`–`\u09FF`) and Hindi Devanagari (`\u0900`–`\u097F`). | High-speed, zero-dependency Unicode character distribution analysis. Detects and rejects English source text, prompting users to translate via Stage 5 first before synthesis. | **`langdetect` / `fastText`**: Heuristic models occasionally misclassify single words or loanwords, adding unnecessary disk/memory footprint. |
+| **Web Audio API & HTML5 Audio Player** | Real-time waveform rendering, audio playback, and MP3 blob downloading in the client browser. | Client-side hardware-accelerated audio decoding and canvas rendering with zero third-party player plugins or external CDN dependencies. | **WaveSurfer.js / Howler.js**: Adds external JavaScript library bloat and CDN bundle risks when native Web Audio API handles canvas visualization directly. |
+| **Vanilla Glassmorphic Dark-Mode UI** | Interactive browser studio with voice cards, pitch/rate controls, sample test buttons, and audio download options. | Standalone zero-npm dependency setup that runs instantly across any browser or static server without build steps. | **React / Angular**: Heavy node_modules tree and build dependencies unnecessary for an integrated pipeline micro-frontend. |
 
 ---
 
@@ -133,7 +143,7 @@ graph TD
 
 ### `POST /api/synthesize`
 
-Converts Hindi text into an MP3 audio file.
+Converts Bengali, English, or Hindi text into an MP3 audio file. Automatically detects language and validates text script.
 
 - **Content-Type:** `application/json`
 - **Request Body:**
@@ -153,14 +163,16 @@ Converts Hindi text into an MP3 audio file.
   {
     "audio_url": "/api/audio/tts_a1b2c3d4e5f6.mp3",
     "voice_used": "hi-IN-SwaraNeural",
+    "detected_language": "Hindi",
+    "detected_lang_code": "hi",
     "text_length": 72,
     "word_count": 11
   }
   ```
 
-### `GET /api/voices?locale=hi-IN`
+### `GET /api/voices?locale=all`
 
-Returns available Hindi TTS voices.
+Returns available Edge-TTS voices for Bengali (`bn`), English (`en`), and Hindi (`hi`).
 
 - **Response Body:**
 
