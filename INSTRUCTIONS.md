@@ -19,6 +19,7 @@ Complete Architecture, Working Principles, and Module-by-Module Guide.
    - [Module 4: Keyword to Sentence Construction (`04_Keyword_to_Sentence_Construction/`)](#module-4-keyword-to-sentence-construction-04_keyword_to_sentence_construction)
    - [Module 5(a): Keyword Translation Engine (`05a_Keyword_Translation__Sagnik/`)](#module-5a-keyword-translation-engine-05a_keyword_translation__sagnik)
    - [Module 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu/`)](#module-5b-sentence-reformation--précis-05b_sentence_reformation__atanu)
+   - [Module 6: Hindi Text → MP3 (`06_Converted_Text_to_MP3/`)](#module-6-hindi-text--mp3-06_converted_text_to_mp3)
 3. [Running the Modular Suite](#3-running-the-modular-suite)
 4. [Environment Setup & System Dependencies](#4-environment-setup--system-dependencies)
 
@@ -170,6 +171,27 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
 ---
 
+### Module 6: Hindi Text → MP3 (`06_Converted_Text_to_MP3/`)
+
+- **Core Function:** Converts reformed Hindi text from Stage 5(b) into natural-sounding MP3 speech audio using Microsoft Edge Neural TTS voices.
+- **Working Principle:**
+  - Uses `edge-tts` to access Microsoft Edge Neural Voices — zero API keys, zero GPU required.
+  - Supports multiple Hindi voices (`hi-IN-SwaraNeural` female, `hi-IN-MadhurNeural` male) with adjustable speech rate and pitch.
+  - Produces standard MP3 files ready for downstream HLS multi-track packaging or direct playback.
+- **Execution:**
+
+  ```bash
+  cd 06_Converted_Text_to_MP3/backend
+  python -m venv venv
+  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8013
+  ```
+
+- **Port:** `http://127.0.0.1:8013`
+
+---
+
 ## 3. Running the Modular Suite
 
 To test all modules simultaneously, you can run each stage in a separate terminal:
@@ -182,6 +204,7 @@ To test all modules simultaneously, you can run each stage in a separate termina
 | **Terminal 4** | Stage 4 (Sentence Construction) | `cd 04_Keyword_to_Sentence_Construction && python construct.py` | `cd 04_Keyword_to_Sentence_Construction && python3 construct.py` | Interactive CLI |
 | **Terminal 5** | Stage 5(a) (Keyword Translate) | `cd 05a_Keyword_Translation__Sagnik/backend && python -m uvicorn main:app --reload --port 8011` | `cd 05a_Keyword_Translation__Sagnik/backend && python -m uvicorn main:app --reload --port 8011` | `http://127.0.0.1:8011` |
 | **Terminal 6** | Stage 5(b) (Sentence Reformation) | `cd 05b_Sentence_Reformation__Atanu/backend && python -m uvicorn main:app --reload --port 8012` | `cd 05b_Sentence_Reformation__Atanu/backend && python -m uvicorn main:app --reload --port 8012` | `http://127.0.0.1:8012` |
+| **Terminal 7** | Stage 6 (Hindi Text → MP3) | `cd 06_Converted_Text_to_MP3/backend && python -m uvicorn main:app --reload --port 8013` | `cd 06_Converted_Text_to_MP3/backend && python -m uvicorn main:app --reload --port 8013` | `http://127.0.0.1:8013` |
 
 > [!IMPORTANT]
 > **Always access web stages through their local URL (`http://127.0.0.1:PORT`), NOT by opening raw `index.html` files!**
