@@ -73,12 +73,20 @@ class TestSynthesisValidation:
             "/api/synthesize",
             json={"text": "", "voice": "hi-IN-SwaraNeural"},
         )
-        # Pydantic min_length=1 rejects empty strings with 422
         assert response.status_code == 422
 
     def test_missing_text_returns_422(self):
         response = client.post("/api/synthesize", json={})
         assert response.status_code == 422
+
+    def test_unsupported_language_returns_400(self):
+        """Verify non-supported language scripts (like Chinese, Arabic) are rejected."""
+        response = client.post(
+            "/api/synthesize",
+            json={"text": "你好世界这是一个测试", "voice": "hi-IN-SwaraNeural"},
+        )
+        assert response.status_code == 400
+        assert "Bengali" in response.json()["detail"] and "Hindi" in response.json()["detail"]
 
 
 # ── Synthesis (Integration) ────────────────────────────────────────────────
@@ -110,6 +118,8 @@ class TestSynthesisIntegration:
         assert response.status_code == 200
         data = response.json()
         assert data["voice_used"] == "hi-IN-SwaraNeural"
+        assert data["detected_language"] == "Hindi"
+        assert data["detected_lang_code"] == "hi"
         assert data["text_length"] > 0
         assert data["word_count"] > 0
         assert data["audio_url"].startswith("/api/audio/")
@@ -118,7 +128,6 @@ class TestSynthesisIntegration:
         audio_response = client.get(data["audio_url"])
         assert audio_response.status_code == 200
         assert audio_response.headers["content-type"] == "audio/mpeg"
-        # MP3 files start with ID3 tag or FF FB sync bytes
         audio_bytes = audio_response.content
         assert len(audio_bytes) > 1000, "MP3 file is suspiciously small"
 
@@ -126,18 +135,32 @@ class TestSynthesisIntegration:
         os.environ.get("SKIP_INTEGRATION") == "1",
         reason="Integration tests disabled via SKIP_INTEGRATION=1",
     )
-    def test_synthesize_english_text(self):
-        """Verify English text also synthesizes (for pipeline flexibility)."""
+    def test_synthesize_bengali_text(self):
+        """Synthesize a short Bengali sentence and verify MP3 is returned."""
         response = client.post(
             "/api/synthesize",
             json={
-                "text": "Hello, this is a test of the speech synthesis engine.",
-                "voice": "hi-IN-MadhurNeural",
+                "text": "হ্যালো, এটি একটি স্পিচ টেস্ট।",
+                "voice": "bn-IN-BashkarNeural",
             },
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["voice_used"] == "hi-IN-MadhurNeural"
+        assert data["detected_language"] == "Bengali"
+        assert data["detected_lang_code"] == "bn"
+
+    def test_synthesize_rejects_english_text(self):
+        """Verify English source text is rejected since Stage 6 is for target dubbed languages."""
+        response = client.post(
+            "/api/synthesize",
+            json={
+                "text": "Hello, this is a test of the speech synthesis engine.",
+                "voice": "hi-IN-SwaraNeural",
+            },
+        )
+        assert response.status_code == 400
+        data = response.json()
+        assert "English text detected" in data["detail"]
 
     @pytest.mark.skipif(
         os.environ.get("SKIP_INTEGRATION") == "1",
