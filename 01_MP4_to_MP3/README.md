@@ -78,7 +78,13 @@ cd 01_MP4_to_MP3/backend
   venv\Scripts\activate.bat
   ```
 
-- **Activate on macOS / Linux / Git Bash:**
+- **Activate on Windows (Git Bash):**
+
+  ```bash
+  source venv/Scripts/activate
+  ```
+
+- **Activate on macOS / Linux:**
 
   ```bash
   source venv/bin/activate

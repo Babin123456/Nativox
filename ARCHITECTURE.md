@@ -56,9 +56,10 @@ graph TD
         MP3OUT["MP3 Audio File Generator"]
     end
 
-    subgraph S7["Downstream: Multi-Track Streaming"]
-        STITCH["FFmpeg Overlap-Safe Audio Multiplexer"]
-        HLS["Decoupled Multi-Track HLS / DASH Packager"]
+    subgraph S7["Stage 7: Final Dubbed Video Assembly"]
+        REMUX["FFmpeg Copy-Mode Remux (-c:v copy)"]
+        STRIP["Original Audio Removal (-map 0:v:0)"]
+        ATTACH["Dubbed AAC Audio Attach (-c:a aac)"]
     end
 
     VID --> EXTRACT
@@ -79,17 +80,18 @@ graph TD
     T5_TRAIN --> TTS
     TTS --> PROSODY
     PROSODY --> MP3OUT
-    MP3OUT --> STITCH
-    DEMUCS -->|Preserved Background Bed| STITCH
-    STITCH --> HLS
-    HLS --> DUBBED["YouTube-Style Multi-Track Stream"]
+    MP3OUT --> REMUX
+    VID -.->|Original Video Frames| REMUX
+    REMUX --> STRIP
+    STRIP --> ATTACH
+    ATTACH --> DUBBED["Final Dubbed MP4"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 
     classDef stageNode fill:#1E293B,stroke:#0284C7,stroke-width:2px,color:#FFFFFF;
     classDef finalNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
 
-    class VID,EXTRACT,DEMUCS,WHISPER,VAD,RAKE,SCRIPT_TAG,TRANS_KW,PHONETIC,REFORM,COMPRESS,DOC_INGEST,CORRUPT,T5_TRAIN,TTS,PROSODY,MP3OUT,STITCH,HLS stageNode;
+    class VID,EXTRACT,DEMUCS,WHISPER,VAD,RAKE,SCRIPT_TAG,TRANS_KW,PHONETIC,REFORM,COMPRESS,DOC_INGEST,CORRUPT,T5_TRAIN,TTS,PROSODY,MP3OUT,REMUX,STRIP,ATTACH stageNode;
     class DUBBED finalNode;
 ```
 
@@ -126,7 +128,7 @@ graph TD
 ### 4. Stage 4: `04_Keyword_to_Sentence_Construction/`
 
 - **Responsibility:** Document-trained sentence syntax learning and destructive-to-constructive sentence reconstruction.
-- **Interface:** CLI & Script Runner (`train.py`, `construct.py`)
+- **Port:** `http://127.0.0.1:8004` (Web Interface & CLI `construct.py`)
 - **Core Operations:**
   - Ingestion of standard PDF (`.pdf`) and Word (`.docx`) documents using `pypdf` and `python-docx`.
   - Self-supervised synthetic corruption (`SentenceCorrupter`): token jumbling, function word dropping, and grammatical inflection noise.
@@ -160,7 +162,18 @@ graph TD
   - Microsoft Edge Neural TTS synthesis via `edge-tts` — zero API keys, zero GPU.
   - Multi-voice selection: female (`hi-IN-SwaraNeural`) and male (`hi-IN-MadhurNeural`) Hindi voices.
   - Prosody control with adjustable speech rate and pitch parameters.
-  - Produces standard MP3 files ready for downstream HLS multi-track packaging.
+  - Produces standard MP3 files ready for Stage 7 final video assembly.
+
+### 8. Stage 7: `07_Merge_MP3_with_MP4/`
+
+- **Responsibility:** Final dubbed video assembly — merge original video with target-language audio.
+- **Port:** `http://127.0.0.1:8014`
+- **Core Operations:**
+  - FFmpeg copy-mode remux: preserves original video frames byte-for-byte (`-c:v copy`).
+  - Completely removes original English audio track (`-map 0:v:0 -map 1:a:0`).
+  - Transcodes dubbed MP3 to AAC (`-c:a aac -b:a 192k`) for maximum MP4 container compatibility.
+  - FastStart optimization (`-movflags +faststart`) for instant web playback.
+  - Duration safety via `-shortest` flag to handle audio/video length mismatches.
 
 ---
 
@@ -175,7 +188,7 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 5. Stage 5(a) maps keywords to the target language and generates phonetic guides.
 6. Stage 5(b) removes fillers and compresses paragraphs to a strict 35%–40% duration budget.
 7. **Stage 6 synthesizes the reformed Hindi text into natural MP3 speech using Edge Neural TTS.**
-8. Downstream neural TTS tracks are muxed into decoupled HLS multi-track streams.
+8. **Stage 7 merges the original video with the dubbed MP3, replacing the English audio to produce the final dubbed MP4.**
 
 ---
 

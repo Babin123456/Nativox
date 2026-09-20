@@ -8,6 +8,7 @@ Part of the **Nativox** AI Multilingual Dubbing Suite.
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
   <a href="../05b_Sentence_Reformation__Atanu/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_5(b):_Reformation-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 5b" /></a>
+  <a href="../07_Merge_MP3_with_MP4/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_7:_Final_Video-FF6B6B?style=for-the-badge&logo=ffmpeg&logoColor=white" alt="Stage 7" /></a>
   <a href="../ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-%F0%9F%93%90_ARCHITECTURE.md-E8A33D?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
   <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
@@ -83,7 +84,13 @@ cd 06_Converted_Text_to_MP3/backend
   venv\Scripts\activate.bat
   ```
 
-- **Activate on macOS / Linux / Git Bash:**
+- **Activate on Windows (Git Bash):**
+
+  ```bash
+  source venv/Scripts/activate
+  ```
+
+- **Activate on macOS / Linux:**
 
   ```bash
   source venv/bin/activate
@@ -128,12 +135,16 @@ graph TD
     S3 --> S5a["Stage 5a: Keyword Translation"]
     S2 --> S5b["Stage 5b: Sentence Reformation"]
     S5b --> S6["Stage 6: Hindi Text → MP3"]
-    S6 --> OUT["Dubbed Hindi Audio"]
+    S6 --> S7["Stage 7: Merge MP3 with MP4"]
+    S1 -.->|Original Video| S7
+    S7 --> OUT["Final Dubbed MP4"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
 
     classDef active fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
+    classDef final fill:#1E1B3B,stroke:#A78BFA,stroke-width:2.5px,color:#FFFFFF;
     class S6 active;
+    class S7 final;
 ```
 
 ---

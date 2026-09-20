@@ -70,7 +70,13 @@ cd 03_Text_to_Keyword/backend
   venv\Scripts\activate.bat
   ```
 
-- **Activate on macOS / Linux / Git Bash:**
+- **Activate on Windows (Git Bash):**
+
+  ```bash
+  source venv/Scripts/activate
+  ```
+
+- **Activate on macOS / Linux:**
 
   ```bash
   source venv/bin/activate

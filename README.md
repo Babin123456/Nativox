@@ -41,6 +41,7 @@ Each standalone stage can run completely independently as a self-contained micro
 | [`05a_Keyword_Translation__Sagnik/`](05a_Keyword_Translation__Sagnik) | **Contextual Terminology Translation** | [📖 Stage 5(a) Guide](05a_Keyword_Translation__Sagnik/README.md) | deep-translator / indic-transliteration | Accurately translates technical vocabulary and synthesizes Romanized phonetic pronunciation guides. |
 | [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu) | **Sentence Reformation & Précis** | [📖 Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
 | [`06_Converted_Text_to_MP3/`](06_Converted_Text_to_MP3) | **Hindi Text → MP3 Speech Synthesis** | [📖 Stage 6 Guide](06_Converted_Text_to_MP3/README.md) | Edge-TTS Neural Voices | Synthesizes reformed Hindi text into natural-sounding MP3 speech with multi-voice, rate, and pitch control. |
+| [`07_Merge_MP3_with_MP4/`](07_Merge_MP3_with_MP4) | **Final Dubbed Video Assembly** | [📖 Stage 7 Guide](07_Merge_MP3_with_MP4/README.md) | FFmpeg Copy-Mode Remux | Merges the original source video with dubbed target-language audio, replacing English audio completely to produce the final dubbed MP4. |
 
 ---
 
@@ -55,7 +56,7 @@ Each module provides an independent service that can be set up and run manually 
   ```bash
   cd 01_MP4_to_MP3/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8000
   ```
@@ -67,7 +68,7 @@ Each module provides an independent service that can be set up and run manually 
   ```bash
   cd 02_MP3_to_Text/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8001
   ```
@@ -79,7 +80,7 @@ Each module provides an independent service that can be set up and run manually 
   ```bash
   cd 03_Text_to_Keyword/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8010
   ```
@@ -91,18 +92,19 @@ Each module provides an independent service that can be set up and run manually 
   ```bash
   cd 04_Keyword_to_Sentence_Construction
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
-  python train.py      # Train Seq2Seq Transformer on PDF corpus
-  python construct.py  # Interactive sentence reconstruction testing
+  python -m uvicorn main:app --reload --port 8004
   ```
+
+  *Accessible at `http://127.0.0.1:8004`*
 
 - **Stage 5(a) (Keyword Translate):** ➔ *[Read Stage 5(a) Manual & Line-by-Line Guide](05a_Keyword_Translation__Sagnik/README.md)*
 
   ```bash
   cd 05a_Keyword_Translation__Sagnik/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8011
   ```
@@ -114,7 +116,7 @@ Each module provides an independent service that can be set up and run manually 
   ```bash
   cd 05b_Sentence_Reformation__Atanu/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8012
   ```
@@ -126,12 +128,24 @@ Each module provides an independent service that can be set up and run manually 
   ```bash
   cd 06_Converted_Text_to_MP3/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8013
   ```
 
   *Accessible at `http://127.0.0.1:8013`*
+
+- **Stage 7 (Merge MP3 with MP4):** ➔ *[Read Stage 7 Manual & Line-by-Line Guide](07_Merge_MP3_with_MP4/README.md)*
+
+  ```bash
+  cd 07_Merge_MP3_with_MP4/backend
+  python -m venv venv
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8014
+  ```
+
+  *Accessible at `http://127.0.0.1:8014`*
 
 ---
 

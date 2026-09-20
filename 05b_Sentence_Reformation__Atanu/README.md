@@ -74,7 +74,13 @@ cd 05b_Sentence_Reformation__Atanu/backend
   venv\Scripts\activate.bat
   ```
 
-- **Activate on macOS / Linux / Git Bash:**
+- **Activate on Windows (Git Bash):**
+
+  ```bash
+  source venv/Scripts/activate
+  ```
+
+- **Activate on macOS / Linux:**
 
   ```bash
   source venv/bin/activate
