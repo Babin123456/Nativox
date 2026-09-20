@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nativox — Stage 4: Keyword to Sentence Construction</title>
+  <meta name="description" content="Seq2Seq neural syntax reconstruction engine converting destructive, jumbled, or broken keywords into fluent, grammatical English sentences. Part of the Nativox AI Multilingual Dubbing Suite." />
+  <link rel="icon" type="image/webp" href="favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #38BDF8;
+      --primary-hover: #0284C7;
+      --primary-glow: rgba(56, 189, 248, 0.15);
+      --accent: #E8A33D;
+      --accent-glow: rgba(232, 163, 61, 0.15);
+      --success: #34D399;
+      --success-glow: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --purple: #A78BFA;
+      --purple-glow: rgba(167, 139, 250, 0.15);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 920px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+
+    header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--purple-glow);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      color: var(--purple);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.3px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 30%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14.5px;
+      line-height: 1.5;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 18px;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .flow-step.active {
+      background: var(--purple-glow);
+      border-color: rgba(167, 139, 250, 0.4);
+      color: var(--purple);
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.5;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────── */
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(167, 139, 250, 0.3);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #CBD5E1;
+    }
+
+    .field-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    /* ── Textarea ─────────────────────────────────────────────── */
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px var(--purple-glow);
+    }
+
+    textarea::placeholder {
+      color: rgba(148, 163, 184, 0.5);
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Sample Chips ────────────────────────────────────────── */
+
+    .samples-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .samples-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .sample-chip {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: #CBD5E1;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .sample-chip:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+      background: var(--purple-glow);
+    }
+
+    /* ── Controls Grid ────────────────────────────────────────── */
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .control-group label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      color: #CBD5E1;
+      margin-bottom: 8px;
+    }
+
+    .slider-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--purple);
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: var(--surface-alt);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--purple);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* ── Action Button ───────────────────────────────────────── */
+
+    .action-row {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple) 0%, #7C3AED 100%);
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ── Spinner ──────────────────────────────────────────────── */
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #FFFFFF;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Output Section ──────────────────────────────────────── */
+
+    .output-section {
+      display: none;
+    }
+
+    .output-section.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .box-destructive {
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .box-constructive {
+      background: rgba(167, 139, 250, 0.05);
+      border: 1px solid rgba(167, 139, 250, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .box-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .box-header.destructive { color: var(--danger); }
+    .box-header.constructive { color: var(--purple); }
+
+    .box-content {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .box-content.constructive-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+
+    .metrics-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface-alt);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      align-items: center;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .metric-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-val.purple { color: var(--purple); }
+    .metric-val.success { color: var(--success); }
+
+    .btn-copy {
+      margin-left: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .btn-copy:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+
+    /* ── UI SVG Icons ────────────────────────────────────────── */
+
+    .ui-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .ui-icon svg {
+      width: 1em;
+      height: 1em;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .badge .ui-icon svg { width: 14px; height: 14px; }
+    .card-title .ui-icon svg { width: 18px; height: 18px; color: var(--purple); }
+    .flow-step .ui-icon svg { width: 12px; height: 12px; }
+    .flow-step.active .ui-icon svg { color: var(--purple); }
+    .btn-primary .ui-icon svg,
+    .btn-copy .ui-icon svg { width: 15px; height: 15px; }
+
+    #toastIcon svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ── Status Toast ────────────────────────────────────────── */
+
+    .status-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      transform: translateX(calc(100% + 40px));
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .status-toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .status-toast.success {
+      border-color: var(--success);
+      background: #0B251D;
+      color: #A7F3D0;
+    }
+
+    .status-toast.error {
+      border-color: var(--danger);
+      background: #251214;
+      color: #FECACA;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    footer p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+
+    @media (max-width: 640px) {
+      h1 { font-size: 24px; }
+      .comparison-grid { grid-template-columns: 1fr; }
+      .controls-grid { grid-template-columns: 1fr; }
+      .pipeline-flow { gap: 4px; }
+      .flow-step { font-size: 10px; padding: 2px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ── Header ────────────────────────────────────────────── -->
+
+    <header>
+      <div class="badge">
+        <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+        Stage 4 — Seq2Seq Syntax Reconstruction
+      </div>
+      <h1>Keyword to Sentence Construction</h1>
+      <p class="subtitle">
+        Document-trained Sequence-to-Sequence neural engine. Converts jumbled, noisy keyword streams and fragmented speech into grammatically complete, meaningful English sentences.
+      </p>
+
+      <!-- Pipeline Flow Badges -->
+      <div class="pipeline-flow">
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
+          1. MP4→MP3
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></span>
+          2. MP3→Text
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></span>
+          3. Keywords
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step active">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+          4. Sentences
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m2 12 20 0"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span>
+          5a. Translate
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          5b. Reform
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
+          6. Speech
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/></svg></span>
+          7. Final MP4
+        </span>
+      </div>
+    </header>
+
+    <!-- ── Input Card ────────────────────────────────────────── -->
+
+    <div class="card" id="inputCard">
+      <div class="card-title">
+        <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+        Destructive Input Tokens / Jumbled Words
+      </div>
+
+      <label class="field-label" for="inputText">Enter disordered, unpunctuated, or broken keywords</label>
+      <p class="field-desc">
+        Input words with scrambled syntax, omitted prepositions/articles, or broken grammatical agreement.
+      </p>
+
+      <textarea id="inputText" placeholder="e.g. artificial intelligence world changing rapidly is" oninput="updateCounts()"></textarea>
+      <div class="char-count">
+        <span id="charCount">0</span> characters · <span id="wordCount">0</span> tokens
+      </div>
+
+      <!-- Quick Benchmark Samples -->
+      <div class="samples-row">
+        <span class="samples-label">Test Samples:</span>
+        <button type="button" class="sample-chip" onclick="loadSample(0)">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          Artificial Intelligence
+        </button>
+        <button type="button" class="sample-chip" onclick="loadSample(1)">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          Photosynthesis
+        </button>
+        <button type="button" class="sample-chip" onclick="loadSample(2)">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          Effective Communication
+        </button>
+        <button type="button" class="sample-chip" onclick="loadSample(3)">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          Market Yesterday
+        </button>
+      </div>
+
+      <!-- Decoding Controls -->
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="beamSlider">
+            <span>Beam Search Width</span>
+            <span class="slider-val" id="beamVal">4 Beams</span>
+          </label>
+          <input type="range" id="beamSlider" min="1" max="8" value="4" oninput="updateBeam(this.value)" />
+        </div>
+        <div class="control-group">
+          <label for="lengthSlider">
+            <span>Max Generation Length</span>
+            <span class="slider-val" id="lengthVal">64 Tokens</span>
+          </label>
+          <input type="range" id="lengthSlider" min="16" max="128" step="8" value="64" oninput="updateLength(this.value)" />
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="action-row">
+        <button class="btn-primary" id="constructBtn" onclick="runConstruction()">
+          <span class="ui-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+          <span id="btnText">Construct Sentence</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Output Section ────────────────────────────────────── -->
+
+    <div class="output-section" id="outputSection">
+      <div class="result-card">
+        <div class="card-title">
+          <span class="ui-icon"><svg viewBox="0 0 24 24" style="color: var(--success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+          Reconstructed Syntactic Output
+        </div>
+
+        <div class="comparison-grid">
+          <div class="box-destructive">
+            <div class="box-header destructive">
+              <span class="ui-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+              Destructive Input
+            </div>
+            <div class="box-content" id="dispDestructive">—</div>
+          </div>
+
+          <div class="box-constructive">
+            <div class="box-header constructive">
+              <span class="ui-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+              Constructive Result
+            </div>
+            <div class="box-content constructive-text" id="dispConstructive">—</div>
+          </div>
+        </div>
+
+        <div class="metrics-bar">
+          <div class="metric-item">
+            <span>Latency:</span>
+            <span class="metric-val purple" id="metricLatency">0.0 ms</span>
+          </div>
+          <div class="metric-item">
+            <span>Beams:</span>
+            <span class="metric-val" id="metricBeams">4</span>
+          </div>
+          <div class="metric-item">
+            <span>Engine:</span>
+            <span class="metric-val" id="metricCheckpoint">T5 Transformer</span>
+          </div>
+          <div class="metric-item">
+            <span>Device:</span>
+            <span class="metric-val success" id="metricDevice">CPU</span>
+          </div>
+
+          <button class="btn-copy" id="copyBtn" onclick="copyConstructedText()">
+            <span class="ui-icon"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
+            Copy Sentence
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Footer ────────────────────────────────────────────── -->
+
+    <footer>
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Stage 4: Keyword to Sentence Construction · Seq2Seq Transformer Engine<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Dr. Debjit Ghosh</strong>
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- ── Status Toast ────────────────────────────────────────── -->
+
+  <div class="status-toast" id="toast">
+    <span id="toastIcon"></span>
+    <span id="toastMsg">Ready</span>
+  </div>
+
+  <script>
+    const sampleSentences = [
+      "artificial intelligence world changing rapidly is",
+      "plants sunlight into chemical energy convert photosynthesis",
+      "effective communication organizations modern cornerstone essential is",
+      "market went yesterday she to the"
+    ];
+
+    function updateCounts() {
+      const val = document.getElementById('inputText').value;
+      document.getElementById('charCount').textContent = val.length;
+      const tokens = val.trim() ? val.trim().split(/\s+/).length : 0;
+      document.getElementById('wordCount').textContent = tokens;
+    }
+
+    function loadSample(index) {
+      document.getElementById('inputText').value = sampleSentences[index];
+      updateCounts();
+      runConstruction();
+    }
+
+    function updateBeam(val) {
+      document.getElementById('beamVal').textContent = `${val} Beam${val > 1 ? 's' : ''}`;
+    }
+
+    function updateLength(val) {
+      document.getElementById('lengthVal').textContent = `${val} Tokens`;
+    }
+
+    async function runConstruction() {
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) {
+        showToast('error', 'Please enter a destructive sentence.');
+        return;
+      }
+
+      const numBeams = parseInt(document.getElementById('beamSlider').value, 10);
+      const maxLength = parseInt(document.getElementById('lengthSlider').value, 10);
+      const btn = document.getElementById('constructBtn');
+      const btnText = document.getElementById('btnText');
+
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Constructing...';
+
+      try {
+        const res = await fetch('/api/construct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            num_beams: numBeams,
+            max_length: maxLength
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || 'Sentence construction failed.');
+        }
+
+        const data = await res.json();
+
+        // Populate results
+        document.getElementById('dispDestructive').textContent = data.input_text;
+        document.getElementById('dispConstructive').textContent = data.output_sentence;
+        document.getElementById('metricLatency').textContent = `${data.latency_ms} ms`;
+        document.getElementById('metricBeams').textContent = data.num_beams;
+        document.getElementById('metricCheckpoint').textContent = data.checkpoint_type;
+        document.getElementById('metricDevice').textContent = data.device.toUpperCase();
+
+        document.getElementById('outputSection').classList.add('show');
+        showToast('success', 'Sentence reconstructed successfully!');
+
+      } catch (err) {
+        showToast('error', err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Construct Sentence';
+      }
+    }
+
+    function copyConstructedText() {
+      const text = document.getElementById('dispConstructive').textContent;
+      if (!text || text === '—') return;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('success', 'Copied sentence to clipboard!');
+      }).catch(() => {
+        showToast('error', 'Failed to copy to clipboard.');
+      });
+    }
+
+    let toastTimer;
+    function showToast(type, msg) {
+      clearTimeout(toastTimer);
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.textContent = msg;
+      toast.className = 'status-toast show ' + type;
+
+      if (type === 'success') {
+        toastIcon.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+      } else {
+        toastIcon.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      }
+
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

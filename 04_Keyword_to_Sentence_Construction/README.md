@@ -77,7 +77,13 @@ cd 04_Keyword_to_Sentence_Construction
   venv\Scripts\activate.bat
   ```
 
-- **Activate on macOS / Linux / Git Bash:**
+- **Activate on Windows (Git Bash):**
+
+  ```bash
+  source venv/Scripts/activate
+  ```
+
+- **Activate on macOS / Linux:**
 
   ```bash
   source venv/bin/activate
@@ -89,18 +95,26 @@ cd 04_Keyword_to_Sentence_Construction
 pip install -r requirements.txt
 ```
 
-### 4. Train Model & Run CLI
+### 4. Run Web Application or Interactive CLI
 
-- **Train Seq2Seq Model on Document Corpus:**
+- **Launch Full Web Interface (Recommended):**
 
   ```bash
-  python train.py
+  python -m uvicorn main:app --reload --port 8004
   ```
+
+  Open your browser at **`http://127.0.0.1:8004`**.
 
 - **Launch Interactive Testing CLI:**
 
   ```bash
   python construct.py
+  ```
+
+- **Train Seq2Seq Model on Document Corpus (Optional):**
+
+  ```bash
+  python train.py
   ```
 
 ---
