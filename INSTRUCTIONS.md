@@ -24,6 +24,7 @@ Complete Architecture, Working Principles, and Module-by-Module Guide.
    - [Module 5(a): Keyword Translation Engine (`05a_Keyword_Translation__Sagnik/`)](#module-5a-keyword-translation-engine)
    - [Module 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu/`)](#module-5b-sentence-reformation--precis)
    - [Module 6: Text → MP3 Speech Synthesis (`06_Converted_Text_to_MP3/`)](#module-6-text-to-mp3)
+   - [Module 7: Merge MP3 with MP4 (`07_Merge_MP3_with_MP4/`)](#module-7-merge-mp3-with-mp4)
 3. [Running the Modular Suite](#3-running-the-modular-suite)
 4. [Environment Setup & System Dependencies](#4-environment-setup--system-dependencies)
 
@@ -57,7 +58,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 01_MP4_to_MP3/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8000
   ```
@@ -78,7 +79,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 02_MP3_to_Text/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8001
   ```
@@ -99,7 +100,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 03_Text_to_Keyword/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8010
   ```
@@ -121,15 +122,17 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 04_Keyword_to_Sentence_Construction
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
 
-  # Train the Seq2Seq Transformer on PDF corpus
-  python train.py
+  # Web Application Server (Recommended)
+  python -m uvicorn main:app --reload --port 8004
 
-  # Interactive live CLI testing
+  # Interactive CLI testing
   python construct.py
   ```
+
+- **Port:** `http://127.0.0.1:8004`
 
 ---
 
@@ -145,7 +148,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 05a_Keyword_Translation__Sagnik/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8011
   ```
@@ -166,7 +169,7 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 05b_Sentence_Reformation__Atanu/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8012
   ```
@@ -188,12 +191,34 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
   ```bash
   cd 06_Converted_Text_to_MP3/backend
   python -m venv venv
-  # Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8013
   ```
 
 - **Port:** `http://127.0.0.1:8013`
+
+---
+
+### <a id="module-7-merge-mp3-with-mp4"></a>Module 7: Merge MP3 with MP4 (`07_Merge_MP3_with_MP4/`)
+
+- **Core Function:** Merges the original source MP4 video with the dubbed target-language MP3 audio, replacing the English audio completely to produce the final dubbed MP4.
+- **Working Principle:**
+  - Uses FFmpeg in copy-mode remux (`-c:v copy`) to preserve original video frames byte-for-byte with zero quality loss.
+  - Completely removes the original English audio track and attaches the dubbed MP3 as the new audio stream.
+  - Transcodes MP3 audio to AAC (`-c:a aac -b:a 192k`) for maximum MP4 container compatibility.
+  - Applies `-movflags +faststart` for instant web playback and `-shortest` for safe duration mismatch handling.
+- **Execution:**
+
+  ```bash
+  cd 07_Merge_MP3_with_MP4/backend
+  python -m venv venv
+  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8014
+  ```
+
+- **Port:** `http://127.0.0.1:8014`
 
 ---
 
@@ -206,10 +231,11 @@ To test all modules simultaneously, you can run each stage in a separate termina
 | **Terminal 1** | Stage 1 (MP4 to MP3) | `cd 01_MP4_to_MP3/backend && python -m uvicorn main:app --reload --port 8000` | `cd 01_MP4_to_MP3/backend && python -m uvicorn main:app --reload --port 8000` | `http://127.0.0.1:8000` |
 | **Terminal 2** | Stage 2 (MP3 to Text) | `cd 02_MP3_to_Text/backend && python -m uvicorn main:app --reload --port 8001` | `cd 02_MP3_to_Text/backend && python -m uvicorn main:app --reload --port 8001` | `http://127.0.0.1:8001` |
 | **Terminal 3** | Stage 3 (Text to Keyword) | `cd 03_Text_to_Keyword/backend && python -m uvicorn main:app --reload --port 8010` | `cd 03_Text_to_Keyword/backend && python -m uvicorn main:app --reload --port 8010` | `http://127.0.0.1:8010` |
-| **Terminal 4** | Stage 4 (Sentence Construction) | `cd 04_Keyword_to_Sentence_Construction && python construct.py` | `cd 04_Keyword_to_Sentence_Construction && python3 construct.py` | Interactive CLI |
+| **Terminal 4** | Stage 4 (Sentence Construction) | `cd 04_Keyword_to_Sentence_Construction && python -m uvicorn main:app --reload --port 8004` | `cd 04_Keyword_to_Sentence_Construction && python -m uvicorn main:app --reload --port 8004` | `http://127.0.0.1:8004` |
 | **Terminal 5** | Stage 5(a) (Keyword Translate) | `cd 05a_Keyword_Translation__Sagnik/backend && python -m uvicorn main:app --reload --port 8011` | `cd 05a_Keyword_Translation__Sagnik/backend && python -m uvicorn main:app --reload --port 8011` | `http://127.0.0.1:8011` |
 | **Terminal 6** | Stage 5(b) (Sentence Reformation) | `cd 05b_Sentence_Reformation__Atanu/backend && python -m uvicorn main:app --reload --port 8012` | `cd 05b_Sentence_Reformation__Atanu/backend && python -m uvicorn main:app --reload --port 8012` | `http://127.0.0.1:8012` |
 | **Terminal 7** | Stage 6 (Hindi Text → MP3) | `cd 06_Converted_Text_to_MP3/backend && python -m uvicorn main:app --reload --port 8013` | `cd 06_Converted_Text_to_MP3/backend && python -m uvicorn main:app --reload --port 8013` | `http://127.0.0.1:8013` |
+| **Terminal 8** | Stage 7 (Merge MP3 with MP4) | `cd 07_Merge_MP3_with_MP4/backend && python -m uvicorn main:app --reload --port 8014` | `cd 07_Merge_MP3_with_MP4/backend && python -m uvicorn main:app --reload --port 8014` | `http://127.0.0.1:8014` |
 
 > [!IMPORTANT]
 > **Always access web stages through their local URL (`http://127.0.0.1:PORT`), NOT by opening raw `index.html` files!**

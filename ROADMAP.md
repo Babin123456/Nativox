@@ -98,6 +98,20 @@ graph TD
   - Prosody control with adjustable speech rate (`-50%` to `+50%`) and pitch (`-20Hz` to `+20Hz`).
   - Produces standard MP3 files ready for downstream HLS multi-track packaging.
   - Closes the full dubbing pipeline: **Video → Audio → Text → Keywords → Sentences → Translation → Reformation → Speech MP3**.
+  - Stage 7 merges the dubbed MP3 back into the original video for the final dubbed MP4.
+
+---
+
+### Directive 6: Final Dubbed Video Assembly (Merge MP3 with MP4) — [Completed: Stage 7]
+
+- **Status:** **Completed** in [`07_Merge_MP3_with_MP4/`](07_Merge_MP3_with_MP4/README.md)
+- **Implemented Capabilities:**
+  - FFmpeg copy-mode remux: preserves original video frames byte-for-byte (`-c:v copy`) with zero quality loss.
+  - Completely removes the original English audio track and attaches the dubbed MP3 as the new audio.
+  - Transcodes MP3 audio to AAC (`-c:a aac -b:a 192k`) for maximum MP4 container compatibility.
+  - FastStart optimization (`-movflags +faststart`) for instant web playback.
+  - Duration safety via `-shortest` flag to handle audio/video length mismatches.
+  - Closes the **complete end-to-end pipeline**: **Video → Audio → Text → Keywords → Sentences → Translation → Reformation → Speech → Final Dubbed Video**.
 
 ---
 
