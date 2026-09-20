@@ -352,6 +352,9 @@
       cursor: pointer;
       transition: all 0.15s;
       font-family: 'Noto Serif Devanagari', 'Noto Serif Bengali', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .sample-chip:hover {
@@ -857,9 +860,9 @@
       <!-- Sample Chips -->
       <div class="samples-row">
         <span class="samples-label">Try a sample →</span>
-        <span class="sample-chip" onclick="loadSample(0)">🇮🇳 नमूना १: नमस्ते, यह एक परीक्षण है</span>
-        <span class="sample-chip" onclick="loadSample(1)">🇮🇳 नमूना २: आज हम न्यूरल नेटवर्क सीखेंगे</span>
-        <span class="sample-chip" onclick="loadSample(2)">🇮🇳 नमूना ३: नेटिवॉक्स रीयल-टाइम एआई डबिंग</span>
+        <span class="sample-chip" onclick="loadSample(0)"><span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span> नमूना १: नमस्ते, यह एक परीक्षण है</span>
+        <span class="sample-chip" onclick="loadSample(1)"><span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span> नमूना २: आज हम न्यूरल नेटवर्क सीखेंगे</span>
+        <span class="sample-chip" onclick="loadSample(2)"><span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span> नमूना ३: नेटिवॉक्स रीयल-टाइम एआई डबिंग</span>
       </div>
 
       <!-- Controls Grid -->
