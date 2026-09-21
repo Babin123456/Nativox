@@ -5,7 +5,7 @@
 ![Nativox Header](https://capsule-render.vercel.app/api?type=waving&color=0:4E65FF,50:92EFFD,100:3E8FC4&height=220&section=header&text=NATIVOX&fontSize=60&fontColor=FFFFFF&fontAlignY=38&desc=Modular%20Real-Time%20AI%20Multilingual%20Dubbing%20Suite&descFontSize=20&descColor=FFFFFF&descAlignY=62&animation=fadeIn)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
   <img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Architecture-Stage--by--Stage%20Decoupled-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white" alt="Decoupled Architecture" />
 </p>
@@ -47,105 +47,367 @@ Each standalone stage can run completely independently as a self-contained micro
 
 ## 🚀 Setup & Execution Guide
 
-Each module provides an independent service that can be set up and run manually using standard Python virtual environments. For detailed line-by-line setup, requirements, and API specifications, click into each stage's dedicated README:
+Each module in Nativox is an independent service. Choose **one** of the two setup tracks below based on your preference:
 
-### Running Individual Stages
+- **Track 1: Standard Python Setup** — Use if your system `python` is Python 3.11 (`winget install Python.Python.3.11`).
+- **Track 2: Fast Setup via `uv` (Recommended)** — Automatically uses the pinned `.python-version` (3.11) with zero manual PATH configuration.
 
-- **Stage 1 (MP4 $\rightarrow$ MP3):** ➔ *[Read Stage 1 Manual & Line-by-Line Guide](01_MP4_to_MP3/README.md)*
+> [!IMPORTANT]
+> **Must Use Python 3.11 (Avoid Python 3.14+):**
+> Python 3.14 is a pre-release version lacking pre-compiled C/Rust binary wheels for `pydantic-core`, `faster-whisper`, `ctranslate2`, `av`, and `torch`.
+> In PowerShell, always activate via `.\venv\Scripts\Activate.ps1`. Do **not** type `.\venv` alone (it is a directory).
 
-  ```bash
+---
+
+### 📋 Universal Setup Cheatsheet (Copy & Paste by Shell)
+
+#### Track 1 — Standard Python (Requires Python 3.11)
+
+**Windows PowerShell:**
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+**Windows Git Bash:**
+
+```bash
+python -m venv venv
+source venv/Scripts/activate
+pip install -r requirements.txt
+```
+
+**macOS / Linux:**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+#### Track 2 — Fast Setup with `uv` (Recommended)
+
+**Windows PowerShell:**
+
+```powershell
+uv venv --seed venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+**Windows Git Bash:**
+
+```bash
+uv venv --seed venv
+source venv/Scripts/activate
+pip install -r requirements.txt
+```
+
+**macOS / Linux:**
+
+```bash
+uv venv --seed venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+### 🏃 Running Individual Stages
+
+Select your preferred shell block below, copy it with one click, and paste it directly into your terminal.
+
+#### Stage 1: Audio Extractor & Stem Separator (`01_MP4_to_MP3`)
+
+*Port:* `http://127.0.0.1:8000` &bull; *Documentation:* [Stage 1 Guide](01_MP4_to_MP3/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 01_MP4_to_MP3/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8000
   ```
 
-  *Accessible at `http://127.0.0.1:8000`*
-
-- **Stage 2 (MP3 $\rightarrow$ Text):** ➔ *[Read Stage 2 Manual & Line-by-Line Guide](02_MP3_to_Text/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 01_MP4_to_MP3/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8000
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 01_MP4_to_MP3/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8000
+  ```
+
+---
+
+#### Stage 2: Speech-To-Text (ASR) Engine (`02_MP3_to_Text`)
+
+*Port:* `http://127.0.0.1:8001` &bull; *Documentation:* [Stage 2 Guide](02_MP3_to_Text/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 02_MP3_to_Text/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8001
   ```
 
-  *Accessible at `http://127.0.0.1:8001`*
-
-- **Stage 3 (Text $\rightarrow$ Keyword):** ➔ *[Read Stage 3 Manual & Line-by-Line Guide](03_Text_to_Keyword/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 02_MP3_to_Text/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8001
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 02_MP3_to_Text/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8001
+  ```
+
+---
+
+#### Stage 3: Salient Keyword Extractor (`03_Text_to_Keyword`)
+
+*Port:* `http://127.0.0.1:8010` &bull; *Documentation:* [Stage 3 Guide](03_Text_to_Keyword/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 03_Text_to_Keyword/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8010
   ```
 
-  *Accessible at `http://127.0.0.1:8010`*
-
-- **Stage 4 (Keyword to Sentence Construction):** ➔ *[Read Stage 4 Manual & Line-by-Line Guide](04_Keyword_to_Sentence_Construction/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 03_Text_to_Keyword/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8010
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 03_Text_to_Keyword/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8010
+  ```
+
+---
+
+#### Stage 4: Sentence Construction & Syntax Restoration (`04_Keyword_to_Sentence_Construction`)
+
+*Port:* `http://127.0.0.1:8004` &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 04_Keyword_to_Sentence_Construction
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8004
   ```
 
-  *Accessible at `http://127.0.0.1:8004`*
-
-- **Stage 5(a) (Keyword Translate):** ➔ *[Read Stage 5(a) Manual & Line-by-Line Guide](05a_Keyword_Translation__Sagnik/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 04_Keyword_to_Sentence_Construction
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 04_Keyword_to_Sentence_Construction
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+---
+
+#### Stage 5(a): Contextual Terminology Translation (`05a_Keyword_Translation__Sagnik`)
+
+*Port:* `http://127.0.0.1:8011` &bull; *Documentation:* [Stage 5(a) Guide](05a_Keyword_Translation__Sagnik/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 05a_Keyword_Translation__Sagnik/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8011
   ```
 
-  *Accessible at `http://127.0.0.1:8011`*
-
-- **Stage 5(b) (Sentence Reformation & Précis):** ➔ *[Read Stage 5(b) Manual & Line-by-Line Guide](05b_Sentence_Reformation__Atanu/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 05a_Keyword_Translation__Sagnik/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8011
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 05a_Keyword_Translation__Sagnik/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8011
+  ```
+
+---
+
+#### Stage 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu`)
+
+*Port:* `http://127.0.0.1:8012` &bull; *Documentation:* [Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 05b_Sentence_Reformation__Atanu/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8012
   ```
 
-  *Accessible at `http://127.0.0.1:8012`*
-
-- **Stage 6 (Hindi Text → MP3):** ➔ *[Read Stage 6 Manual & Line-by-Line Guide](06_Converted_Text_to_MP3/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 05b_Sentence_Reformation__Atanu/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8012
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 05b_Sentence_Reformation__Atanu/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8012
+  ```
+
+---
+
+#### Stage 6: Hindi Text → MP3 Speech Synthesis (`06_Converted_Text_to_MP3`)
+
+*Port:* `http://127.0.0.1:8013` &bull; *Documentation:* [Stage 6 Guide](06_Converted_Text_to_MP3/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 06_Converted_Text_to_MP3/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8013
   ```
 
-  *Accessible at `http://127.0.0.1:8013`*
-
-- **Stage 7 (Merge MP3 with MP4):** ➔ *[Read Stage 7 Manual & Line-by-Line Guide](07_Merge_MP3_with_MP4/README.md)*
+- **Windows Git Bash:**
 
   ```bash
+  cd 06_Converted_Text_to_MP3/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8013
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 06_Converted_Text_to_MP3/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8013
+  ```
+
+---
+
+#### Stage 7: Final Dubbed Video Assembly (`07_Merge_MP3_with_MP4`)
+
+*Port:* `http://127.0.0.1:8014` &bull; *Documentation:* [Stage 7 Guide](07_Merge_MP3_with_MP4/README.md)
+
+- **Windows PowerShell:**
+
+  ```powershell
   cd 07_Merge_MP3_with_MP4/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8014
   ```
 
-  *Accessible at `http://127.0.0.1:8014`*
+- **Windows Git Bash:**
+
+  ```bash
+  cd 07_Merge_MP3_with_MP4/backend
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8014
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 07_Merge_MP3_with_MP4/backend
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8014
+  ```
+
+*(Note: If using standard Python 3.11 instead of `uv`, simply replace `uv venv --seed venv` with `python -m venv venv` or `python3 -m venv venv`)*
 
 ---
 
