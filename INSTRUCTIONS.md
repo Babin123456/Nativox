@@ -57,8 +57,9 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
   ```bash
   cd 01_MP4_to_MP3/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  # Create venv with Python 3.11 (uv venv --python 3.11 venv OR py -3.11 -m venv venv)
+  uv venv --python 3.11 venv
+  # Activate: Windows PS: .\venv\Scripts\Activate.ps1 | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8000
   ```
@@ -78,8 +79,9 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 
   ```bash
   cd 02_MP3_to_Text/backend
-  python -m venv venv
-  # Windows PS: .\venv\Scripts\activate | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
+  # Create venv with Python 3.11 (uv venv --python 3.11 venv OR py -3.11 -m venv venv)
+  uv venv --python 3.11 venv
+  # Activate: Windows PS: .\venv\Scripts\Activate.ps1 | Git Bash: source venv/Scripts/activate | Unix: source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8001
   ```
@@ -248,7 +250,63 @@ To test all modules simultaneously, you can run each stage in a separate termina
 
 ## 4. Environment Setup & System Dependencies
 
-1. **Python 3.11:** Pinned repository-wide via `.python-version`. Ensure Python 3.11 is available on your system `PATH`.
+1. **Python 3.11:** Pinned repository-wide via `.python-version`. Ensure Python 3.11 is used.
+
+   ### Track 1 — Standard Python (Requires Python 3.11)
+
+   - **Windows PowerShell:**
+
+     ```powershell
+     python -m venv venv
+     .\venv\Scripts\Activate.ps1
+     pip install -r requirements.txt
+     ```
+
+   - **Windows Git Bash:**
+
+     ```bash
+     python -m venv venv
+     source venv/Scripts/activate
+     pip install -r requirements.txt
+     ```
+
+   - **macOS / Linux:**
+
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     pip install -r requirements.txt
+     ```
+
+   ### Track 2 — Fast Setup with `uv` (Recommended)
+
+   - **Windows PowerShell:**
+
+     ```powershell
+     uv venv --seed venv
+     .\venv\Scripts\Activate.ps1
+     pip install -r requirements.txt
+     ```
+
+   - **Windows Git Bash:**
+
+     ```bash
+     uv venv --seed venv
+     source venv/Scripts/activate
+     pip install -r requirements.txt
+     ```
+
+   - **macOS / Linux:**
+
+     ```bash
+     uv venv --seed venv
+     source venv/bin/activate
+     pip install -r requirements.txt
+     ```
+
+   > [!WARNING]
+   > **Avoid Python 3.14+:** Defaulting to Python 3.14 will cause `ModuleNotFoundError: No module named 'pydantic_core._pydantic_core'` due to missing binary wheels for C/Rust extensions (`faster-whisper`, `ctranslate2`, `av`, `pydantic-core`). Never type `.\venv` alone in PowerShell (it is a directory); always run `.\venv\Scripts\Activate.ps1`.
+
 2. **FFmpeg:** Required for audio extraction, duration-fitting, and remuxing:
    - **Windows:** `winget install Gyan.FFmpeg`
    - **macOS:** `brew install ffmpeg`
