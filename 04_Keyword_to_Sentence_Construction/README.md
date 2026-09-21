@@ -57,53 +57,80 @@ Stage 4 learns canonical sentence syntax directly from standard **PDF (`.pdf`)**
 cd 04_Keyword_to_Sentence_Construction
 ```
 
-### 2. Create & Activate Virtual Environment
+### 2. Choose Your Setup Track
 
-- **Create Environment (Python 3.11):**
+> [!IMPORTANT]
+> **Must Use Python 3.11 (Avoid Python 3.14+):**
+> Deep learning libraries (PyTorch, Transformers, Pydantic) require precompiled binary wheels built for **Python 3.11**. Running on Python 3.14 will cause missing native extension failures.
+> In PowerShell, never type `.\venv` alone (it is a directory); always run `.\venv\Scripts\Activate.ps1`.
 
-  ```bash
-  python -m venv venv
-  ```
+---
 
-- **Activate on Windows (PowerShell):**
+#### Track 1 — Standard Python Setup (Requires Python 3.11)
+
+Use this track if your default system `python` command is Python 3.11.
+
+- **Windows PowerShell:**
 
   ```powershell
+  python -m venv venv
   .\venv\Scripts\Activate.ps1
-  ```
-
-- **Activate on Windows (CMD):**
-
-  ```cmd
-  venv\Scripts\activate.bat
-  ```
-
-- **Activate on Windows (Git Bash):**
-
-  ```bash
-  source venv/Scripts/activate
-  ```
-
-- **Activate on macOS / Linux:**
-
-  ```bash
-  source venv/bin/activate
-  ```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run Web Application or Interactive CLI
-
-- **Launch Full Web Interface (Recommended):**
-
-  ```bash
+  pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8004
   ```
 
-  Open your browser at **`http://127.0.0.1:8004`**.
+- **Windows Git Bash:**
+
+  ```bash
+  python -m venv venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+---
+
+#### Track 2 — Fast Setup with `uv` (Recommended)
+
+Use this track for instant zero-configuration setup — `uv` automatically respects the repository's `.python-version` (3.11).
+
+- **Windows PowerShell:**
+
+  ```powershell
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+- **Windows Git Bash:**
+
+  ```bash
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+The web interface will open at **`http://127.0.0.1:8004`**.
 
 - **Launch Interactive Testing CLI:**
 
