@@ -117,13 +117,42 @@ pip install -r requirements.txt
 
 ---
 
+### ⚡ Running the Complete Pipeline
+
+For the full MP4-to-dubbed-MP4 workflow, use the unified runner in
+[`00_Auto_Pip/`](00_Auto_Pip). It creates one shared virtual environment,
+starts missing backend services automatically, runs all stages in order, and
+stops only the services it started.
+
+> [!NOTE]
+> The unified runner is currently Windows-focused and requires Python 3.11 or
+> newer through the `py` launcher. FFmpeg must also be available on `PATH`.
+
+```powershell
+cd 00_Auto_Pip
+.\setup.bat
+.\run_pipeline.bat "C:\path\to\video.mp4"
+```
+
+Results are written to `00_Auto_Pip\jobs\job1` by default. Pass a second
+argument to choose another output directory:
+
+```powershell
+.\run_pipeline.bat "C:\path\to\video.mp4" "C:\path\to\output"
+```
+
+See the [automatic pipeline guide](00_Auto_Pip/README.md) for service
+management, output files, ports, and troubleshooting.
+
+---
+
 ### 🏃 Running Individual Stages
 
 Select your preferred shell block below, copy it with one click, and paste it directly into your terminal.
 
 #### Stage 1: Audio Extractor & Stem Separator (`01_MP4_to_MP3`)
 
-*Port:* `http://127.0.0.1:8000` &bull; *Documentation:* [Stage 1 Guide](01_MP4_to_MP3/README.md)
+*Port:* `http://127.0.0.1:8001` &bull; *Documentation:* [Stage 1 Guide](01_MP4_to_MP3/README.md)
 
 - **Windows PowerShell:**
 
@@ -132,7 +161,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **Windows Git Bash:**
@@ -142,7 +171,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **macOS / Linux:**
@@ -152,14 +181,14 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 ---
 
 #### Stage 2: Speech-To-Text (ASR) Engine (`02_MP3_to_Text`)
 
-*Port:* `http://127.0.0.1:8001` &bull; *Documentation:* [Stage 2 Guide](02_MP3_to_Text/README.md)
+*Port:* `http://127.0.0.1:8002` &bull; *Documentation:* [Stage 2 Guide](02_MP3_to_Text/README.md)
 
 - **Windows PowerShell:**
 
@@ -168,7 +197,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **Windows Git Bash:**
@@ -178,7 +207,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **macOS / Linux:**
@@ -188,14 +217,14 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 ---
 
 #### Stage 3: Salient Keyword Extractor (`03_Text_to_Keyword`)
 
-*Port:* `http://127.0.0.1:8010` &bull; *Documentation:* [Stage 3 Guide](03_Text_to_Keyword/README.md)
+*Port:* `http://127.0.0.1:8003` &bull; *Documentation:* [Stage 3 Guide](03_Text_to_Keyword/README.md)
 
 - **Windows PowerShell:**
 
@@ -204,7 +233,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **Windows Git Bash:**
@@ -214,7 +243,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **macOS / Linux:**
@@ -224,44 +253,18 @@ Select your preferred shell block below, copy it with one click, and paste it di
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 ---
 
 #### Stage 4: Sentence Construction & Syntax Restoration (`04_Keyword_to_Sentence_Construction`)
 
-*Port:* `http://127.0.0.1:8004` &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
+*Port:* None (loaded directly by the orchestrator) &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
 
-- **Windows PowerShell:**
-
-  ```powershell
-  cd 04_Keyword_to_Sentence_Construction
-  uv venv --seed venv
-  .\venv\Scripts\Activate.ps1
-  pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8004
-  ```
-
-- **Windows Git Bash:**
-
-  ```bash
-  cd 04_Keyword_to_Sentence_Construction
-  uv venv --seed venv
-  source venv/Scripts/activate
-  pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8004
-  ```
-
-- **macOS / Linux:**
-
-  ```bash
-  cd 04_Keyword_to_Sentence_Construction
-  uv venv --seed venv
-  source venv/bin/activate
-  pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8004
-  ```
+Stage 04 is not started as an HTTP service in the unified pipeline. The
+orchestrator imports `construct.py` and loads the model from the stage's
+`saved_model` directory.
 
 ---
 
