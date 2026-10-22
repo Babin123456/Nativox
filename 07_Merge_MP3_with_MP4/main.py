@@ -39,8 +39,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR / "frontend"
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 UPLOAD_DIR = BASE_DIR / "storage" / "uploads"
 OUTPUT_DIR = BASE_DIR / "storage" / "outputs"
 
@@ -215,24 +215,28 @@ def probe_endpoint(filename: str):
     }
 
 
-# ── Frontend Static Serving ───────────────────────────────────────────────
+# ── Static Assets (Favicon) & Service Status ───────────────────────────────
 
-if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/")
-def serve_index():
-    index_file = FRONTEND_DIR / "index.html"
-    if index_file.exists():
-        return FileResponse(str(index_file))
-    return {"message": "Nativox Stage 7 Backend is Running. Frontend not found."}
+def root():
+    """Service status and API documentation entry point."""
+    return {
+        "service": "Merge MP3 with MP4 Remuxer",
+        "stage": "07_Merge_MP3_with_MP4",
+        "status": "online",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+    }
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    fav = FRONTEND_DIR / "favicon.webp"
+    fav = STATIC_DIR / "favicon.webp"
     if fav.exists():
         return FileResponse(str(fav), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")

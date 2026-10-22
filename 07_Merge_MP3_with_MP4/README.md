@@ -42,7 +42,7 @@ This stage closes the complete dubbing loop:
 | **FastAPI + Uvicorn** | Asynchronous REST API serving merge endpoints (`/api/merge`) and video file delivery (`/api/video/{filename}`). | Native `async`/`await` architecture handles large file uploads via chunked streaming without blocking worker threads. Provides built-in Swagger/OpenAPI documentation. | **Flask**: Synchronous blocking architecture requires WSGI thread pools that stall during large file uploads and FFmpeg subprocess waits.<br>**Express.js**: Requires external Node child processes to run FFmpeg commands. |
 | **FFmpeg (Copy-Mode Remux)** | Replaces the original audio track with dubbed MP3 while preserving video frames byte-for-byte. Uses `-c:v copy` (no video re-encoding) and `-c:a aac` (audio transcode to AAC). | Near-instant processing since video frames are copied without decoding. Zero quality loss. No GPU required. The `-movflags +faststart` flag ensures instant web playback. | **MoviePy**: Python wrapper around FFmpeg but adds unnecessary abstraction, slower startup, and does not support copy-mode remux natively — always re-encodes video.<br>**OpenCV**: Only handles video frames, cannot manipulate audio streams or produce correctly muxed MP4 containers.<br>**ffmpeg-python**: Thin Python binding that still calls FFmpeg subprocess — adds a dependency without meaningful benefit over direct subprocess calls. |
 | **FFprobe (JSON Metadata)** | Extracts duration, codec, resolution, and file size metadata for input validation and output verification. | Ships alongside FFmpeg (zero extra installation). Produces structured JSON output (`-print_format json`) that is trivially parseable. | **MediaInfo**: Separate installation, heavier binary, and more complex CLI output parsing.<br>**pymediainfo**: Python wrapper requiring MediaInfo system library installation. |
-| **Vanilla Glassmorphic Dark-Mode UI** | Dual file upload zones with drag-and-drop, duration comparison display, video preview player, and download controls. | Standalone zero-npm dependency setup that runs instantly across any browser. Consistent with Stages 1–6 design system. | **React / Angular**: Heavy node_modules tree and build dependencies unnecessary for an integrated pipeline micro-frontend. |
+| **OpenAPI / Swagger Interactive UI** | Real-time endpoint testing, multi-file uploads (video & audio), duration comparison, and merged MP4 downloads directly in the browser via `/docs`. | Native zero-npm documentation interface automatically generated from FastAPI schemas with full Swagger UI execution capability. | **Manual cURL / Postman collections**: Requires external tooling and manual schema sync compared to native `/docs`. |
 
 ---
 
@@ -59,10 +59,10 @@ This stage closes the complete dubbing loop:
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 07_Merge_MP3_with_MP4/backend
+cd 07_Merge_MP3_with_MP4
 ```
 
 ### 2. Choose Your Setup Track
@@ -138,11 +138,11 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   python -m uvicorn main:app --reload --port 8014
   ```
 
-The web interface will open at **`http://127.0.0.1:8014`**.
+The service will start at **`http://127.0.0.1:8014`**. Visit **`http://127.0.0.1:8014/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8014`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8014`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/merge`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 7 operates as a headless FastAPI microservice. You can upload video and audio files to produce remuxed MP4 outputs directly using the Swagger UI at `http://127.0.0.1:8014/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -243,17 +243,15 @@ Returns service health status and FFmpeg availability.
 ```text
 07_Merge_MP3_with_MP4/
 ├── README.md                  # Stage documentation (this file)
-├── backend/
-│   ├── main.py                # FastAPI REST endpoints & static server
-│   ├── requirements.txt       # FastAPI, Uvicorn, pydantic
-│   ├── test_merge.py          # Unit & integration test suite
-│   └── app/
-│       ├── __init__.py        # Package init
-│       ├── schemas.py         # Pydantic request & response models
-│       └── merger.py          # FFmpeg merge engine & media probe
-├── frontend/
-│   ├── favicon.webp           # WebP brand favicon
-│   └── index.html             # Merge dashboard with dual upload zones
+├── main.py                    # FastAPI REST endpoints & status server
+├── requirements.txt           # FastAPI, Uvicorn, pydantic
+├── test_merge.py              # Unit & integration test suite
+├── static/
+│   └── favicon.webp           # Stage 3D icon
+├── app/
+│   ├── __init__.py            # Package init
+│   ├── schemas.py             # Pydantic request & response models
+│   └── merger.py              # FFmpeg merge engine & media probe
 └── storage/
     └── outputs/               # Merged dubbed MP4 files (gitignored)
 ```
@@ -263,7 +261,7 @@ Returns service health status and FFmpeg availability.
 ## 🧪 Running Tests
 
 ```bash
-cd 07_Merge_MP3_with_MP4/backend
+cd 07_Merge_MP3_with_MP4
 python -m pytest test_merge.py -v
 ```
 

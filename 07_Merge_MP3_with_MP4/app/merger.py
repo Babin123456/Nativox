@@ -16,7 +16,7 @@ from pathlib import Path
 
 # ── Storage paths (gitignored via root .gitignore) ─────────────────────────
 
-STORAGE_DIR = Path(__file__).resolve().parent.parent.parent / "storage" / "outputs"
+STORAGE_DIR = Path(__file__).resolve().parent.parent / "storage" / "outputs"
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 

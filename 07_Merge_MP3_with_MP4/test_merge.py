@@ -7,8 +7,11 @@ and security checks.
 
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import pytest
 from fastapi.testclient import TestClient
