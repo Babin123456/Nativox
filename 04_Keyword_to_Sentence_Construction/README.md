@@ -275,8 +275,9 @@ Output:
 ├── main.py                     # FastAPI application serving /api/construct on port 8004
 ├── requirements.txt            # Dependencies (torch, transformers, fastapi, etc.)
 ├── train.py                    # Seq2Seq Transformer training pipeline (T5 fine-tuning)
-├── static/
-│   └── favicon.webp            # Stage 3D icon
+├── frontend/
+│   ├── favicon.webp            # Stage 3D icon
+│   └── index.html              # Interactive stage web interface
 └── saved_model/                # Trained model checkpoint and tokenizer weights
 ```
 

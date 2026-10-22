@@ -15,7 +15,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -30,7 +30,7 @@ if hasattr(sys.stdout, "reconfigure"):
 from construct import SentenceConstructor
 
 BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / "static"
+FRONTEND_DIR = BASE_DIR / "frontend"
 SAVED_MODEL_DIR = BASE_DIR / "saved_model"
 
 app = FastAPI(
@@ -125,20 +125,23 @@ def construct_sentence(req: ConstructRequest):
 
 # ── Static Assets (Favicon) & Service Status ────────────────────────────────
 
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    """Redirect to interactive Swagger UI documentation."""
-    return RedirectResponse(url="/docs")
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Stage 4 Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    fav = STATIC_DIR / "favicon.webp"
+    fav = FRONTEND_DIR / "favicon.webp"
     if fav.exists():
         return FileResponse(str(fav), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
