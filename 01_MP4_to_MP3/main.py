@@ -14,14 +14,14 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR / "frontend"
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 UPLOAD_DIR = BASE_DIR / "storage" / "uploads"
 OUTPUT_DIR = BASE_DIR / "storage" / "outputs"
 
@@ -44,20 +44,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve any static assets (css/js/images) the frontend might use later
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-@app.get("/", response_class=HTMLResponse)
-def serve_frontend() -> str:
-    """Serve the single-page frontend."""
-    return (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+@app.get("/")
+def root() -> dict:
+    """Service status and API documentation entry point."""
+    return {
+        "service": "MP4 to MP3 Audio Extractor",
+        "stage": "01_MP4_to_MP3",
+        "status": "online",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+    }
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def serve_favicon():
-    favicon_path = FRONTEND_DIR / "favicon.webp"
+    favicon_path = STATIC_DIR / "favicon.webp"
     if favicon_path.exists():
         return FileResponse(favicon_path, media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
