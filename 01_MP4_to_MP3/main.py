@@ -93,6 +93,9 @@ async def extract_audio(file: UploadFile = File(...)):
     input_path = UPLOAD_DIR / f"{job_id}{suffix}"
     output_path = OUTPUT_DIR / f"{job_id}.mp3"
 
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     # Save the upload to disk (streamed in chunks so large files don't blow up memory)
     size = 0
     with open(input_path, "wb") as out_file:
