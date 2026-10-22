@@ -173,7 +173,7 @@ graph TD
   - Completely removes original English audio track (`-map 0:v:0 -map 1:a:0`).
   - Transcodes dubbed MP3 to AAC (`-c:a aac -b:a 192k`) for maximum MP4 container compatibility.
   - FastStart optimization (`-movflags +faststart`) for instant web playback.
-  - Duration safety via `-shortest` flag to handle audio/video length mismatches.
+  - Full duration preservation: avoids cutting video frames via `-af apad` audio padding and strict `-t <video_duration>` capping, guaranteeing 100% video duration preservation without truncation.
 
 ---
 
@@ -181,14 +181,15 @@ graph TD
 
 While each stage runs independently for academic evaluation and unit benchmarking, the modular pipeline stages chain together with asynchronous job management, real-time status events, and decoupled HLS output generation:
 
-1. Stage 1 extracts raw audio from incoming video.
+0. **Stage 0 (`00_Auto_Pip/`):** Master web dashboard (`http://127.0.0.1:8000`) and orchestrator managing all 8 microservices, executing end-to-end jobs with acoustic speaker voice matching.
+1. Stage 1 extracts raw audio from incoming video and analyzes speaker fundamental frequency ($F_0$ pitch).
 2. Stage 2 transcribes speech into timestamped tokens.
 3. Stage 3 isolates domain keywords.
 4. Stage 4 reconstructs grammatically sound sentences from keywords using document-trained models.
 5. Stage 5(a) maps keywords to the target language and generates phonetic guides.
-6. Stage 5(b) removes fillers and compresses paragraphs to a strict 35%–40% duration budget.
-7. **Stage 6 synthesizes the reformed Hindi text into natural MP3 speech using Edge Neural TTS.**
-8. **Stage 7 merges the original video with the dubbed MP3, replacing the English audio to produce the final dubbed MP4.**
+6. Stage 5(b) removes fillers and formats vernacular Hindi sentences.
+7. **Stage 6 synthesizes natural target-language speech matching the speaker's detected gender (`hi-IN-MadhurNeural` for Male, `hi-IN-SwaraNeural` for Female) and adaptive pacing.**
+8. **Stage 7 merges the original video with the dubbed MP3, guaranteeing 100% video length preservation to produce the final dubbed MP4.**
 
 ---
 
