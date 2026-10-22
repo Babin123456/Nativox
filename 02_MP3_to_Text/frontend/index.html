@@ -762,7 +762,7 @@
       formData.append("language", selectedLanguage);
 
       try {
-        const res = await fetch("/transcribe", {
+        const res = await fetch("/api/transcribe", {
           method: "POST",
           body: formData
         });
@@ -800,7 +800,8 @@
       if (data.language === "bn") transcriptEl.classList.add("lang-bn");
       transcriptEl.textContent = data.text || "(No speech detected in audio file)";
 
-      const dur = typeof data.duration === "number" ? `${data.duration.toFixed(1)}s` : "-";
+      const durSec = typeof data.duration === "number" ? data.duration : (typeof data.audio_duration_sec === "number" ? data.audio_duration_sec : null);
+      const dur = durSec !== null ? `${durSec.toFixed(1)}s` : "-";
       const wordCount = (data.text || "").trim().split(/\s+/).filter(Boolean).length;
 
       metaRow.style.display = "flex";
