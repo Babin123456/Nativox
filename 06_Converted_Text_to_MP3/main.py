@@ -36,8 +36,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
-STORAGE_DIR = Path(__file__).resolve().parent.parent / "storage" / "outputs"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+STORAGE_DIR = Path(__file__).resolve().parent / "storage" / "outputs"
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -177,24 +177,28 @@ async def list_voices(locale: str = "all"):
     }
 
 
-# ── Frontend Static Serving ────────────────────────────────────────────────
+# ── Static Assets (Favicon) & Service Status ────────────────────────────────
 
-if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/")
-def serve_index():
-    index_file = FRONTEND_DIR / "index.html"
-    if index_file.exists():
-        return FileResponse(str(index_file))
-    return {"message": "Nativox Stage 6 Backend is Running. Frontend not found."}
+def root():
+    """Service status and API documentation entry point."""
+    return {
+        "service": "Converted Text to MP3 Generator (TTS)",
+        "stage": "06_Converted_Text_to_MP3",
+        "status": "online",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+    }
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    fav = FRONTEND_DIR / "favicon.webp"
+    fav = STATIC_DIR / "favicon.webp"
     if fav.exists():
         return FileResponse(str(fav), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")

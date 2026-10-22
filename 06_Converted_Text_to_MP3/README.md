@@ -43,8 +43,7 @@ This stage closes the complete dubbing loop:
 | **FastAPI + Uvicorn** | Asynchronous streaming REST API serving synthesized MP3 audio buffers (`/api/synthesize`) and voice manifests (`/api/voices`). | Native `async`/`await` architecture interfaces seamlessly with `edge_tts.Communicate.save()` without blocking system worker threads. Provides built-in Swagger/OpenAPI documentation. | **Flask**: Synchronous blocking architecture requires WSGI thread pools (e.g., Gunicorn gevent) that stall during long neural TTS streaming sessions.<br>**Express.js**: Requires external Node child processes to run Python NLP validation scripts. |
 | **`edge-tts` (Microsoft Edge Neural Voices)** | High-fidelity neural voice synthesis for Hindi and Bengali with prosody, pitch, and rate control. | Produces state-of-the-art studio-quality natural human cadence without requiring expensive cloud subscriptions, API keys, or multi-gigabyte local GPU VRAM. Native support for Bengali regional dialects (`bn-IN`, `bn-BD`). | **Google Cloud TTS / AWS Polly**: Requires paid cloud account credentials, billing setup, and per-character fees.<br>**ElevenLabs**: Exceptional expressiveness, but extremely expensive per character and lacks rich vernacular Bengali dial-in options.<br>**Coqui TTS / VITS / XTTS-v2**: Requires 4–8 GB local GPU VRAM, heavy PyTorch dependencies (>3 GB download), and slow CPU inference speeds.<br>**gTTS (Google Translate TTS)**: Robotic, monotonic concatenative voice with no prosody/pitch control and poor Indian accent articulation. |
 | **Language & Script Character Validator** | Enforces input restriction strictly to target dubbed languages: Bengali (`\u0980`–`\u09FF`) and Hindi Devanagari (`\u0900`–`\u097F`). | High-speed, zero-dependency Unicode character distribution analysis. Detects and rejects English source text, prompting users to translate via Stage 5 first before synthesis. | **`langdetect` / `fastText`**: Heuristic models occasionally misclassify single words or loanwords, adding unnecessary disk/memory footprint. |
-| **Web Audio API & HTML5 Audio Player** | Real-time waveform rendering, audio playback, and MP3 blob downloading in the client browser. | Client-side hardware-accelerated audio decoding and canvas rendering with zero third-party player plugins or external CDN dependencies. | **WaveSurfer.js / Howler.js**: Adds external JavaScript library bloat and CDN bundle risks when native Web Audio API handles canvas visualization directly. |
-| **Vanilla Glassmorphic Dark-Mode UI** | Interactive browser studio with voice cards, pitch/rate controls, sample test buttons, and audio download options. | Standalone zero-npm dependency setup that runs instantly across any browser or static server without build steps. | **React / Angular**: Heavy node_modules tree and build dependencies unnecessary for an integrated pipeline micro-frontend. |
+| **OpenAPI / Swagger Interactive UI** | Real-time endpoint testing, voice queries, parameter experimentation, and MP3 downloads directly in the browser via `/docs`. | Native zero-npm documentation interface automatically generated from FastAPI schemas with full Swagger UI execution capability. | **Manual cURL / Postman collections**: Requires external tooling and manual schema sync compared to native `/docs`. |
 
 ---
 
@@ -58,10 +57,10 @@ This stage closes the complete dubbing loop:
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 06_Converted_Text_to_MP3/backend
+cd 06_Converted_Text_to_MP3
 ```
 
 ### 2. Choose Your Setup Track
@@ -137,11 +136,11 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   python -m uvicorn main:app --reload --port 8013
   ```
 
-The web interface will open at **`http://127.0.0.1:8013`**.
+The service will start at **`http://127.0.0.1:8013`**. Visit **`http://127.0.0.1:8013/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8013`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8013`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/synthesize`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 6 operates as a headless FastAPI microservice. You can query available neural voices and synthesize audio directly using the Swagger UI at `http://127.0.0.1:8013/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -256,17 +255,15 @@ Returns service health status.
 ```text
 06_Converted_Text_to_MP3/
 ├── README.md                  # Stage documentation (this file)
-├── backend/
-│   ├── main.py                # FastAPI REST endpoints & static server
-│   ├── requirements.txt       # edge-tts, FastAPI, Uvicorn, pydantic
-│   ├── test_tts.py            # Unit & integration test suite
-│   └── app/
-│       ├── __init__.py        # Package init
-│       ├── schemas.py         # Pydantic request & response models
-│       └── tts_engine.py      # Edge-TTS synthesis engine
-├── frontend/
-│   ├── favicon.webp           # WebP brand favicon
-│   └── index.html             # Real-time TTS synthesis dashboard
+├── main.py                    # FastAPI REST endpoints & status server
+├── requirements.txt           # edge-tts, FastAPI, Uvicorn, pydantic
+├── test_tts.py                # Unit & integration test suite
+├── static/
+│   └── favicon.webp           # Stage 3D icon
+├── app/
+│   ├── __init__.py            # Package init
+│   ├── schemas.py             # Pydantic request & response models
+│   └── tts_engine.py          # Edge-TTS synthesis engine
 └── storage/
     └── outputs/               # Generated MP3 files (gitignored)
 ```
@@ -276,7 +273,7 @@ Returns service health status.
 ## 🧪 Running Tests
 
 ```bash
-cd 06_Converted_Text_to_MP3/backend
+cd 06_Converted_Text_to_MP3
 python -m pytest test_tts.py -v
 ```
 
