@@ -53,6 +53,7 @@ python main.py
 ```
 
 *Or using uvicorn with hot-reload:*
+
 ```bash
 cd 00_Auto_Pip
 uvicorn main:app --reload --port 8000
@@ -61,8 +62,10 @@ uvicorn main:app --reload --port 8000
 Open your browser to:
 👉 **`http://127.0.0.1:8000`**
 
-### Dashboard Features:
+### Dashboard Features
+
 - **Service Health Monitor:** Live status pings for all 8 backend microservices (`8001`–`8014`).
+
 - **Drag & Drop Upload:** Accepts any standard video file (`.mp4`, `.mov`, `.mkv`, etc.).
 - **Live Multi-Stage Stepper:** Visual tracking of active stages from demuxing to remuxing.
 - **Real-Time Terminal Output:** Displays pitch analysis, dynamic speech pacing rate, and step logs.
