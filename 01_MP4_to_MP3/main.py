@@ -14,7 +14,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 # ---------------------------------------------------------------------------
@@ -34,7 +34,11 @@ MAX_FILE_SIZE_MB = 500  # simple sanity cap
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
-app = FastAPI(title="MP4 -> MP3 Extractor")
+app = FastAPI(
+    title="Nativox Stage 1 — MP4 to MP3 Audio Extractor",
+    description="Ingests video files (.mp4, .mov, .mkv), isolates audio tracks with FFmpeg, and provides high-bitrate MP3 extractions.",
+    version="1.0.0",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,16 +52,10 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-@app.get("/")
-def root() -> dict:
-    """Service status and API documentation entry point."""
-    return {
-        "service": "MP4 to MP3 Audio Extractor",
-        "stage": "01_MP4_to_MP3",
-        "status": "online",
-        "docs_url": "/docs",
-        "openapi_url": "/openapi.json",
-    }
+@app.get("/", include_in_schema=False)
+def root():
+    """Redirect to interactive Swagger UI documentation."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
