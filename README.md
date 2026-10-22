@@ -34,6 +34,7 @@ Each standalone stage can run completely independently as a self-contained micro
 
 | Stage Directory | Module Name | Documentation & Guide | Core Technology | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| [`00_Auto_Pip/`](00_Auto_Pip) | **Automatic Master Dubbing Suite & UI** | [📖 Stage 0 Guide](00_Auto_Pip/README.md) | FastAPI / Orchestrator | Web dashboard on port 8000 uniting all 8 microservices; features acoustic speaker voice gender matching, dynamic pacing, and zero-truncation remuxing. |
 | [`01_MP4_to_MP3/`](01_MP4_to_MP3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](01_MP4_to_MP3/README.md) | FFmpeg (libmp3lame) | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates audio tracks, and renders side-by-side synchronized preview. |
 | [`02_MP3_to_Text/`](02_MP3_to_Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](02_MP3_to_Text/README.md) | faster-whisper / Silero VAD | Generates timestamped word-level and sentence-level transcripts with automatic language classification. |
 | [`03_Text_to_Keyword/`](03_Text_to_Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](03_Text_to_Keyword/README.md) | Multilingual RAKE / Script Tagger | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
@@ -118,11 +119,27 @@ pip install -r requirements.txt
 ---
 
 ### ⚡ Running the Complete Pipeline
+ 
+For the full end-to-end MP4-to-dubbed-MP4 workflow, use [`00_Auto_Pip/`](00_Auto_Pip). It provides both an **interactive Web UI** and a headless CLI orchestrator:
 
-For the full MP4-to-dubbed-MP4 workflow, use the unified orchestrator in
-[`00_Auto_Pip/`](00_Auto_Pip). It creates/manages the shared environment,
-starts missing backend services automatically, runs all stages in order, and
-stops only the services it started.
+#### Option A: Interactive Web UI (Port 8000)
+
+```bash
+cd 00_Auto_Pip
+python main.py
+```
+*(Or `uvicorn main:app --reload --port 8000`)*
+
+Open your browser to:
+👉 **`http://127.0.0.1:8000`**
+
+Features:
+- **Acoustic Speaker Voice Gender Matching:** Analyzes input speaker fundamental pitch ($F_0$ Hz) and automatically selects a matching male (`hi-IN-MadhurNeural`) or female (`hi-IN-SwaraNeural`) neural voice.
+- **Zero Truncation Remuxing:** Preserves 100% of the original video duration without cutting video frames.
+- **Side-by-Side Video Player:** Compare original video with dubbed output in real time.
+- **Live Multi-Stage Stepper & Logs:** View status badges for all microservices (`8001`–`8014`) and real-time execution logs.
+
+#### Option B: Headless Command-Line Runner
 
 ```bash
 cd 00_Auto_Pip
@@ -130,8 +147,7 @@ python setup_env.py
 python orchestrator.py "path/to/video.mp4"
 ```
 
-Results are written to `00_Auto_Pip/jobs/job1` by default. Pass `--work-dir` to
-choose another output directory:
+Results are written to `00_Auto_Pip/jobs/job1` by default. Pass `--work-dir` to choose another output directory:
 
 ```bash
 python orchestrator.py "path/to/video.mp4" --work-dir "path/to/output"
@@ -143,8 +159,7 @@ To check service health across all microservices:
 python orchestrator.py --status
 ```
 
-See the [automatic pipeline guide](00_Auto_Pip/README.md) for service
-management, output files, ports, and troubleshooting.
+See the [automatic pipeline guide](00_Auto_Pip/README.md) for full service management, output files, ports, and troubleshooting.
 
 ---
 
