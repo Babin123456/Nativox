@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nativox — Stage 5: Sentence Reformation & Précis</title>
-  <link rel="icon" type="image/webp" href="/static/favicon.webp" />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -424,28 +424,75 @@
       width: 100%;
     }
   </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <div class="badge">Nativox • Stage 5 Engine</div>
+      <div class="badge">
+        <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+        Stage 5(b) — Reformation & Précis
+      </div>
       <h1>Sentence Reformation & Précis</h1>
       <p class="subtitle">
         Transform broken, disfluent speech into natural, meaningful Hindi, and compress full audio transcripts into strict 35%–40% duration-budgeted précis summaries.
       </p>
+
+      <!-- Suite Pipeline Flow -->
+      <div class="pipeline-flow" style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; margin-top:20px;">
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="video" style="width:14px;height:14px;"></i>
+          1. MP4→MP3
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="mic" style="width:14px;height:14px;"></i>
+          2. MP3→Text
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="key" style="width:14px;height:14px;"></i>
+          3. Keywords
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+          4. Sentences
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="languages" style="width:14px;height:14px;"></i>
+          5a. Translate
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--primary-glow); border:1px solid rgba(56,189,248,0.5); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--primary); font-weight:700; box-shadow:0 0 14px rgba(56,189,248,0.2);">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+          5b. Reform
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;"></i>
+          6. Speech
+        </span>
+        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
+        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
+          <i data-lucide="film" style="width:14px;height:14px;"></i>
+          7. Final MP4
+        </span>
+      </div>
     </header>
 
     <!-- Tabs Navigation -->
     <div class="tabs-nav">
-      <button class="tab-btn active" id="tabPipeline" onclick="switchTab('pipeline')">
-        ⚡ Unified 2-Step Pipeline
+      <button class="tab-btn active" id="tabPipeline" onclick="switchTab('pipeline')" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="zap" style="width:14px;height:14px;"></i> Unified 2-Step Pipeline
       </button>
-      <button class="tab-btn" id="tabReconstruct" onclick="switchTab('reconstruct')">
-        🛠️ Task 1: Meaningful Sentence
+      <button class="tab-btn" id="tabReconstruct" onclick="switchTab('reconstruct')" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="sliders" style="width:14px;height:14px;"></i> Task 1: Meaningful Sentence
       </button>
-      <button class="tab-btn" id="tabPrecis" onclick="switchTab('precis')">
-        ⏱️ Task 2: 35%–40% Précis
+      <button class="tab-btn" id="tabPrecis" onclick="switchTab('precis')" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="clock" style="width:14px;height:14px;"></i> Task 2: 35%–40% Précis
       </button>
     </div>
 
@@ -477,7 +524,7 @@
       <div id="pipelineOutput" class="output-section">
         <div class="card">
           <div class="result-header" style="margin-bottom: 16px;">
-            <h3 style="font-size: 16px; color: #FFF;">🎯 Pipeline Execution Results</h3>
+            <h3 style="font-size: 16px; color: #FFF; display:flex; align-items:center; gap:8px;"><i data-lucide="target" style="width:16px;height:16px;color:var(--primary);"></i> Pipeline Execution Results</h3>
             <span id="pipelineBudgetBadge" class="budget-badge success">Target Budget: 35% - 40%</span>
           </div>
 
@@ -617,7 +664,7 @@
       <div id="precisOutput" class="output-section">
         <div class="card">
           <div class="result-header" style="margin-bottom: 16px;">
-            <h3 style="font-size: 16px; color: #FFF;">📊 Précis Compression Analysis</h3>
+            <h3 style="font-size: 16px; color: #FFF; display:flex; align-items:center; gap:8px;"><i data-lucide="bar-chart-2" style="width:16px;height:16px;color:var(--primary);"></i> Précis Compression Analysis</h3>
             <span id="precisBadge" class="budget-badge success">Target Budget: 35% - 40%</span>
           </div>
 
@@ -766,13 +813,14 @@
         const badge = document.getElementById('pipelineBudgetBadge');
         if (data.is_within_budget) {
           badge.className = 'budget-badge success';
-          badge.innerHTML = '✓ Within 35% – 40% Budget';
+          badge.innerHTML = 'Within 35% – 40% Budget';
         } else {
           badge.className = 'budget-badge warning';
           badge.innerHTML = 'Ratio: ' + data.retention_ratio_pct + '% (Target 35%-40%)';
         }
 
         document.getElementById('pipelineOutput').classList.add('show');
+        if (window.lucide) lucide.createIcons();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -876,13 +924,14 @@
         const badge = document.getElementById('precisBadge');
         if (data.is_within_budget) {
           badge.className = 'budget-badge success';
-          badge.innerHTML = '✓ Within 35% – 40% Budget';
+          badge.innerHTML = 'Within 35% – 40% Budget';
         } else {
           badge.className = 'budget-badge warning';
           badge.innerHTML = 'Ratio: ' + data.retention_ratio_pct + '% (Target 35%-40%)';
         }
 
         document.getElementById('precisOutput').classList.add('show');
+        if (window.lucide) lucide.createIcons();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -907,6 +956,8 @@
         alert('Copied to clipboard!');
       });
     }
+
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>
