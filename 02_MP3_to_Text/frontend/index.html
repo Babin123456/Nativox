@@ -1,572 +1,852 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nativox Transcribe — Audio to Text</title>
-<link rel="icon" type="image/webp" href="/static/favicon.webp">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Devanagari:wght@400;500;600&family=IBM+Plex+Sans+Bengali:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:        #10131A;
-    --ink-soft:   #171B24;
-    --paper:      #F6F1E6;
-    --paper-dim:  #EAE3D2;
-    --amber:      #E7A33E;
-    --teal:       #4FB6A6;
-    --text-warm:  #ECE6D8;
-    --text-mute:  #8A8F9E;
-    --line:       #2A2F3B;
-    --radius:     14px;
-  }
-
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    background:var(--ink);
-    color:var(--text-warm);
-    font-family:'IBM Plex Sans', sans-serif;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
-  }
-
-  .wrap{max-width:1140px; margin:0 auto; padding:0 24px;}
-
-  /* ---------- Header ---------- */
-  header{padding:32px 0 8px;}
-  .brand{
-    display:flex; align-items:center; gap:10px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13px; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--text-mute);
-  }
-  .brand .dot{width:7px; height:7px; border-radius:50%; background:var(--amber);}
-
-  /* ---------- Hero ---------- */
-  .hero{padding:44px 0 32px; border-bottom:1px solid var(--line);}
-  h1{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size:clamp(2.1rem, 5vw, 3.2rem);
-    line-height:1.1;
-    letter-spacing:-0.01em;
-    margin:0 0 16px;
-    max-width:18ch;
-  }
-  h1 em{font-style:italic; font-weight:500; color:var(--amber);}
-  .sub{
-    color:var(--text-mute);
-    font-size:1.02rem;
-    max-width:60ch;
-    margin:0 0 24px;
-  }
-
-  /* signature: waveform that resolves into three scripts */
-  .signature{
-    display:flex; align-items:center; gap:28px; flex-wrap:wrap;
-    margin-top:8px;
-  }
-  .wave{display:flex; align-items:flex-end; gap:3px; height:30px;}
-  .wave span{
-    width:3px; background:var(--amber); border-radius:2px;
-    animation:bounce 1.4s ease-in-out infinite;
-    opacity:.85;
-  }
-  .wave span:nth-child(1){height:10px; animation-delay:0s;}
-  .wave span:nth-child(2){height:20px; animation-delay:.1s;}
-  .wave span:nth-child(3){height:30px; animation-delay:.2s;}
-  .wave span:nth-child(4){height:14px; animation-delay:.3s;}
-  .wave span:nth-child(5){height:26px; animation-delay:.4s;}
-  .wave span:nth-child(6){height:12px; animation-delay:.5s;}
-  .wave span:nth-child(7){height:22px; animation-delay:.6s;}
-  @keyframes bounce{
-    0%,100%{transform:scaleY(0.45);}
-    50%{transform:scaleY(1);}
-  }
-  .scripts{display:flex; gap:18px; font-size:1.02rem; color:var(--text-mute);}
-  .scripts b{color:var(--text-warm); font-weight:500;}
-  .scripts .bn{font-family:'IBM Plex Sans Bengali', sans-serif;}
-  .scripts .hi{font-family:'IBM Plex Sans Devanagari', sans-serif;}
-
-  /* ---------- Main layout: Dual Side-by-Side View ---------- */
-  main{
-    padding:36px 0 80px;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:24px;
-    align-items:start;
-  }
-
-  @media (max-width: 900px) {
-    main {
-      grid-template-columns: 1fr;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nativox — Stage 2: MP3 to Text Transcriber</title>
+  <meta name="description" content="Speech-to-text neural transcription engine powered by Whisper. Transcribes English, Hindi, and Bengali speech with word-level timestamps. Part of the Nativox AI Multilingual Dubbing Suite." />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #F59E0B;
+      --primary-hover: #D97706;
+      --primary-glow: rgba(245, 158, 11, 0.15);
+      --accent: #E8A33D;
+      --accent-glow: rgba(232, 163, 61, 0.15);
+      --success: #34D399;
+      --success-glow: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --purple: #A78BFA;
+      --purple-glow: rgba(167, 139, 250, 0.15);
+      --radius: 12px;
     }
-  }
 
-  .panel{
-    background:var(--ink-soft);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:28px;
-  }
-  .panel h2{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size:1.2rem;
-    margin:0 0 4px;
-  }
-  .panel .hint{color:var(--text-mute); font-size:.9rem; margin:0 0 18px;}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Dropzone */
-  .dropzone{
-    border:1.5px dashed var(--line);
-    border-radius:10px;
-    padding:28px 18px;
-    text-align:center;
-    cursor:pointer;
-    display:block;
-    transition:border-color .15s ease, background .15s ease;
-  }
-  .dropzone:hover, .dropzone.drag{
-    border-color:var(--amber);
-    background:rgba(231,163,62,0.05);
-  }
-  .dropzone input{display:none;}
-  .dz-icon{font-size:1.6rem; margin-bottom:8px; display:block;}
-  .dz-title{font-weight:500; margin-bottom:4px; font-size:.95rem;}
-  .dz-sub{color:var(--text-mute); font-size:.82rem;}
-  .file-chip{
-    display:none;
-    align-items:center; gap:10px;
-    margin-top:14px;
-    padding:10px 14px;
-    background:var(--ink);
-    border:1px solid var(--line);
-    border-radius:8px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.85rem;
-  }
-  .file-chip.show{display:flex;}
-  .file-chip span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .file-chip button{
-    background:none; border:none; color:var(--text-mute);
-    cursor:pointer; font-size:.8rem; padding:2px 6px;
-  }
-  .file-chip button:hover{color:#E77E6B;}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+    }
 
-  /* Audio Preview Player in Left Column */
-  .audio-preview-wrap {
-    margin-top: 16px;
-    display: none;
-    flex-direction: column;
-    gap: 8px;
-    padding: 14px;
-    background: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-  }
-  .audio-preview-wrap.show { display: flex; }
-  .audio-preview-label {
-    font-size: .8rem;
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--amber);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-  .audio-preview-wrap audio {
-    width: 100%;
-    outline: none;
-  }
+    .container {
+      width: 100%;
+      max-width: 1040px;
+    }
 
-  /* Language pills */
-  .lang-row{display:grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap:8px;}
-  .lang-pill{
-    border:1px solid var(--line);
-    background:var(--ink);
-    border-radius:8px;
-    padding:9px 12px;
-    cursor:pointer;
-    display:flex; align-items:center; gap:8px;
-    font-size:.86rem;
-    transition:border-color .15s ease, background .15s ease;
-  }
-  .lang-pill:hover{border-color:var(--text-mute);}
-  .lang-pill.active{
-    border-color:var(--amber);
-    background:rgba(231,163,62,0.08);
-    color:var(--amber);
-    font-weight:500;
-  }
-  .lang-pill.active .radio{background:var(--amber); border-color:var(--amber);}
-  .radio{
-    width:12px; height:12px; border-radius:50%;
-    border:1.5px solid var(--text-mute);
-    flex:none;
-  }
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
 
-  /* Submit */
-  .actions{display:flex; align-items:center; gap:14px; margin-top:22px;}
-  .btn-primary{
-    background:var(--amber);
-    color:#1A1305;
-    border:none;
-    padding:12px 24px;
-    border-radius:9px;
-    font-family:'IBM Plex Sans', sans-serif;
-    font-weight:600;
-    font-size:.92rem;
-    cursor:pointer;
-    transition:filter .15s ease, transform .1s ease;
-  }
-  .btn-primary:hover:not(:disabled){filter:brightness(1.08);}
-  .btn-primary:active:not(:disabled){transform:scale(.98);}
-  .btn-primary:disabled{opacity:.45; cursor:not-allowed;}
-  .status{color:var(--text-mute); font-size:.85rem; font-family:'IBM Plex Mono', monospace;}
-  .status.error{color:#E77E6B;}
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
 
-  /* Right Output panel = "paper" */
-  .output-panel{
-    background:var(--paper);
-    color:#221D14;
-    border:none;
-    min-height: 480px;
-    display: flex;
-    flex-direction: column;
-  }
-  .output-panel h2{color:#221D14;}
-  .output-panel .hint{color:#7A7260;}
-  .meta-row{
-    display:flex; gap:14px; flex-wrap:wrap;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.8rem;
-    color:#7A7260;
-    margin-bottom:16px;
-    padding-bottom:14px;
-    border-bottom:1px solid var(--paper-dim);
-  }
-  .meta-row b{color:#221D14; font-weight:600;}
-  .transcript{
-    font-size:1.08rem;
-    line-height:1.7;
-    white-space:pre-wrap;
-    flex: 1;
-    min-height:120px;
-  }
-  .transcript.lang-hi{font-family:'IBM Plex Sans Devanagari', sans-serif;}
-  .transcript.lang-bn{font-family:'IBM Plex Sans Bengali', sans-serif;}
-  .transcript.empty{color:#A69C86; font-style:italic; font-family:'IBM Plex Sans', sans-serif; font-size:.95rem;}
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
 
-  .out-actions{display:flex; gap:10px; margin-top:20px;}
-  .btn-ghost{
-    background:transparent;
-    border:1px solid #C9BFA6;
-    color:#221D14;
-    padding:8px 14px;
-    border-radius:8px;
-    font-family:'IBM Plex Sans', sans-serif;
-    font-size:.82rem;
-    cursor:pointer;
-    transition:background .15s ease;
-  }
-  .btn-ghost:hover{background:rgba(0,0,0,0.05);}
-  .btn-ghost:disabled{opacity:.4; cursor:not-allowed;}
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 720px;
+      margin: 0 auto;
+    }
 
-  .segments{margin-top:16px;}
-  .segments summary{
-    cursor:pointer; font-size:.82rem; color:#7A7260;
-    font-family:'IBM Plex Mono', monospace;
-  }
-  .seg-list{margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height: 220px; overflow-y: auto;}
-  .seg-row{
-    display:flex; gap:10px;
-    font-size:.88rem;
-    padding:5px 0;
-    border-bottom:1px solid var(--paper-dim);
-  }
-  .seg-time{
-    font-family:'IBM Plex Mono', monospace;
-    color:#A69C86;
-    flex:none;
-    width:84px;
-  }
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
 
-  footer{
-    border-top:1px solid var(--line);
-    padding:24px 0 40px;
-    color:var(--text-mute);
-    font-size:.82rem;
-  }
-</style>
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .flow-step.active {
+      background: var(--primary-glow);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: var(--primary);
+      font-weight: 700;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.5;
+    }
+
+    /* ── Main Dual Grid ──────────────────────────────────────── */
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .dual-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    /* ── Dropzone ────────────────────────────────────────────── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--surface-alt);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .dropzone:hover, .dropzone.drag {
+      border-color: var(--primary);
+      background: rgba(245, 158, 11, 0.06);
+    }
+
+    .dz-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .dz-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .dz-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    #fileInput { display: none; }
+
+    .file-chip {
+      margin-top: 12px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .file-chip.show { display: flex; }
+    .file-chip span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--primary); }
+    .file-chip button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 2px;
+    }
+    .file-chip button:hover { color: var(--danger); }
+
+    /* Audio preview */
+    .audio-preview-wrap {
+      margin-top: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .audio-preview-wrap.show { display: flex; }
+    .audio-preview-label {
+      font-size: 11.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    audio { width: 100%; outline: none; }
+
+    /* Language pills */
+    .lang-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .lang-pill {
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+
+    .lang-pill:hover { border-color: var(--text-muted); }
+    .lang-pill.active {
+      border-color: var(--primary);
+      background: var(--primary-glow);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #171105;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-msg {
+      margin-top: 14px;
+      font-size: 12.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-msg.error { color: var(--danger); }
+    .status-msg.success { color: var(--success); }
+
+    /* ── Right Panel: Output Transcript ──────────────────────── */
+    .meta-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .meta-pill b { color: var(--text); }
+
+    .transcript-box {
+      flex: 1;
+      min-height: 180px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      overflow-y: auto;
+      max-height: 380px;
+    }
+
+    .transcript-box.empty {
+      color: var(--text-muted);
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .transcript-box.lang-hi {
+      font-family: 'Noto Sans Devanagari', 'Plus Jakarta Sans', sans-serif;
+    }
+    .transcript-box.lang-bn {
+      font-family: 'Noto Sans Bengali', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .out-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Segments Accordion */
+    details.segments {
+      margin-top: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    details.segments summary {
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .seg-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .seg-row {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--surface-alt);
+    }
+
+    .seg-time {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--primary);
+      font-size: 12px;
+      width: 85px;
+      flex: none;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="wrap">
-  <header>
-    <div class="brand"><span class="dot"></span> Nativox Transcribe</div>
-  </header>
+  <div class="container">
 
-  <section class="hero">
-    <h1>Give it a voice.<br>Get back <em>words</em>.</h1>
-    <p class="sub">Side-by-side transcription: Play and inspect your audio on the left, and view the extracted transcripts on the right.</p>
-    <div class="signature">
-      <div class="wave" aria-hidden="true">
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <!-- Header -->
+    <header>
+      <div class="badge">
+        <i data-lucide="mic" style="width:16px;height:16px;"></i>
+        Stage 2 — Whisper Neural ASR
       </div>
-      <div class="scripts">
-        <span><b>English</b></span>
-        <span class="hi"><b>हिन्दी</b></span>
-        <span class="bn"><b>বাংলা</b></span>
+      <h1>MP3 to Text Transcriber</h1>
+      <p class="subtitle">
+        High-precision multilingual automatic speech recognition. Generates faithful, timestamped transcriptions across English, Hindi, and Bengali speech.
+      </p>
+
+      <!-- Suite Pipeline Flow -->
+      <div class="pipeline-flow">
+        <span class="flow-step">
+          <i data-lucide="video" style="width:14px;height:14px;"></i>
+          1. MP4→MP3
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step active">
+          <i data-lucide="mic" style="width:14px;height:14px;"></i>
+          2. MP3→Text
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <i data-lucide="key" style="width:14px;height:14px;"></i>
+          3. Keywords
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+          4. Sentences
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <i data-lucide="languages" style="width:14px;height:14px;"></i>
+          5a. Translate
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+          5b. Reform
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <i data-lucide="volume-2" style="width:14px;height:14px;"></i>
+          6. Speech
+        </span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">
+          <i data-lucide="film" style="width:14px;height:14px;"></i>
+          7. Final MP4
+        </span>
       </div>
-    </div>
-  </section>
+    </header>
 
-  <!-- Side-by-Side Dual View: Audio (Left) | Converted Text (Right) -->
-  <main>
-    <!-- Left Panel: Input Audio & Controls -->
-    <div class="panel">
-      <h2>1. Audio Input (Source)</h2>
-      <p class="hint">Upload MP3, WAV, M4A, or audio track — preview and listen directly below.</p>
+    <!-- Dual Layout -->
+    <div class="dual-grid">
 
-      <label class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.webm,.mp4,.mov">
-        <span class="dz-icon">🎙️</span>
-        <div class="dz-title">Drop an audio file here, or click to browse</div>
-        <div class="dz-sub">Supports MP3, WAV, M4A, AAC, FLAC, Video</div>
-      </label>
-      
-      <div class="file-chip" id="fileChip">
-        <span id="fileName"></span>
-        <button type="button" id="clearFile">Remove</button>
-      </div>
-
-      <!-- Live Audio Player on Left -->
-      <div class="audio-preview-wrap" id="audioPreviewWrap">
-        <span class="audio-preview-label">▶ Audio Source Player</span>
-        <audio id="audioSourcePlayer" controls></audio>
-      </div>
-
-      <h2 style="margin-top:24px;">2. Spoken Language</h2>
-      <p class="hint">Select the language or leave on Auto-detect.</p>
-      <div class="lang-row" id="langRow"></div>
-
-      <div class="actions">
-        <button class="btn-primary" id="submitBtn" disabled>Transcribe audio</button>
-        <span class="status" id="statusText"></span>
-      </div>
-    </div>
-
-    <!-- Right Panel: Converted Texts -->
-    <div class="panel output-panel">
-      <h2>Converted Text (Transcript)</h2>
-      <p class="hint">Synchronized transcription output powered by Whisper.</p>
-
-      <div class="meta-row" id="metaRow" style="display:none;"></div>
-      <div class="transcript empty" id="transcript">Nothing transcribed yet — choose an audio file on the left and click "Transcribe audio."</div>
-
-      <div class="out-actions">
-        <button class="btn-ghost" id="copyBtn" disabled>Copy text</button>
-        <button class="btn-ghost" id="downloadBtn" disabled>Download .txt</button>
-      </div>
-
-      <details class="segments" id="segmentsWrap" style="display:none;">
-        <summary>Show timestamped segments</summary>
-        <div class="seg-list" id="segList"></div>
-      </details>
-    </div>
-  </main>
-
-  <footer>Runs on faster-whisper (local, open-source) via a FastAPI backend. No audio is stored after transcription.</footer>
-</div>
-
-<script>
-const API_BASE = ""; // same origin — backend serves this file
-
-const LANGUAGES = [
-  { code: "auto", label: "Auto-detect", native: "" },
-  { code: "en",   label: "English",     native: "" },
-  { code: "hi",   label: "Hindi",       native: "हिन्दी" },
-  { code: "bn",   label: "Bengali",     native: "বাংলা" },
-];
-
-let selectedLanguage = "auto";
-let selectedFile = null;
-let audioPreviewUrl = null;
-
-const langRow = document.getElementById("langRow");
-const dropzone = document.getElementById("dropzone");
-const fileInput = document.getElementById("fileInput");
-const fileChip = document.getElementById("fileChip");
-const fileName = document.getElementById("fileName");
-const clearFile = document.getElementById("clearFile");
-const audioPreviewWrap = document.getElementById("audioPreviewWrap");
-const audioSourcePlayer = document.getElementById("audioSourcePlayer");
-const submitBtn = document.getElementById("submitBtn");
-const statusText = document.getElementById("statusText");
-const transcriptEl = document.getElementById("transcript");
-const metaRow = document.getElementById("metaRow");
-const copyBtn = document.getElementById("copyBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const segmentsWrap = document.getElementById("segmentsWrap");
-const segList = document.getElementById("segList");
-
-let lastResult = null;
-
-function renderLangPills(){
-  langRow.innerHTML = "";
-  LANGUAGES.forEach(lang => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "lang-pill" + (lang.code === selectedLanguage ? " active" : "");
-    btn.innerHTML = `<span class="radio"></span><span>${lang.label} ${lang.native ? `<small>(${lang.native})</small>` : ""}</span>`;
-    btn.addEventListener("click", () => {
-      selectedLanguage = lang.code;
-      renderLangPills();
-    });
-    langRow.appendChild(btn);
-  });
-}
-renderLangPills();
-
-function setFile(file){
-  selectedFile = file;
-  if (file){
-    fileName.textContent = file.name;
-    fileChip.classList.add("show");
-    submitBtn.disabled = false;
-
-    // Show Left Audio Player immediately
-    if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
-    audioPreviewUrl = URL.createObjectURL(file);
-    audioSourcePlayer.src = audioPreviewUrl;
-    audioPreviewWrap.classList.add("show");
-  } else {
-    fileChip.classList.remove("show");
-    submitBtn.disabled = true;
-    audioPreviewWrap.classList.remove("show");
-    audioSourcePlayer.removeAttribute("src");
-    if (audioPreviewUrl) {
-      URL.revokeObjectURL(audioPreviewUrl);
-      audioPreviewUrl = null;
-    }
-  }
-}
-
-fileInput.addEventListener("change", (e) => {
-  if (e.target.files && e.target.files[0]) setFile(e.target.files[0]);
-});
-["dragenter","dragover"].forEach(evt => {
-  dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
-});
-["dragleave","drop"].forEach(evt => {
-  dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove("drag"); });
-});
-dropzone.addEventListener("drop", (e) => {
-  const file = e.dataTransfer.files && e.dataTransfer.files[0];
-  if (file) setFile(file);
-});
-clearFile.addEventListener("click", (e) => {
-  e.preventDefault();
-  fileInput.value = "";
-  setFile(null);
-});
-
-function scriptClassFor(langCode){
-  if (langCode === "hi") return "lang-hi";
-  if (langCode === "bn") return "lang-bn";
-  return "";
-}
-
-function setStatus(msg, isError){
-  statusText.textContent = msg;
-  statusText.classList.toggle("error", !!isError);
-}
-
-async function transcribe(){
-  if (!selectedFile) return;
-
-  submitBtn.disabled = true;
-  copyBtn.disabled = true;
-  downloadBtn.disabled = true;
-  segmentsWrap.style.display = "none";
-  metaRow.style.display = "none";
-  transcriptEl.classList.add("empty");
-  transcriptEl.className = "transcript empty";
-  transcriptEl.textContent = "Transcribing — processing speech with Whisper neural model...";
-  setStatus("Uploading and transcribing...");
-
-  const form = new FormData();
-  form.append("file", selectedFile);
-  form.append("language", selectedLanguage);
-
-  try {
-    const res = await fetch(`${API_BASE}/api/transcribe`, { method: "POST", body: form });
-    if (!res.ok){
-      const err = await res.json().catch(() => ({detail: "Transcription failed."}));
-      throw new Error(err.detail || "Transcription failed.");
-    }
-    const data = await res.json();
-    lastResult = data;
-
-    transcriptEl.className = "transcript " + scriptClassFor(data.language);
-    transcriptEl.textContent = data.text || "(No speech detected in this clip.)";
-
-    metaRow.style.display = "flex";
-    metaRow.innerHTML = `
-      <span>Detected language: <b>${data.language_label}</b></span>
-      <span>Confidence: <b>${Math.round(data.language_probability * 100)}%</b></span>
-      <span>Audio length: <b>${data.audio_duration_sec}s</b></span>
-      <span>Processed in: <b>${data.processing_time_sec}s</b></span>
-    `;
-
-    if (data.segments && data.segments.length){
-      segList.innerHTML = data.segments.map(s => `
-        <div class="seg-row">
-          <span class="seg-time">${s.start.toFixed(1)}–${s.end.toFixed(1)}s</span>
-          <span>${s.text}</span>
+      <!-- Left: Audio Input -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="file-audio" style="width:18px;height:18px;color:var(--primary);"></i>
+          Audio Input (Source)
         </div>
-      `).join("");
-      segmentsWrap.style.display = "block";
+        <p class="card-hint">
+          Drop your audio track to preview and listen before transcription.
+        </p>
+
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Audio file upload dropzone">
+          <div class="dz-icon-wrap">
+            <i data-lucide="mic" style="width:24px;height:24px;"></i>
+          </div>
+          <div class="dz-title">Click to browse or drag and drop audio</div>
+          <div class="dz-sub">Supports MP3, WAV, M4A, AAC, FLAC, and OGG</div>
+        </div>
+        <input type="file" id="fileInput" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.webm,.mp4,.mov" />
+
+        <div class="file-chip" id="fileChip">
+          <i data-lucide="music" style="width:14px;height:14px;"></i>
+          <span id="fileName"></span>
+          <button type="button" id="clearBtn" aria-label="Clear selected file">
+            <i data-lucide="x" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+
+        <div class="audio-preview-wrap" id="audioPreviewWrap">
+          <div class="audio-preview-label">
+            <i data-lucide="play" style="width:12px;height:12px;"></i>
+            Audio Source Player
+          </div>
+          <audio id="audioSourcePlayer" controls aria-label="Source audio preview player"></audio>
+        </div>
+
+        <div class="card-title" style="margin-top:20px; font-size:15px;">
+          <i data-lucide="languages" style="width:16px;height:16px;color:var(--primary);"></i>
+          Spoken Language
+        </div>
+        <p class="card-hint" style="margin-bottom:8px;">Choose expected spoken language or leave on Auto-detect.</p>
+        <div class="lang-row" id="langRow"></div>
+
+        <button id="submitBtn" class="btn-primary" disabled>
+          <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+          Transcribe Audio
+        </button>
+        <div id="statusText" class="status-msg" aria-live="polite"></div>
+      </div>
+
+      <!-- Right: Transcript Output -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="file-text" style="width:18px;height:18px;color:var(--success);"></i>
+          Converted Text (Transcript)
+        </div>
+        <p class="card-hint">
+          Real-time Whisper neural speech decoding output.
+        </p>
+
+        <div class="meta-row" id="metaRow" style="display:none;"></div>
+
+        <div class="transcript-box empty" id="transcript">
+          Upload an audio track on the left and click "Transcribe Audio" to view the generated transcription here.
+        </div>
+
+        <div class="out-actions">
+          <button class="btn-secondary" id="copyBtn" disabled>
+            <i data-lucide="copy" style="width:14px;height:14px;"></i>
+            Copy Text
+          </button>
+          <button class="btn-secondary" id="downloadBtn" disabled>
+            <i data-lucide="download" style="width:14px;height:14px;"></i>
+            Download .txt
+          </button>
+        </div>
+
+        <details class="segments" id="segmentsWrap" style="display:none;">
+          <summary>
+            <i data-lucide="list" style="width:14px;height:14px;"></i>
+            Timestamped Segments
+          </summary>
+          <div class="seg-list" id="segList"></div>
+        </details>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      Nativox Multilingual Dubbing Suite · Stage 2 Transcriber · Powered by faster-whisper & FastAPI
+    </footer>
+
+  </div>
+
+  <script>
+    const LANGUAGES = [
+      { code: "auto", label: "Auto-detect" },
+      { code: "en",   label: "English" },
+      { code: "hi",   label: "Hindi (हिन्दी)" },
+      { code: "bn",   label: "Bengali (বাংলা)" },
+    ];
+
+    let selectedLanguage = "auto";
+    let selectedFile = null;
+    let audioPreviewUrl = null;
+    let lastResult = null;
+
+    const langRow = document.getElementById("langRow");
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const fileChip = document.getElementById("fileChip");
+    const fileName = document.getElementById("fileName");
+    const clearBtn = document.getElementById("clearBtn");
+    const audioPreviewWrap = document.getElementById("audioPreviewWrap");
+    const audioSourcePlayer = document.getElementById("audioSourcePlayer");
+    const submitBtn = document.getElementById("submitBtn");
+    const statusText = document.getElementById("statusText");
+    const transcriptEl = document.getElementById("transcript");
+    const metaRow = document.getElementById("metaRow");
+    const copyBtn = document.getElementById("copyBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const segmentsWrap = document.getElementById("segmentsWrap");
+    const segList = document.getElementById("segList");
+
+    function renderIcons() {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     }
 
-    copyBtn.disabled = !data.text;
-    downloadBtn.disabled = !data.text;
-    setStatus("Done.");
-  } catch (err){
-    transcriptEl.className = "transcript empty";
-    transcriptEl.textContent = "Nothing transcribed yet — add a file above and click \"Transcribe audio.\"";
-    setStatus(err.message || "Something went wrong.", true);
-  } finally {
-    submitBtn.disabled = false;
-  }
-}
+    // Build language pills
+    LANGUAGES.forEach(lang => {
+      const pill = document.createElement("div");
+      pill.className = `lang-pill ${lang.code === selectedLanguage ? "active" : ""}`;
+      pill.innerHTML = `<span>${lang.label}</span>`;
+      pill.addEventListener("click", () => {
+        selectedLanguage = lang.code;
+        document.querySelectorAll(".lang-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+      });
+      langRow.appendChild(pill);
+    });
 
-submitBtn.addEventListener("click", transcribe);
+    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
 
-copyBtn.addEventListener("click", async () => {
-  if (!lastResult) return;
-  await navigator.clipboard.writeText(lastResult.text);
-  const original = copyBtn.textContent;
-  copyBtn.textContent = "Copied";
-  setTimeout(() => { copyBtn.textContent = original; }, 1400);
-});
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("drag");
+    });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("drag");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
 
-downloadBtn.addEventListener("click", () => {
-  if (!lastResult) return;
-  const blob = new Blob([lastResult.text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = (selectedFile ? selectedFile.name.replace(/\.[^.]+$/, "") : "transcript") + ".txt";
-  a.click();
-  URL.revokeObjectURL(url);
-});
-</script>
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files && fileInput.files[0]) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      selectedFile = null;
+      fileInput.value = "";
+      fileChip.classList.remove("show");
+      audioPreviewWrap.classList.remove("show");
+      submitBtn.disabled = true;
+      statusText.textContent = "";
+      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+      audioPreviewUrl = null;
+      audioSourcePlayer.src = "";
+    });
+
+    function handleFile(file) {
+      selectedFile = file;
+      fileName.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+      fileChip.classList.add("show");
+      submitBtn.disabled = false;
+      statusText.textContent = "";
+
+      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+      audioPreviewUrl = URL.createObjectURL(file);
+      audioSourcePlayer.src = audioPreviewUrl;
+      audioPreviewWrap.classList.add("show");
+      renderIcons();
+    }
+
+    submitBtn.addEventListener("click", async () => {
+      if (!selectedFile) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Transcribing Speech...';
+      statusText.className = "status-msg";
+      statusText.textContent = "Processing audio with Whisper model...";
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("language", selectedLanguage);
+
+      try {
+        const res = await fetch("/transcribe", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!res.ok) {
+          let errDetail = "Transcription failed.";
+          try {
+            const errJson = await res.json();
+            if (errJson.detail) errDetail = errJson.detail;
+          } catch (_) {}
+          throw new Error(errDetail);
+        }
+
+        const data = await res.json();
+        lastResult = data;
+        displayResult(data);
+
+        statusText.className = "status-msg success";
+        statusText.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;"></i> Transcription complete!';
+        renderIcons();
+      } catch (err) {
+        statusText.className = "status-msg error";
+        statusText.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;"></i> ${err.message}`;
+        renderIcons();
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="sparkles" style="width:16px;height:16px;"></i> Transcribe Audio';
+        renderIcons();
+      }
+    });
+
+    function displayResult(data) {
+      transcriptEl.classList.remove("empty", "lang-hi", "lang-bn");
+      if (data.language === "hi") transcriptEl.classList.add("lang-hi");
+      if (data.language === "bn") transcriptEl.classList.add("lang-bn");
+      transcriptEl.textContent = data.text || "(No speech detected in audio file)";
+
+      const dur = typeof data.duration === "number" ? `${data.duration.toFixed(1)}s` : "-";
+      const wordCount = (data.text || "").trim().split(/\s+/).filter(Boolean).length;
+
+      metaRow.style.display = "flex";
+      metaRow.innerHTML = `
+        <span class="meta-pill"><i data-lucide="languages" style="width:12px;height:12px;"></i> Language: <b>${data.language_label || data.language}</b></span>
+        <span class="meta-pill"><i data-lucide="clock" style="width:12px;height:12px;"></i> Duration: <b>${dur}</b></span>
+        <span class="meta-pill"><i data-lucide="file-text" style="width:12px;height:12px;"></i> Words: <b>${wordCount}</b></span>
+      `;
+
+      copyBtn.disabled = !data.text;
+      downloadBtn.disabled = !data.text;
+
+      if (data.segments && data.segments.length > 0) {
+        segList.innerHTML = "";
+        data.segments.forEach(s => {
+          const row = document.createElement("div");
+          row.className = "seg-row";
+          const start = s.start.toFixed(1);
+          const end = s.end.toFixed(1);
+          row.innerHTML = `<span class="seg-time">${start}s - ${end}s</span> <span>${s.text}</span>`;
+          segList.appendChild(row);
+        });
+        segmentsWrap.style.display = "block";
+      } else {
+        segmentsWrap.style.display = "none";
+      }
+
+      renderIcons();
+    }
+
+    copyBtn.addEventListener("click", () => {
+      if (!lastResult || !lastResult.text) return;
+      navigator.clipboard.writeText(lastResult.text);
+      copyBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Copied!';
+      renderIcons();
+      setTimeout(() => {
+        copyBtn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px;"></i> Copy Text';
+        renderIcons();
+      }, 2000);
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      if (!lastResult || !lastResult.text) return;
+      const blob = new Blob([lastResult.text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const baseName = selectedFile ? selectedFile.name.replace(/\.[^/.]+$/, "") : "transcript";
+      a.download = `${baseName}_transcript.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    renderIcons();
+  </script>
 </body>
 </html>
