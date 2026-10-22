@@ -44,10 +44,10 @@ The resulting transcript feeds directly into **Stage 3 (Salient Keyword Extracti
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 02_MP3_to_Text/backend
+cd 02_MP3_to_Text
 ```
 
 ### 2. Choose Your Setup Track
@@ -69,7 +69,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **Windows Git Bash:**
@@ -78,7 +78,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **macOS / Linux:**
@@ -87,7 +87,7 @@ Use this track if your default system `python` command is Python 3.11.
   python3 -m venv venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 ---
@@ -102,7 +102,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **Windows Git Bash:**
@@ -111,7 +111,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **macOS / Linux:**
@@ -120,14 +120,14 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
-The web interface will open at **`http://127.0.0.1:8001`**.
+The service will start at **`http://127.0.0.1:8002`**. Visit **`http://127.0.0.1:8002/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8001`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8001`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/transcribe`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 2 operates as a headless FastAPI microservice. You can transcribe audio files directly using the Swagger UI at `http://127.0.0.1:8002/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -138,7 +138,7 @@ graph LR
     A["Audio Payload (.mp3 / .wav / Mic)"] --> B["Silero VAD (Voice Activity Filter)"]
     B --> C["faster-whisper CTranslate2 Engine"]
     C --> D["Timestamped Transcript Tokens"]
-    D --> E["Side-by-Side Audio Waveform Preview"]
+    D --> E["FastAPI Interactive Docs (/docs)"]
     D -.-> F["Input to Stage 3 (Keyword Extractor)"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
@@ -180,14 +180,13 @@ Transcribes uploaded audio files with automatic language identification.
 ```text
 02_MP3_to_Text/
 ├── README.md               # Stage documentation
-├── backend/
-│   ├── main.py             # FastAPI routing and static file delivery
-│   ├── requirements.txt    # faster-whisper, FastAPI, Uvicorn
-│   └── app/
-│       ├── config.py       # Model size selection and file upload limits
-│       └── transcriber.py  # Model loader and inference wrapper with LRU caching
-└── frontend/
-    └── index.html          # Dual-column interactive audio and transcript interface
+├── main.py                 # FastAPI routing and status endpoints
+├── requirements.txt        # faster-whisper, FastAPI, Uvicorn
+├── static/
+│   └── favicon.webp        # Stage 3D icon
+└── app/
+    ├── config.py           # Model size selection and file upload limits
+    └── transcriber.py      # Model loader and inference wrapper with LRU caching
 ```
 
 ---
