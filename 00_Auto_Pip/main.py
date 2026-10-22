@@ -118,6 +118,69 @@ def start_missing_services():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def detect_speaker_gender(media_path: Path) -> tuple[str, float]:
+    """
+    Analyzes input audio fundamental frequency (pitch / F0) to detect speaker gender.
+    Returns (gender, median_pitch_hz), where gender is 'male' or 'female'.
+    """
+    try:
+        import numpy as np
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", str(media_path),
+            "-f", "s16le",
+            "-ac", "1",
+            "-ar", "16000",
+            "-vn",
+            "-"
+        ]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.returncode != 0 or len(res.stdout) < 3200:
+            return "male", 125.0
+
+        samples = np.frombuffer(res.stdout, dtype=np.int16).astype(np.float32)
+        sample_rate = 16000
+        frame_len = int(sample_rate * 0.050)
+        hop_len = int(sample_rate * 0.025)
+        num_frames = (len(samples) - frame_len) // hop_len
+        if num_frames <= 0:
+            return "male", 125.0
+
+        min_lag = int(sample_rate / 350)
+        max_lag = int(sample_rate / 75)
+
+        energies = np.array([np.sum(samples[i * hop_len : i * hop_len + frame_len] ** 2) for i in range(num_frames)])
+        threshold = np.percentile(energies, 40)
+        pitches = []
+
+        for i in range(num_frames):
+            if energies[i] < threshold:
+                continue
+            frame = samples[i * hop_len : i * hop_len + frame_len]
+            frame = frame - np.mean(frame)
+            corr = np.correlate(frame, frame, mode="full")
+            corr = corr[len(frame) - 1 :]
+            if corr[0] <= 0:
+                continue
+            peak_sub = corr[min_lag:max_lag]
+            if len(peak_sub) == 0:
+                continue
+            peak_idx = np.argmax(peak_sub)
+            if peak_sub[peak_idx] > 0.30 * corr[0]:
+                f0 = sample_rate / (min_lag + peak_idx)
+                if 80 <= f0 <= 320:
+                    pitches.append(f0)
+
+        if not pitches:
+            return "male", 125.0
+
+        median_pitch = float(np.median(pitches))
+        gender = "male" if median_pitch < 165 else "female"
+        return gender, round(median_pitch, 1)
+    except Exception:
+        return "male", 125.0
+
+
 def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
     job = job_store[job_id]
     try:
@@ -146,6 +209,12 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         mp3_path = work_dir / "audio.mp3"
         mp3_path.write_bytes(r.content)
         job["logs"].append(f"Stage 01: Audio saved to audio.mp3 ({len(r.content)} bytes)")
+
+        # Acoustic Speaker Gender & Pitch Detection
+        spk_gender, spk_pitch = detect_speaker_gender(mp3_path)
+        job["speaker_gender"] = spk_gender
+        job["speaker_pitch_hz"] = spk_pitch
+        job["logs"].append(f"Stage 01: Speaker voice acoustic profile -> {spk_gender.upper()} voice detected ({spk_pitch:.1f} Hz fundamental pitch)")
 
         # Stage 02
         job["current_step"] = 2
@@ -257,8 +326,12 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
             rate_val = max(-20, min(25, rate_val))
             tts_rate = f"{rate_val:+d}%"
 
-        job["logs"].append(f"Stage 06: Generating natural neural Hindi audio via Edge TTS (pacing rate: {tts_rate})...")
-        r = orchestrator.call("text_to_mp3", "/api/synthesize", json={"text": final_text, "voice": "hi-IN-SwaraNeural", "rate": tts_rate})
+        # Select neural voice matching detected input speaker gender
+        speaker_gender = job.get("speaker_gender", "male")
+        chosen_voice = "hi-IN-MadhurNeural" if speaker_gender == "male" else "hi-IN-SwaraNeural"
+        job["chosen_voice"] = chosen_voice
+        job["logs"].append(f"Stage 06: Generating natural neural {speaker_gender.upper()} Hindi audio via Edge TTS ({chosen_voice}, pacing rate: {tts_rate})...")
+        r = orchestrator.call("text_to_mp3", "/api/synthesize", json={"text": final_text, "voice": chosen_voice, "rate": tts_rate})
         res6 = orchestrator.json_result(r, "text_to_mp3")
         audio_url = str(res6.get("audio_url", ""))
         audio_subpath = audio_url[audio_url.find("/api/audio/"):] if "/api/audio/" in audio_url else audio_url
