@@ -106,29 +106,36 @@
     .flow-step {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 4px 10px;
+      padding: 5px 11px;
       border-radius: 6px;
-      font-size: 11.5px;
+      font-size: 12px;
       color: var(--text-muted);
       font-weight: 500;
-      transition: all 0.2s;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
     }
 
     .flow-step.active {
-      background: var(--purple-glow);
-      border-color: rgba(167, 139, 250, 0.4);
-      color: var(--purple);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--step-color, var(--purple));
+      color: var(--step-color, var(--purple));
       font-weight: 700;
-      box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
+      box-shadow: 0 0 14px var(--purple-glow);
     }
 
     .flow-arrow {
       color: var(--text-muted);
       font-size: 11px;
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
     /* ── Card ─────────────────────────────────────────────────── */
@@ -578,7 +585,7 @@
 
     <header>
       <div class="badge">
-        <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+        <i data-lucide="file-text" style="width:16px;height:16px;"></i>
         Stage 4 — Seq2Seq Syntax Reconstruction
       </div>
       <h1>Keyword to Sentence Construction</h1>
@@ -586,47 +593,43 @@
         Document-trained Sequence-to-Sequence neural engine. Converts jumbled, noisy keyword streams and fragmented speech into grammatically complete, meaningful English sentences.
       </p>
 
-      <!-- Pipeline Flow Badges -->
+      <!-- Suite Pipeline Flow -->
       <div class="pipeline-flow">
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
-          1. MP4→MP3
-        </span>
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #6366F1;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#6366F1;"></i> 0. Auto Pip
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></span>
-          2. MP3→Text
-        </span>
+        <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: #0EA5E9;">
+          <i data-lucide="video" style="width:14px;height:14px;color:#0EA5E9;"></i> 1. MP4→MP3
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></span>
-          3. Keywords
-        </span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: #F59E0B;">
+          <i data-lucide="mic" style="width:14px;height:14px;color:#F59E0B;"></i> 2. MP3→Text
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step active">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
-          4. Sentences
-        </span>
+        <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: #10B981;">
+          <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m2 12 20 0"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span>
-          5a. Translate
-        </span>
+        <a href="http://127.0.0.1:8004" class="flow-step active" style="--step-color: #8B5CF6;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#8B5CF6;"></i> 4. Sentences
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
-          5b. Reform
-        </span>
+        <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: #06B6D4;">
+          <i data-lucide="languages" style="width:14px;height:14px;color:#06B6D4;"></i> 5a. Translate
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
-          6. Speech
-        </span>
+        <a href="http://127.0.0.1:8012" class="flow-step" style="--step-color: #F97316;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
+        </a>
         <span class="flow-arrow">→</span>
-        <span class="flow-step">
-          <span class="ui-icon"><svg viewBox="0 0 24 24"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/></svg></span>
-          7. Final MP4
-        </span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #EC4899;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#EC4899;"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
+          <i data-lucide="film" style="width:14px;height:14px;color:#22C55E;"></i> 7. Final MP4
+        </a>
       </div>
     </header>
 
@@ -878,6 +881,10 @@
       toastTimer = setTimeout(() => {
         toast.classList.remove('show');
       }, 4000);
+    }
+
+    if (window.lucide) {
+      lucide.createIcons();
     }
   </script>
 </body>
