@@ -76,6 +76,7 @@ def health() -> dict:
 
 
 @app.post("/extract")
+@app.post("/extract-audio")
 async def extract_audio(file: UploadFile = File(...)):
     """
     Accepts a video file, extracts its audio track as-is (re-encoded to
