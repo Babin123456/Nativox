@@ -30,7 +30,11 @@ ENGLISH_STOPWORDS = {
     "while", "who", "whom", "why", "will", "with", "would", "you",
     "your", "yours", "yourself", "yourselves", "also", "get", "got",
     "like", "one", "us", "shall", "let", "may", "might", "must",
+    # English contraction remnants after punctuation splitting
+    "ve", "re", "ll", "d", "m", "t", "s", "don", "doesn", "didn",
+    "wasn", "weren", "haven", "hasn", "hadn", "won", "wouldn", "couldn", "shouldn",
 }
+
 
 HINDI_STOPWORDS = {
     "और", "का", "के", "की", "है", "हैं", "था", "थी", "थे", "को", "से",
