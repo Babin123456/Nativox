@@ -233,15 +233,16 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
 
         # Stage 03
         job["current_step"] = 3
-        job["step_name"] = "Extracting Keywords (Stage 03)"
+        job["step_name"] = "Extracting Salient Keywords (Stage 03 Auto-Intelligence)"
         job["progress"] = 40
-        job["logs"].append("Stage 03: Extracting domain keywords and terminology...")
-        r = orchestrator.call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": 15})
+        job["logs"].append("Stage 03: Extracting salient domain keywords via adaptive knee detection...")
+        r = orchestrator.call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": None, "mode": "auto"})
         res3 = orchestrator.json_result(r, "text_to_kw")
         keywords = res3.get("keywords_in_order", [])
         (work_dir / "keywords.json").write_text(json.dumps(keywords, ensure_ascii=False, indent=2), encoding="utf-8")
         job["keywords"] = keywords
-        job["logs"].append(f"Stage 03: Extracted {len(keywords)} ordered keywords")
+        job["logs"].append(f"Stage 03: Auto-extracted {len(keywords)} salient ordered keywords: {keywords}")
+
 
         # Stage 04
         job["current_step"] = 4
