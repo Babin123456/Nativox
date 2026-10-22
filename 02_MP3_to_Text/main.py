@@ -46,6 +46,7 @@ def get_languages():
     return {"languages": SUPPORTED_LANGUAGES}
 
 
+@app.post("/transcribe")
 @app.post("/api/transcribe")
 async def transcribe(
     file: UploadFile = File(...),
@@ -95,6 +96,7 @@ async def transcribe(
         "language_label": SUPPORTED_LANGUAGES.get(result.language, result.language),
         "language_probability": round(result.language_probability, 3),
         "audio_duration_sec": round(result.duration, 2),
+        "duration": round(result.duration, 2),
         "processing_time_sec": round(elapsed, 2),
         "segments": [
             {"start": round(s.start, 2), "end": round(s.end, 2), "text": s.text}
