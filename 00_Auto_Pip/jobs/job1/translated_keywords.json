@@ -1,0 +1,231 @@
+{
+  "target_language": "hindi",
+  "target_label": "Hindi",
+  "results": [
+    {
+      "original": "instructor",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "प्रशिक्षक",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "prashikshaka"
+    },
+    {
+      "original": "top",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "शीर्ष",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "shirsha"
+    },
+    {
+      "original": "gun",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "बंदूक",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "bamduka"
+    },
+    {
+      "original": "graduate",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "स्नातक",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "snataka"
+    },
+    {
+      "original": "real",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "असली",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "asali"
+    },
+    {
+      "original": "world",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "मेरी माँ दुनिया में सबसे अच्छी माँ है",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "meri ma.n duniya mem sabase achchi ma.n hai"
+    },
+    {
+      "original": "experience",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "अनुभव ",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "anubhava "
+    },
+    {
+      "original": "every",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "हर लड़की को इस लड़की को समझना चाहिए",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "hara la.daki ko isa la.daki ko samajhana chahie"
+    },
+    {
+      "original": "mission",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "मिशन",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "mishana"
+    },
+    {
+      "original": "aspect",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "पहलू",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "pahalu"
+    },
+    {
+      "original": "expected",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "अपेक्षित भाभी जी",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "apekshita bhabhi ji"
+    },
+    {
+      "original": "master",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "निपुण",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "nipuna"
+    },
+    {
+      "original": "considered",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "माना जाता है",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "mana jata hai"
+    },
+    {
+      "original": "finest",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "बेहतरीन",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "behatarina"
+    },
+    {
+      "original": "pilots",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "पायलट",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "payalata"
+    },
+    {
+      "original": "program",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "योजना",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "yojana"
+    },
+    {
+      "original": "ever",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "हमेशा और हमेशा के लिए",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "hamesha aura hamesha ke lie"
+    },
+    {
+      "original": "produced",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "उत्पादित",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "utpadita"
+    },
+    {
+      "original": "give",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "Phele mere sath sex kro fir ma avi apko Card deta hu deta hu",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "phele mere sath sex kro fir ma avi apko card deta hu deta hu"
+    },
+    {
+      "original": "Captain",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "कप्तान",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "kaptana"
+    },
+    {
+      "original": "Pete",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "पीट",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "pita"
+    },
+    {
+      "original": "Mitchell",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "मिशेल",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "mishela"
+    },
+    {
+      "original": "Call",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "कॉल करें",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "kaॉla karem"
+    },
+    {
+      "original": "sign",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "साइन करें",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "saina karem"
+    },
+    {
+      "original": "Maverick",
+      "detected_language": "english",
+      "detected_label": "English",
+      "translated_text": "मावेरिक",
+      "target_language": "hindi",
+      "target_label": "Hindi",
+      "pronunciation": "maverika"
+    }
+  ]
+}
