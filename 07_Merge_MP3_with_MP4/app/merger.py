@@ -166,6 +166,7 @@ def merge_video_audio(video_path: Path, audio_path: Path) -> tuple[Path, dict]:
 
     # Generate output path
     job_id = uuid.uuid4().hex[:10]
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     output_path = STORAGE_DIR / f"dubbed_{job_id}.mp4"
 
     # FFmpeg command: copy video, transcode audio to AAC, map only first
