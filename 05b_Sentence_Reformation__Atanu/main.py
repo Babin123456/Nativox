@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.precis import generate_precis
@@ -148,16 +148,10 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
-    """Service status and API documentation entry point."""
-    return {
-        "service": "Sentence Reformation (Atanu)",
-        "stage": "05b_Sentence_Reformation__Atanu",
-        "status": "online",
-        "docs_url": "/docs",
-        "openapi_url": "/openapi.json",
-    }
+    """Redirect to interactive Swagger UI documentation."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
