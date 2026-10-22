@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import LANG_CODES, LANG_LABELS
@@ -31,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
 
 
 @app.get("/api/health")
@@ -77,20 +77,23 @@ def translate_batch(request: BatchTranslateRequest):
 
 
 # Serve static assets (favicon)
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    """Redirect to interactive Swagger UI documentation."""
-    return RedirectResponse(url="/docs")
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Keyword Translation Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    favicon_path = STATIC_DIR / "favicon.webp"
+    favicon_path = FRONTEND_DIR / "favicon.webp"
     if favicon_path.exists():
-        return FileResponse(favicon_path, media_type="image/webp")
+        return FileResponse(str(favicon_path), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
