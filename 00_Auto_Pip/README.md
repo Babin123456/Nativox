@@ -42,7 +42,57 @@ python setup_env.py --create-venv
 
 ---
 
-## ⚡ Running the Pipeline
+## 🖥️ Running the Interactive Web UI
+
+`00_Auto_Pip` provides a dedicated web dashboard running on port `8000` that connects all 8 microservices, monitors service health, and manages video dubbing with live progress tracking and side-by-side video playback:
+
+```bash
+cd 00_Auto_Pip
+python main.py
+```
+
+*Or using uvicorn with hot-reload:*
+```bash
+cd 00_Auto_Pip
+uvicorn main:app --reload --port 8000
+```
+
+Open your browser to:
+👉 **`http://127.0.0.1:8000`**
+
+### Dashboard Features:
+- **Service Health Monitor:** Live status pings for all 8 backend microservices (`8001`–`8014`).
+- **Drag & Drop Upload:** Accepts any standard video file (`.mp4`, `.mov`, `.mkv`, etc.).
+- **Live Multi-Stage Stepper:** Visual tracking of active stages from demuxing to remuxing.
+- **Real-Time Terminal Output:** Displays pitch analysis, dynamic speech pacing rate, and step logs.
+- **Side-by-Side Comparison Player:** Synchronized preview of original video vs final dubbed video.
+- **One-Click Artifact Downloads:** Instant downloads for all intermediate files and the final MP4.
+
+---
+
+## 🎙️ Automatic Voice Gender Detection & Matching
+
+The pipeline automatically analyzes the acoustic profile of the speaker in the uploaded video to match their gender in the dubbed output:
+
+1. **Acoustic Fundamental Frequency ($F_0$ Pitch) Analysis:**
+   - Evaluates periodic harmonic autocorrelation across voiced frames in the extracted audio.
+   - Adult Male Voices: Typically **85 Hz – 165 Hz** (average ~110–130 Hz).
+   - Adult Female Voices: Typically **165 Hz – 265 Hz** (average ~200–220 Hz).
+2. **Dynamic Neural Voice Assignment:**
+   - **Male Speaker Detected:** Synthesizes with **`hi-IN-MadhurNeural`** (Hindi) / **`bn-IN-BashkarNeural`** (Bengali).
+   - **Female Speaker Detected:** Synthesizes with **`hi-IN-SwaraNeural`** (Hindi) / **`bn-IN-TanishaaNeural`** (Bengali).
+
+---
+
+## ⏱️ Video Duration Preservation & Pacing
+
+- **Zero Truncation Remuxing:** Stage 07 avoids `-shortest` cutoff by padding speech with silence (`-af apad`) and strictly capping to original video duration (`-t <video_duration>`), guaranteeing 100% video frame preservation.
+- **Full Dialogue Dubbing:** Defaults to complete dialogue translation (`step1_meaningful_hindi`) rather than 35% précis compression, ensuring continuous speech coverage across the video.
+- **Dynamic Speech Pacing:** Automatically calculates speech pacing rate (`tts_rate` e.g. `-9%`) to align speech delivery across 85%–92% of the video duration.
+
+---
+
+## ⚡ Running the Pipeline via CLI
 
 Run the orchestrator with your input video. It automatically starts any missing stage services, executes the workflow in order, and stops only the services it started:
 
