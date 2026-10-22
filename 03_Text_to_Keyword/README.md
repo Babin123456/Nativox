@@ -198,8 +198,9 @@ Extracts ranked multi-word and single-word keywords from input text.
 ├── main.py                    # FastAPI endpoints and status routing
 ├── requirements.txt           # FastAPI, Uvicorn, Pydantic
 ├── test_keyword_sequence.py   # Unit test suite
-├── static/
-│   └── favicon.webp           # Stage 3D icon
+├── frontend/
+│   ├── favicon.webp           # Stage 3D icon
+│   └── index.html             # Interactive stage web interface
 └── app/
     ├── keyword_extractor.py   # Multilingual RAKE co-occurrence engine
     ├── language_utils.py      # Unicode-script tagging (Latin/Devanagari/Bengali)
