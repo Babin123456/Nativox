@@ -9,10 +9,12 @@
 ## 1. Executive Overview
 
 When an automated dubbing pipeline converts an English video into Hindi (or Bengali), two major challenges arise:
+
 1. **Pipeline Inconsistency:** The automated master orchestrator (`00_Auto_Pip`) and manual step-by-step executions can diverge in their intermediate token handling, sentence lengths, and speech synthesis rates.
 2. **Audio-Visual Desynchronization (Lip-Flap Error):** The target language audio (Hindi) has different syllable structures, phrase lengths, and phonetic durations than the original English video. This results in the speaker's lips moving when no sound is heard, or dubbed audio playing while the speaker's mouth is completely closed.
 
 The `Babin` module establishes a scientifically grounded, multi-metric framework to:
+
 * Decompose both video outputs frame-by-frame.
 * Quantify visual lip opening against acoustic speech energy.
 * Compute mathematical sync metrics (Cross-Correlation, Pearson $r$, SyncNet LSE-C/LSE-D).
@@ -22,7 +24,7 @@ The `Babin` module establishes a scientifically grounded, multi-metric framework
 
 ## 2. System Architecture & Data Flow
 
-```
+```text
 ┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
 │  Pipeline Output A: 00_Auto_Pip       │     │  Pipeline Output B: Manual Stages    │
 │  (End-to-End Orchestrated Dubbed MP4) │     │  (Step-by-Step Merged Dubbed MP4)    │
@@ -68,7 +70,9 @@ The `Babin` module establishes a scientifically grounded, multi-metric framework
 ## 3. Mathematical & Algorithmic Foundations
 
 ### 3.1 Mouth Aspect Ratio (MAR) — Visual Opening
+
 For every video frame $t \in [1, N]$:
+
 1. Detect face landmarks using MediaPipe 468-point mesh.
 2. Extract inner lip boundaries:
    * Upper lip center: Point $13$
@@ -81,13 +85,16 @@ For every video frame $t \in [1, N]$:
    * Open mouth (vowels `/a/`, `/o/`, `/e/`): $\text{MAR}(t) \in [0.35, 0.75]$
 
 ### 3.2 Acoustic Energy Envelope ($E_t$)
+
 Audio sampled at $16,000 \text{ Hz}$ is partitioned into time windows matching the video frame period $\Delta t = \frac{1}{\text{FPS}}$ ($33.3\text{ ms}$ at $30\text{ fps}$, equivalent to $M = 533$ audio samples per frame).
 The Root-Mean-Square (RMS) energy is calculated:
 $$E(t) = \sqrt{\frac{1}{M} \sum_{i=(t-1)M + 1}^{t M} s[i]^2}$$
 
 ### 3.3 Audio-Visual Cross-Correlation & Lag Detection ($\tau^*$)
+
 To calculate the exact frame lag between lip motion and dubbed audio:
 $$R(\tau) = \sum_{t} \left(\text{MAR}(t) - \overline{\text{MAR}}\right) \cdot \left(E(t + \tau) - \overline{E}\right)$$
+
 * Search interval: $\tau \in [-15, +15]$ frames (equivalent to $\pm 500\text{ ms}$).
 * The optimal sync lag is the argument that maximizes $R(\tau)$:
   $$\tau^* = \arg\max_{\tau} R(\tau)$$
@@ -96,6 +103,7 @@ $$R(\tau) = \sum_{t} \left(\text{MAR}(t) - \overline{\text{MAR}}\right) \cdot \l
   * $\tau^* < 0$: Audio starts before the lips begin moving.
 
 ### 3.4 SyncNet Deep Neural Benchmarking (LSE-C and LSE-D)
+
 * **LSE-C (Lip Sync Error - Confidence):** Measures the cosine similarity between the visual lip CNN embeddings (5-frame window) and audio Mel-spectrogram embeddings (0.2s window).
   $$\text{LSE-C} = \text{Confidence}(\text{LipEmbedding}, \text{AudioEmbedding}) \quad (\text{Target: } > 6.0 - 7.5)$$
 * **LSE-D (Lip Sync Error - Distance):** Average Euclidean distance between synchronized latent representations.
@@ -107,19 +115,21 @@ $$R(\tau) = \sum_{t} \left(\text{MAR}(t) - \overline{\text{MAR}}\right) \cdot \l
 
 Achieving optimal lip-sync in translated dubbing is an empirical optimization problem. We employ a 4-phase trial-and-error cycle:
 
-```
+```text
 [Experiment Phase] ──► [Evaluate Frame Metrics] ──► [Score LSE-C / Pearson r] ──► [Calibrate Parameters]
         ▲                                                                                    │
         └─────────────────────────── Iterate Next Trial ─────────────────────────────────────┘
 ```
 
 ### Phase 1: Pipeline Data Flow Unification (Baseline Parity)
+
 * **Problem:** In `00_Auto_Pip/main.py`, line 284 previously passed the Whisper transcript if it had more words than Stage 04's output, bypassing Stage 04 Seq2Seq. Manual runs pasted Stage 04 output directly into Stage 05b.
 * **Trial 1.1:** Lock `reformation_input = constructed_sentence` in `00_Auto_Pip`.
 * **Trial 1.2:** Run both pipelines with identical source video (`tests/test2.mp4`).
 * **Verification:** Verify that Video A and Video B produce identical translated text and identical word tokens before evaluating audio sync.
 
 ### Phase 2: Global Audio Latency Sweep ($\Delta t_{\text{offset}}$)
+
 * **Problem:** TTS synthesis starts immediately at $t=0$, but the original speaker in the video might not open their mouth until $t=0.6\text{s}$.
 * **Trial Protocol:**
   1. Extract initial cross-correlation peak $\tau^*$.
@@ -128,6 +138,7 @@ Achieving optimal lip-sync in translated dubbing is an empirical optimization pr
   4. Select the candidate with highest correlation and minimal offset.
 
 ### Phase 3: Dynamic Non-Linear Pacing Calibration (WSOLA & SSML)
+
 * **Problem:** Hindi sentences often have more syllables than English. Uniform speedup (`rate="+15%"`) can sound unnatural, while no speedup causes audio to overflow video length.
 * **Trial Protocol:**
   1. **Trial 3.1 (Global Speech Rate Sweep):** Test `rate` values from `-15%` to `+20%` in 5% increments.
@@ -135,6 +146,7 @@ Achieving optimal lip-sync in translated dubbing is an empirical optimization pr
   3. Re-evaluate $\text{MAR}(t)$ vs $E(t)$ cross-correlation curve.
 
 ### Phase 4: Neural Viseme Warping (Conditional Lip Synthesis)
+
 * **Problem:** Audio pacing can only align timing; it cannot change the physical mouth shapes if the speaker's original English visual visemes differ from Hindi consonants.
 * **Trial Protocol:**
   1. Run Wav2Lip / VideoReTalking model conditioned on the calibrated dubbed audio.
