@@ -13,7 +13,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.schemas import SynthesizeRequest, SynthesizeResponse, VoicesResponse
@@ -36,7 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
 STORAGE_DIR = Path(__file__).resolve().parent / "storage" / "outputs"
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -179,20 +179,23 @@ async def list_voices(locale: str = "all"):
 
 # ── Static Assets (Favicon) & Service Status ────────────────────────────────
 
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    """Redirect to interactive Swagger UI documentation."""
-    return RedirectResponse(url="/docs")
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox TTS Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    fav = STATIC_DIR / "favicon.webp"
+    fav = FRONTEND_DIR / "favicon.webp"
     if fav.exists():
         return FileResponse(str(fav), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
