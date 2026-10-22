@@ -31,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 @app.get("/api/health")
@@ -76,19 +76,27 @@ def translate_batch(request: BatchTranslateRequest):
     }
 
 
-# Serve the frontend's static assets (if any grow later: css/js files, etc.)
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# Serve static assets (favicon)
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/")
-def serve_frontend():
-    return FileResponse(FRONTEND_DIR / "index.html")
+def root():
+    """Service status and API documentation entry point."""
+    return {
+        "service": "Keyword Translation (Sagnik)",
+        "stage": "05a_Keyword_Translation__Sagnik",
+        "status": "online",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+    }
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    favicon_path = FRONTEND_DIR / "favicon.webp"
+    favicon_path = STATIC_DIR / "favicon.webp"
     if favicon_path.exists():
         return FileResponse(favicon_path, media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")

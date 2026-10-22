@@ -48,10 +48,10 @@ The translated vocabulary is provided to **Stage 5(b) (Sentence Reformation & Pr
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 05a_Keyword_Translation__Sagnik/backend
+cd 05a_Keyword_Translation__Sagnik
 ```
 
 ### 2. Choose Your Setup Track
@@ -127,11 +127,11 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   python -m uvicorn main:app --reload --port 8011
   ```
 
-The web interface will be available at: **`http://127.0.0.1:8011`**
+The service will start at **`http://127.0.0.1:8011`**. Visit **`http://127.0.0.1:8011/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8011`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8011`. Opening `index.html` directly via local `file:///` causes browser CORS errors that block requests to `/api/translate-batch`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 5(a) operates as a headless FastAPI microservice. You can translate keywords and generate phonetic badges directly using the Swagger UI at `http://127.0.0.1:8011/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -202,14 +202,13 @@ Translates an array of multilingual keywords into the specified target language.
 ```text
 05a_Keyword_Translation__Sagnik/
 ├── README.md                  # Stage documentation
-├── backend/
-│   ├── main.py                # FastAPI REST endpoints & static server
-│   ├── requirements.txt       # deep-translator, indic-transliteration, fastapi
-│   └── app/
-│       ├── translate_service.py # Batch translation handler with error fallback
-│       └── detect.py          # Fast Unicode block script detector
-└── frontend/
-    └── index.html             # Interactive UI with phonetic badge cards
+├── main.py                    # FastAPI REST endpoints & status server
+├── requirements.txt           # deep-translator, indic-transliteration, fastapi
+├── static/
+│   └── favicon.webp           # Stage 3D icon
+└── app/
+    ├── translate_service.py   # Batch translation handler with error fallback
+    └── detect.py              # Fast Unicode block script detector
 ```
 
 ---
