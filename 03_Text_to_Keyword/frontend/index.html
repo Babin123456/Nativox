@@ -276,6 +276,74 @@
       color: var(--primary);
     }
 
+    /* Extraction Mode Card */
+    .mode-toggle-card {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mode-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mode-tabs {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-tab:hover {
+      color: var(--text);
+    }
+
+    .mode-tab.active {
+      background: var(--primary);
+      color: #052014;
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .auto-badge-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.22);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #34d399;
+      line-height: 1.4;
+    }
+
     /* Slider row */
     .controls-row {
       display: flex;
@@ -288,6 +356,7 @@
       border-radius: 8px;
       border: 1px solid var(--border);
     }
+
 
     .slider-label {
       font-size: 13px;
@@ -594,15 +663,40 @@
           </button>
         </div>
 
-        <!-- Settings: Top N -->
-        <div class="controls-row">
-          <span class="slider-label">
-            <i data-lucide="sliders" style="width:14px;height:14px;"></i>
-            Max Keywords:
-          </span>
-          <input type="range" id="topNSlider" min="5" max="30" value="15" oninput="topNVal.textContent = this.value" />
-          <span class="slider-val" id="topNVal">15</span>
+        <!-- Settings: Auto vs Manual Extraction Mode -->
+        <div class="mode-toggle-card">
+          <div class="mode-header">
+            <span class="slider-label">
+              <i data-lucide="cpu" style="width:14px;height:14px;"></i>
+              Extraction Intelligence:
+            </span>
+            <div class="mode-tabs">
+              <button type="button" id="tabAuto" class="mode-tab active" onclick="setMode('auto')">
+                <i data-lucide="sparkles" style="width:12px;height:12px;"></i>
+                Auto (Smart Salience)
+              </button>
+              <button type="button" id="tabManual" class="mode-tab" onclick="setMode('manual')">
+                <i data-lucide="sliders" style="width:12px;height:12px;"></i>
+                Manual Limit
+              </button>
+            </div>
+          </div>
+
+          <div id="autoInfoBanner" class="auto-badge-banner">
+            <i data-lucide="check-circle" style="width:14px;height:14px;flex-shrink:0;"></i>
+            <span><strong>Smart Salience Active:</strong> Evaluates score drop-offs &amp; relative semantic density to automatically extract only the exact required domain keywords.</span>
+          </div>
+
+          <div id="manualSliderRow" class="controls-row" style="display: none; margin-top: 0;">
+            <span class="slider-label">
+              <i data-lucide="sliders" style="width:14px;height:14px;"></i>
+              Max Keywords:
+            </span>
+            <input type="range" id="topNSlider" min="5" max="30" value="15" oninput="topNVal.textContent = this.value" />
+            <span class="slider-val" id="topNVal">15</span>
+          </div>
         </div>
+
 
         <button id="extractBtn" class="btn-primary" onclick="extractKeywords()">
           <i data-lucide="key" style="width:16px;height:16px;"></i>
@@ -726,11 +820,35 @@
       document.getElementById("dominantScript").textContent = dominant;
     }
 
+    let extractionMode = "auto";
+
+    function setMode(mode) {
+      extractionMode = mode;
+      const tabAuto = document.getElementById("tabAuto");
+      const tabManual = document.getElementById("tabManual");
+      const autoBanner = document.getElementById("autoInfoBanner");
+      const manualSlider = document.getElementById("manualSliderRow");
+
+      if (mode === "auto") {
+        tabAuto.classList.add("active");
+        tabManual.classList.remove("active");
+        autoBanner.style.display = "flex";
+        manualSlider.style.display = "none";
+      } else {
+        tabManual.classList.add("active");
+        tabAuto.classList.remove("active");
+        autoBanner.style.display = "none";
+        manualSlider.style.display = "flex";
+      }
+      renderIcons();
+    }
+
     async function extractKeywords() {
       const text = document.getElementById("inputText").value.trim();
       const statusMsg = document.getElementById("statusMsg");
       const extractBtn = document.getElementById("extractBtn");
       const topN = parseInt(document.getElementById("topNSlider").value, 10);
+      const isAuto = extractionMode === "auto";
 
       if (!text) {
         statusMsg.className = "status-msg error";
@@ -742,13 +860,20 @@
       extractBtn.disabled = true;
       extractBtn.innerHTML = '<span class="spinner"></span> Extracting Salient Keywords...';
       statusMsg.className = "status-msg";
-      statusMsg.textContent = "Analyzing terminology frequency and relevance...";
+      statusMsg.textContent = isAuto
+        ? "Evaluating semantic salience & score drop-offs..."
+        : "Extracting top " + topN + " keywords...";
 
       try {
+        const payload = {
+          text,
+          top_n: isAuto ? null : topN,
+          mode: isAuto ? "auto" : "manual"
+        };
         const res = await fetch("/api/extract-keywords", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, top_n: topN })
+          body: JSON.stringify(payload)
         });
 
         if (!res.ok) {
@@ -765,7 +890,8 @@
         displayKeywords(data);
 
         statusMsg.className = "status-msg success";
-        statusMsg.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;"></i> Keywords extracted successfully!';
+        const count = data.total_extracted || (data.keywords ? data.keywords.length : 0);
+        statusMsg.innerHTML = `<i data-lucide="check-circle" style="width:14px;height:14px;"></i> Successfully extracted ${count} ${data.is_auto ? 'vital domain' : 'top'} keywords!`;
         renderIcons();
       } catch (err) {
         statusMsg.className = "status-msg error";
@@ -799,9 +925,10 @@
       if (data.keywords && data.keywords.length > 0) {
         data.keywords.forEach(item => {
           const tr = document.createElement("tr");
-          const scorePct = Math.round((item.relative_score || item.score || 0) * 100);
+          const scorePct = Math.min(100, Math.round(item.relative_score !== undefined ? item.relative_score : (item.score || 0)));
           const lang = item.language || "en";
           const langLabel = (data.language_labels && data.language_labels[lang]) ? data.language_labels[lang] : lang.toUpperCase();
+
 
           tr.innerHTML = `
             <td style="font-weight:600; color:var(--text);">${item.word}</td>

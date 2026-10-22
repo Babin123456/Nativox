@@ -83,15 +83,60 @@ def _split_into_candidate_phrases(text: str):
     return phrases
 
 
-def extract_keywords(text: str, top_n: int = 15):
+import math
+
+
+def _calculate_adaptive_cutoff(ranked: list[dict], min_k: int = 2, max_k: int = 18) -> int:
+    """
+    Intelligently determine required salient keyword count using
+    score gradient analysis (knee / elbow detection) and relative salience.
+    """
+    n = len(ranked)
+    if n <= 3:
+        return n
+
+    # Dynamic target bounds based on candidate size (sublinear square-root scaling)
+    dynamic_min = max(min_k, min(3, n))
+    dynamic_max = min(n, max(dynamic_min, min(max_k, round(2.0 * math.sqrt(n)))))
+
+    max_score = ranked[0]["score"] if ranked and ranked[0]["score"] > 0 else 1.0
+    scores = [r["score"] for r in ranked]
+
+    # 1. Look for steep relative salience drop (candidates falling below ~40% of peak score)
+    cutoff = dynamic_max
+    for i in range(dynamic_min, min(n, dynamic_max + 1)):
+        rel = scores[i - 1] / max_score
+        if rel < 0.42:
+            cutoff = i - 1
+            break
+
+    # 2. Knee / Elbow detection: locate steepest score drop within [dynamic_min, dynamic_max]
+    best_drop_idx = None
+    max_drop = 0.0
+    for i in range(dynamic_min - 1, min(n - 1, dynamic_max)):
+        drop = scores[i] - scores[i + 1]
+        if drop > max_drop:
+            max_drop = drop
+            best_drop_idx = i + 1
+
+    if best_drop_idx is not None and max_drop >= 0.5:
+        cutoff = min(cutoff, best_drop_idx)
+
+    # Clamp strictly within [dynamic_min, dynamic_max]
+    final_k = max(dynamic_min, min(cutoff, dynamic_max, n))
+    return final_k
+
+
+def extract_keywords(text: str, top_n: int | None = None):
+    """
+    Extract salient keywords from multilingual text.
+    If top_n is None or <= 0, automatically detects the required keyword
+    count using adaptive knee drop-off and relative salience scoring.
+    """
     text = (text or "").strip()
     if not text:
         return []
 
-    # Candidate phrases are built the same way as before - this is what
-    # keeps stopwords out entirely, and lets word importance be scored
-    # by co-occurrence rather than plain frequency. Only the OUTPUT is
-    # different: single words instead of the phrases themselves.
     phrases = _split_into_candidate_phrases(text)
     if not phrases:
         return []
@@ -120,7 +165,12 @@ def extract_keywords(text: str, top_n: int = 15):
 
     # Rank by score, breaking ties by raw frequency (more mentions wins).
     ranked = sorted(results, key=lambda r: (r["score"], freq[r["word"].lower()]), reverse=True)
-    top = ranked[:top_n]
+
+    if top_n is not None and top_n > 0:
+        top = ranked[:top_n]
+    else:
+        cutoff = _calculate_adaptive_cutoff(ranked)
+        top = ranked[:cutoff]
 
     max_score = top[0]["score"] if top else 1.0
     for r in top:
@@ -130,15 +180,25 @@ def extract_keywords(text: str, top_n: int = 15):
     return top
 
 
-def extract_keywords_in_sequence(text: str):
+def extract_keywords_in_sequence(text: str, allowed_words: set[str] | list[str] | None = None):
     """
-    Return every extracted keyword (stopwords removed, duplicates kept)
-    in the exact order they appear in the original text - no ranking,
-    no score. Reuses the same candidate-phrase splitting as
-    extract_keywords(), so it stays in sync with any stopword changes.
+    Return extracted keywords in chronological appearance order.
+    If allowed_words is provided (e.g. from intelligent salient extraction),
+    only words that passed the salience filter are returned, deduplicated.
+    If allowed_words is None, returns all non-stopwords in appearance order.
     """
     phrases = _split_into_candidate_phrases(text)
     ordered = []
+    seen = set()
+    allowed_set = {w.lower() for w in allowed_words} if allowed_words is not None else None
     for phrase in phrases:
-        ordered.extend(phrase)
+        for w in phrase:
+            wl = w.lower()
+            if allowed_set is not None:
+                if wl in allowed_set and wl not in seen:
+                    seen.add(wl)
+                    ordered.append(w)
+            else:
+                ordered.append(w)
     return ordered
+

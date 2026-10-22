@@ -205,10 +205,11 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     (work / "transcript.txt").write_text(text, encoding="utf-8")
     print(f"     language: {language_label}, {len(text.split())} words")
 
-    # Stage 03: text -> keywords.
-    print("[03] Extracting keywords...")
-    r = call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": 15})
+    # Stage 03: text -> keywords (Intelligent Auto-Extraction).
+    print("[03] Extracting salient keywords (auto-adaptive)...")
+    r = call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": None, "mode": "auto"})
     result = json_result(r, "text_to_kw")
+
     try:
         keywords = result["keywords_in_order"]
         if not isinstance(keywords, list) or not all(isinstance(word, str) for word in keywords):

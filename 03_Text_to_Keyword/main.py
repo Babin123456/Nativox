@@ -42,7 +42,8 @@ app.add_middleware(
 
 class ExtractRequest(BaseModel):
     text: str = Field(..., description="Input text - English, Hindi, Bengali, or a mix")
-    top_n: int = Field(15, ge=1, le=50, description="Maximum number of keywords to return")
+    top_n: int | None = Field(None, ge=1, le=50, description="Maximum number of keywords to return, or None for auto-salience extraction")
+    mode: str | None = Field("auto", description="Extraction mode: 'auto' for intelligent content-aware extraction, 'manual' for fixed top_n")
 
 
 class KeywordOut(BaseModel):
@@ -56,6 +57,8 @@ class ExtractResponse(BaseModel):
     keywords: list[KeywordOut]
     keywords_in_order: list[str]
     language_labels: dict
+    is_auto: bool = True
+    total_extracted: int = 0
 
 
 @app.get("/api/health")
@@ -65,13 +68,25 @@ def health():
 
 @app.post("/api/extract-keywords", response_model=ExtractResponse)
 def extract(req: ExtractRequest):
-    keywords = extract_keywords(req.text, top_n=req.top_n)
-    keywords_in_order = extract_keywords_in_sequence(req.text)
+    # Determine effective top_n: None means adaptive content-aware extraction
+    effective_top_n = (
+        req.top_n
+        if (req.mode == "manual" and req.top_n is not None)
+        else (req.top_n if req.top_n is not None and req.mode != "auto" else None)
+    )
+    keywords = extract_keywords(req.text, top_n=effective_top_n)
+    salient_set = {k["word"] for k in keywords}
+    keywords_in_order = extract_keywords_in_sequence(
+        req.text, allowed_words=salient_set if salient_set else None
+    )
     return {
         "keywords": keywords,
         "keywords_in_order": keywords_in_order,
         "language_labels": LANG_LABELS,
+        "is_auto": effective_top_n is None,
+        "total_extracted": len(keywords),
     }
+
 
 
 # --- Static assets (favicon) and service endpoints --------------------

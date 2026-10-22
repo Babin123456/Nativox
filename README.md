@@ -119,7 +119,7 @@ pip install -r requirements.txt
 ---
 
 ### ⚡ Running the Complete Pipeline
- 
+
 For the full end-to-end MP4-to-dubbed-MP4 workflow, use [`00_Auto_Pip/`](00_Auto_Pip). It provides both an **interactive Web UI** and a headless CLI orchestrator:
 
 #### Option A: Interactive Web UI (Port 8000)
@@ -128,13 +128,16 @@ For the full end-to-end MP4-to-dubbed-MP4 workflow, use [`00_Auto_Pip/`](00_Auto
 cd 00_Auto_Pip
 python main.py
 ```
+
 *(Or `uvicorn main:app --reload --port 8000`)*
 
 Open your browser to:
 👉 **`http://127.0.0.1:8000`**
 
 Features:
+
 - **Acoustic Speaker Voice Gender Matching:** Analyzes input speaker fundamental pitch ($F_0$ Hz) and automatically selects a matching male (`hi-IN-MadhurNeural`) or female (`hi-IN-SwaraNeural`) neural voice.
+
 - **Zero Truncation Remuxing:** Preserves 100% of the original video duration without cutting video frames.
 - **Side-by-Side Video Player:** Compare original video with dubbed output in real time.
 - **Live Multi-Stage Stepper & Logs:** View status badges for all microservices (`8001`–`8014`) and real-time execution logs.
