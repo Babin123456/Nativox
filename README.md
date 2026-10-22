@@ -26,7 +26,7 @@
 
 **Nativox** is an AI-powered multilingual video dubbing and contextual voice translation system. To maintain maximum modularity, research extensibility, and clarity for academic review and production debugging, the system is organized into decoupled pipeline stages as well as unified end-to-end services.
 
-Each standalone stage can run completely independently as a self-contained microservice (with its own frontend and backend), while also chaining together into the master pipeline.
+Each standalone stage can run completely independently as a self-contained microservice (with its own FastAPI backend, static favicon, and interactive OpenAPI documentation at `/docs`), while also chaining together into the master pipeline.
 
 ---
 
@@ -119,26 +119,28 @@ pip install -r requirements.txt
 
 ### ⚡ Running the Complete Pipeline
 
-For the full MP4-to-dubbed-MP4 workflow, use the unified runner in
-[`00_Auto_Pip/`](00_Auto_Pip). It creates one shared virtual environment,
+For the full MP4-to-dubbed-MP4 workflow, use the unified orchestrator in
+[`00_Auto_Pip/`](00_Auto_Pip). It creates/manages the shared environment,
 starts missing backend services automatically, runs all stages in order, and
 stops only the services it started.
 
-> [!NOTE]
-> The unified runner is currently Windows-focused and requires Python 3.11 or
-> newer through the `py` launcher. FFmpeg must also be available on `PATH`.
-
-```powershell
+```bash
 cd 00_Auto_Pip
-.\setup.bat
-.\run_pipeline.bat "C:\path\to\video.mp4"
+python setup_env.py
+python orchestrator.py "path/to/video.mp4"
 ```
 
-Results are written to `00_Auto_Pip\jobs\job1` by default. Pass a second
-argument to choose another output directory:
+Results are written to `00_Auto_Pip/jobs/job1` by default. Pass `--work-dir` to
+choose another output directory:
 
-```powershell
-.\run_pipeline.bat "C:\path\to\video.mp4" "C:\path\to\output"
+```bash
+python orchestrator.py "path/to/video.mp4" --work-dir "path/to/output"
+```
+
+To check service health across all microservices:
+
+```bash
+python orchestrator.py --status
 ```
 
 See the [automatic pipeline guide](00_Auto_Pip/README.md) for service
@@ -157,7 +159,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 01_MP4_to_MP3/backend
+  cd 01_MP4_to_MP3
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -167,7 +169,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 01_MP4_to_MP3/backend
+  cd 01_MP4_to_MP3
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -177,7 +179,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 01_MP4_to_MP3/backend
+  cd 01_MP4_to_MP3
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -193,7 +195,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 02_MP3_to_Text/backend
+  cd 02_MP3_to_Text
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -203,7 +205,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 02_MP3_to_Text/backend
+  cd 02_MP3_to_Text
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -213,7 +215,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 02_MP3_to_Text/backend
+  cd 02_MP3_to_Text
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -229,7 +231,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 03_Text_to_Keyword/backend
+  cd 03_Text_to_Keyword
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -239,7 +241,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 03_Text_to_Keyword/backend
+  cd 03_Text_to_Keyword
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -249,7 +251,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 03_Text_to_Keyword/backend
+  cd 03_Text_to_Keyword
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -260,11 +262,39 @@ Select your preferred shell block below, copy it with one click, and paste it di
 
 #### Stage 4: Sentence Construction & Syntax Restoration (`04_Keyword_to_Sentence_Construction`)
 
-*Port:* None (loaded directly by the orchestrator) &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
+*Port:* `http://127.0.0.1:8004` (FastAPI Microservice / Interactive Docs at `/docs`) &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
 
-Stage 04 is not started as an HTTP service in the unified pipeline. The
-orchestrator imports `construct.py` and loads the model from the stage's
-`saved_model` directory.
+- **Windows PowerShell:**
+
+  ```powershell
+  cd 04_Keyword_to_Sentence_Construction
+  uv venv --seed venv
+  .\venv\Scripts\Activate.ps1
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+- **Windows Git Bash:**
+
+  ```bash
+  cd 04_Keyword_to_Sentence_Construction
+  uv venv --seed venv
+  source venv/Scripts/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  cd 04_Keyword_to_Sentence_Construction
+  uv venv --seed venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python -m uvicorn main:app --reload --port 8004
+  ```
+
+*(Interactive CLI: `cd 04_Keyword_to_Sentence_Construction && python construct.py`)*
 
 ---
 
@@ -275,7 +305,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows PowerShell:**
 
   ```powershell
-  cd 05a_Keyword_Translation__Sagnik/backend
+  cd 05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -285,7 +315,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows Git Bash:**
 
   ```bash
-  cd 05a_Keyword_Translation__Sagnik/backend
+  cd 05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -295,7 +325,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **macOS / Linux:**
 
   ```bash
-  cd 05a_Keyword_Translation__Sagnik/backend
+  cd 05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -311,7 +341,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows PowerShell:**
 
   ```powershell
-  cd 05b_Sentence_Reformation__Atanu/backend
+  cd 05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -321,7 +351,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows Git Bash:**
 
   ```bash
-  cd 05b_Sentence_Reformation__Atanu/backend
+  cd 05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -331,7 +361,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **macOS / Linux:**
 
   ```bash
-  cd 05b_Sentence_Reformation__Atanu/backend
+  cd 05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -347,7 +377,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows PowerShell:**
 
   ```powershell
-  cd 06_Converted_Text_to_MP3/backend
+  cd 06_Converted_Text_to_MP3
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -357,7 +387,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows Git Bash:**
 
   ```bash
-  cd 06_Converted_Text_to_MP3/backend
+  cd 06_Converted_Text_to_MP3
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -367,7 +397,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **macOS / Linux:**
 
   ```bash
-  cd 06_Converted_Text_to_MP3/backend
+  cd 06_Converted_Text_to_MP3
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -383,7 +413,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows PowerShell:**
 
   ```powershell
-  cd 07_Merge_MP3_with_MP4/backend
+  cd 07_Merge_MP3_with_MP4
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -393,7 +423,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **Windows Git Bash:**
 
   ```bash
-  cd 07_Merge_MP3_with_MP4/backend
+  cd 07_Merge_MP3_with_MP4
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -403,7 +433,7 @@ orchestrator imports `construct.py` and loads the model from the stage's
 - **macOS / Linux:**
 
   ```bash
-  cd 07_Merge_MP3_with_MP4/backend
+  cd 07_Merge_MP3_with_MP4
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt

@@ -102,7 +102,7 @@ graph TD
 ### 1. Stage 1: `01_MP4_to_MP3/`
 
 - **Responsibility:** Ingest incoming media and extract pristine audio.
-- **Port:** `http://127.0.0.1:8000`
+- **Port:** `http://127.0.0.1:8001`
 - **Core Operations:**
   - FFmpeg high-bitrate audio extraction (`-vn -acodec libmp3lame -q:a 2`).
   - Web-based side-by-side synchronized video and audio playback preview.
@@ -110,7 +110,7 @@ graph TD
 ### 2. Stage 2: `02_MP3_to_Text/`
 
 - **Responsibility:** High-precision acoustic transcription with timestamped speech segments.
-- **Port:** `http://127.0.0.1:8001`
+- **Port:** `http://127.0.0.1:8002`
 - **Core Operations:**
   - Silero VAD for non-speech and silence filtering.
   - `faster-whisper` (CTranslate2) with INT8 CPU and FP16 GPU inference.
@@ -119,7 +119,7 @@ graph TD
 ### 3. Stage 3: `03_Text_to_Keyword/`
 
 - **Responsibility:** Extract salient content-bearing keywords and domain terminology.
-- **Port:** `http://127.0.0.1:8010`
+- **Port:** `http://127.0.0.1:8003`
 - **Core Operations:**
   - Multilingual RAKE co-occurrence matrix scoring ($W_{\text{deg}} / W_{\text{freq}}$).
   - Curated joint stopword lists for English, Hindi, and Bengali.
