@@ -489,7 +489,7 @@ For detailed technical designs, architectural blueprints, and stage references:
       <b>Sagnik Bachhar</b>
     </td>
     <td align="center">
-      <b>Dr. Debjit Ghosh</b><br/>
+      <b>Mr. Debjit Ghosh</b><br/>
       <i>Department of Computer Science & Engineering</i>
     </td>
   </tr>
@@ -509,7 +509,7 @@ For detailed technical designs, architectural blueprints, and stage references:
 
 <p align="center">
   <sub>
-    Made with ❤️ by <b>Atanu, Babin, Rohit & Sagnik</b> • Guided by <b>Dr. Debjit Ghosh</b><br/>
+    Made with ❤️ by <b>Atanu, Babin, Rohit & Sagnik</b> • Guided by <b>Mr. Debjit Ghosh</b><br/>
     <b>🎙️ Nativox</b> — Empowering Multilingual Communication &bull; <b>End of Suite Documentation</b>
   </sub>
 </p>

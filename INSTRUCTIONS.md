@@ -347,7 +347,7 @@ To test all modules simultaneously, you can run each stage in a separate termina
 ## 👥 Authors & Academic Context
 
 - **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
-- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
