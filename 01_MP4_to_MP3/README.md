@@ -193,8 +193,9 @@ Streams the extracted MP3 audio file with range requests for seeking.
 ├── README.md               # Stage documentation
 ├── main.py                 # FastAPI REST endpoints & FFmpeg subprocess executor
 ├── requirements.txt        # FastAPI, Uvicorn, Python-Multipart
-├── static/
-│   └── favicon.webp        # Stage 3D icon
+├── frontend/
+│   ├── favicon.webp        # Stage 3D icon
+│   └── index.html          # Interactive stage web interface
 └── storage/
     ├── uploads/            # Temporary incoming video files
     └── outputs/            # Transcoded audio output files
