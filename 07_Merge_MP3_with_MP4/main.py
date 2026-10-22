@@ -103,6 +103,7 @@ async def merge_endpoint(
         )
 
     job_id = uuid.uuid4().hex[:10]
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     video_path = UPLOAD_DIR / f"{job_id}_video{video_ext}"
     audio_path = UPLOAD_DIR / f"{job_id}_audio{audio_ext}"
 
