@@ -273,23 +273,10 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         job["constructed_sentence"] = constructed_sentence
         job["logs"].append(f"Stage 04: Reconstructed sentence: '{constructed_sentence[:60]}...'")
 
-        # Stage 05a
+        # Stage 05b: Sentence Reformation & Translation (Directly from Stage 04, skipping 05a)
         job["current_step"] = 5
-        job["step_name"] = "Translating Terminology (Stage 05a)"
-        job["progress"] = 65
-        job["logs"].append("Stage 05a: Translating keywords into Hindi with pronunciation mapping...")
-        try:
-            r = orchestrator.call("kw_translation", "/api/translate-batch", json={"keywords": keywords or [keyword_text], "target_language": "hindi"})
-            res5a = orchestrator.json_result(r, "kw_translation")
-            (work_dir / "translated_keywords.json").write_text(json.dumps(res5a, ensure_ascii=False, indent=2), encoding="utf-8")
-            job["logs"].append("Stage 05a: Vocabulary translation mapped successfully")
-        except (Exception, SystemExit) as e5a:
-            job["logs"].append(f"Stage 05a: Vocabulary mapper offline ({e5a}), proceeding to sentence reformation")
-
-        # Stage 05b
-        job["current_step"] = 6
         job["step_name"] = "Sentence Reformation & Translation (Stage 05b)"
-        job["progress"] = 75
+        job["progress"] = 70
         job["logs"].append("Stage 05b: Removing disfluencies and preparing dubbed vernacular speech...")
         
         # When dubbing video, preserve full spoken dialogue context from transcript while removing disfluencies
@@ -311,7 +298,7 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         job["logs"].append(f"Stage 05b: Prepared {len(final_text.split())} words for speech synthesis: '{final_text[:60]}...'")
 
         # Stage 06
-        job["current_step"] = 7
+        job["current_step"] = 6
         job["step_name"] = "Neural Speech Synthesis (Stage 06 TTS)"
         job["progress"] = 85
 
@@ -340,7 +327,7 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         job["logs"].append("Stage 06: Synthesized neural audio track saved")
 
         # Stage 07
-        job["current_step"] = 8
+        job["current_step"] = 7
         job["step_name"] = "Final Video & Audio Remuxing (Stage 07)"
         job["progress"] = 95
         job["logs"].append("Stage 07: Remuxing source video with dubbed audio track...")
@@ -359,7 +346,7 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         final_video_path = work_dir / "final_dubbed_video.mp4"
         final_video_path.write_bytes(orchestrator.download("merge_mp3_mp4", video_subpath).content)
 
-        job["current_step"] = 8
+        job["current_step"] = 7
         job["step_name"] = "Pipeline Complete"
         job["progress"] = 100
         job["status"] = "completed"

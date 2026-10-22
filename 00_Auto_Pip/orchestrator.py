@@ -23,7 +23,6 @@ SERVICE_CONFIG = {
     "mp4_to_mp3": ("01_MP4_to_MP3", 8001, "/health"),
     "mp3_to_text": ("02_MP3_to_Text", 8002, "/api/languages"),
     "text_to_kw": ("03_Text_to_Keyword", 8003, "/api/health"),
-    "kw_translation": ("05a_Keyword_Translation__Sagnik", 8011, "/api/health"),
     "sentence_reformation": ("05b_Sentence_Reformation__Atanu", 8012, "/api/health"),
     "text_to_mp3": ("06_Converted_Text_to_MP3", 8013, "/api/health"),
     "merge_mp3_mp4": ("07_Merge_MP3_with_MP4", 8014, "/api/health"),
@@ -250,22 +249,8 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     )
     print(f"     saved {work / 'constructed_sentence.txt'}")
 
-    # Stage 05a: translate keywords for the terminology/phonetic bridge.
-    print("[05a] Translating keywords for terminology support...")
-    r = call(
-        "kw_translation",
-        "/api/translate-batch",
-        json={"keywords": keywords, "target_language": "hindi"},
-    )
-    translation_result = json_result(r, "kw_translation")
-    (work / "translated_keywords.json").write_text(
-        json.dumps(translation_result, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    print(f"     saved {work / 'translated_keywords.json'}")
-
-    # Stage 05b: sentence -> meaningful Hindi précis.
-    print("[05b] Re-forming and compressing the sentence...")
+    # Stage 05b: sentence -> meaningful Hindi translation & précis (skipping 05a).
+    print("[05b] Re-forming and translating sentence (Stage 05b)...")
     r = call(
         "sentence_reformation",
         "/api/pipeline",

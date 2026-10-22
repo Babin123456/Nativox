@@ -4,16 +4,17 @@
 
 ```text
 Input Video (.mp4)
-  -> [01] MP3 Audio Extracted
-  -> [02] Speech-to-Text Transcription & VAD
+  -> [01] MP3 Audio Extracted & Speaker Pitch Analyzed
+  -> [02] Speech-to-Text Transcription & VAD (Whisper)
   -> [03] Salient Keyword Extraction (RAKE)
   -> [04] Neural Sentence Construction (Flan-T5)
-  -> [05a] Terminology Translation & Phonetic Mapping
-  -> [05b] Hindi Sentence Reformation & 35%-40% Précis
-  -> [06] Hindi Speech Synthesis (Edge Neural TTS)
-  -> [07] Dubbed Audio Video Remuxing
+  -> [05b] Hindi Sentence Reformation & Vernacular Translation
+  -> [06] Neural Speech Synthesis (Edge Neural TTS, Voice Gender Matched)
+  -> [07] Dubbed Audio Video Remuxing (Zero Truncation)
   -> Output Dubbed Video (final_dubbed_video.mp4)
 ```
+
+> **Note on Stage 05(a):** Stage 05(a) (`05a_Keyword_Translation__Sagnik`) remains available as a standalone research module in the repository. The automated dubbing pipeline directly routes Stage 04 reconstructed sentences into Stage 05(b) for vernacular translation and disfluency reformation.
 
 ---
 
