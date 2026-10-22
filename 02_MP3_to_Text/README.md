@@ -182,8 +182,9 @@ Transcribes uploaded audio files with automatic language identification.
 ├── README.md               # Stage documentation
 ├── main.py                 # FastAPI routing and status endpoints
 ├── requirements.txt        # faster-whisper, FastAPI, Uvicorn
-├── static/
-│   └── favicon.webp        # Stage 3D icon
+├── frontend/
+│   ├── favicon.webp        # Stage 3D icon
+│   └── index.html          # Interactive stage web interface
 └── app/
     ├── config.py           # Model size selection and file upload limits
     └── transcriber.py      # Model loader and inference wrapper with LRU caching
