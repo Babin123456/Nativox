@@ -95,6 +95,7 @@ async def _synthesize_async(
     lang_code, lang_name = detect_language(text)
 
     job_id = uuid.uuid4().hex[:12]
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     output_path = STORAGE_DIR / f"tts_{job_id}.mp3"
 
     communicate = edge_tts.Communicate(
