@@ -49,8 +49,6 @@ Stage 4 learns canonical sentence syntax directly from standard **PDF (`.pdf`)**
 
 ---
 
-## 🚀 Setup & Execution
-
 ### 1. Navigate to Stage Directory
 
 ```bash
@@ -130,11 +128,12 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   python -m uvicorn main:app --reload --port 8004
   ```
 
-The web interface will open at **`http://127.0.0.1:8004`**.
+The service will start at **`http://127.0.0.1:8004`**. Visit **`http://127.0.0.1:8004/docs`** for interactive Swagger API testing.
 
 - **Launch Interactive Testing CLI:**
 
   ```bash
+  cd 04_Keyword_to_Sentence_Construction
   python construct.py
   ```
 
@@ -270,13 +269,15 @@ Output:
 
 ```text
 04_Keyword_to_Sentence_Construction/
-├── data_utils.py               # Document extractors (PDF/Word), sentence splitter, corruption engine
-├── train.py                    # Seq2Seq Transformer training pipeline (T5 fine-tuning)
+├── README.md                   # Complete module documentation
 ├── construct.py                # Testing & inference engine (interactive, CLI, & batch modes)
-├── requirements.txt            # Dependencies (torch, transformers, pypdf, python-docx, tqdm)
-├── sample_text.pdf             # User PDF dataset (164 pages)
-├── saved_model/                # Trained model checkpoint and tokenizer weights
-└── README.md                   # Complete module documentation
+├── data_utils.py               # Document extractors (PDF/Word), sentence splitter, corruption engine
+├── main.py                     # FastAPI application serving /api/construct on port 8004
+├── requirements.txt            # Dependencies (torch, transformers, fastapi, etc.)
+├── train.py                    # Seq2Seq Transformer training pipeline (T5 fine-tuning)
+├── static/
+│   └── favicon.webp            # Stage 3D icon
+└── saved_model/                # Trained model checkpoint and tokenizer weights
 ```
 
 ---

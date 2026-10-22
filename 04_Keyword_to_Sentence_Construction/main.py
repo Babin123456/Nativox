@@ -30,7 +30,7 @@ if hasattr(sys.stdout, "reconfigure"):
 from construct import SentenceConstructor
 
 BASE_DIR = Path(__file__).resolve().parent
-FRONTEND_DIR = BASE_DIR / "frontend"
+STATIC_DIR = BASE_DIR / "static"
 SAVED_MODEL_DIR = BASE_DIR / "saved_model"
 
 app = FastAPI(
@@ -123,24 +123,28 @@ def construct_sentence(req: ConstructRequest):
     }
 
 
-# ── Frontend Static Files ───────────────────────────────────────────────────
+# ── Static Assets (Favicon) & Service Status ────────────────────────────────
 
-if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/")
-def serve_index():
-    index_file = FRONTEND_DIR / "index.html"
-    if index_file.exists():
-        return FileResponse(str(index_file))
-    return {"message": "Nativox Stage 4 Backend is Running. Frontend not found."}
+def root():
+    """Service status and API documentation entry point."""
+    return {
+        "service": "Keyword to Sentence Construction (T5 Seq2Seq)",
+        "stage": "04_Keyword_to_Sentence_Construction",
+        "status": "online",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+    }
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    fav = FRONTEND_DIR / "favicon.webp"
+    fav = STATIC_DIR / "favicon.webp"
     if fav.exists():
         return FileResponse(str(fav), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
