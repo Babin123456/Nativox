@@ -15,7 +15,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.merger import merge_video_audio, probe_media, find_ffmpeg
@@ -221,16 +221,10 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
-    """Service status and API documentation entry point."""
-    return {
-        "service": "Merge MP3 with MP4 Remuxer",
-        "stage": "07_Merge_MP3_with_MP4",
-        "status": "online",
-        "docs_url": "/docs",
-        "openapi_url": "/openapi.json",
-    }
+    """Redirect to interactive Swagger UI documentation."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
