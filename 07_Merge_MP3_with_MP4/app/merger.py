@@ -169,7 +169,9 @@ def merge_video_audio(video_path: Path, audio_path: Path) -> tuple[Path, dict]:
     output_path = STORAGE_DIR / f"dubbed_{job_id}.mp4"
 
     # FFmpeg command: copy video, transcode audio to AAC, map only first
-    # video and first audio stream, use -shortest to handle duration mismatch
+    # video and first audio stream. Ensure output preserves full video duration
+    # by padding audio if shorter, and capping strictly at video duration.
+    video_duration = video_info["duration_seconds"]
     cmd = [
         ffmpeg, "-y",
         "-i", str(video_path),
@@ -179,7 +181,8 @@ def merge_video_audio(video_path: Path, audio_path: Path) -> tuple[Path, dict]:
         "-b:a", "192k",
         "-map", "0:v:0",
         "-map", "1:a:0",
-        "-shortest",
+        "-af", "apad",
+        "-t", str(video_duration),
         "-movflags", "+faststart",
         str(output_path),
     ]
