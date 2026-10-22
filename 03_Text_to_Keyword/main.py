@@ -2,16 +2,18 @@
 Text to Keyword - backend entrypoint.
 
 Run with:
-    uvicorn main:app --reload --port 8010
+    uvicorn main:app --reload --port 8003
 
-Then open http://127.0.0.1:8010 in a browser - this same process serves
+Then open http://127.0.0.1:8003 in a browser - this same process serves
 both the API (under /api) and the static frontend (everything else).
 """
 
 import os
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -72,7 +74,28 @@ def extract(req: ExtractRequest):
     }
 
 
-# --- Serve the static frontend from the same process -----------------
-_FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-if os.path.isdir(_FRONTEND_DIR):
-    app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
+# --- Static assets (favicon) and service endpoints --------------------
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.get("/")
+def root():
+    """Service status and API documentation entry point."""
+    return {
+        "service": "Text to Keyword Extractor",
+        "stage": "03_Text_to_Keyword",
+        "status": "online",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+    }
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.webp", include_in_schema=False)
+def serve_favicon():
+    favicon_path = STATIC_DIR / "favicon.webp"
+    if favicon_path.exists():
+        return FileResponse(favicon_path, media_type="image/webp")
+    raise HTTPException(status_code=404, detail="Favicon not found")

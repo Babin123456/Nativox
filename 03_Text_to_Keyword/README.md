@@ -44,10 +44,10 @@ The extracted keyword lexicon is transferred downstream to **Stage 4 (Keyword to
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 03_Text_to_Keyword/backend
+cd 03_Text_to_Keyword
 ```
 
 ### 2. Choose Your Setup Track
@@ -69,7 +69,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **Windows Git Bash:**
@@ -78,7 +78,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **macOS / Linux:**
@@ -87,7 +87,7 @@ Use this track if your default system `python` command is Python 3.11.
   python3 -m venv venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 ---
@@ -102,7 +102,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **Windows Git Bash:**
@@ -111,7 +111,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **macOS / Linux:**
@@ -120,14 +120,14 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
-The web interface will open at **`http://127.0.0.1:8010`**.
+The service will start at **`http://127.0.0.1:8003`**. Visit **`http://127.0.0.1:8003/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8010`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8010`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/keywords`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 3 operates as a headless FastAPI microservice. You can extract keywords and view script composition directly using the Swagger UI at `http://127.0.0.1:8003/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -195,15 +195,15 @@ Extracts ranked multi-word and single-word keywords from input text.
 ```text
 03_Text_to_Keyword/
 ├── README.md                  # Stage documentation
-├── backend/
-│   ├── main.py                # FastAPI endpoints and static file routing
-│   ├── requirements.txt       # FastAPI, Uvicorn, Pydantic
-│   └── app/
-│       ├── keyword_extractor.py # Multilingual RAKE co-occurrence engine
-│       ├── language_utils.py    # Unicode-script tagging (Latin/Devanagari/Bengali)
-│       └── stopwords.py         # Curated English, Hindi, and Bengali stopword sets
-└── frontend/
-    └── index.html             # Interactive text input, script meter, and keyword cards
+├── main.py                    # FastAPI endpoints and status routing
+├── requirements.txt           # FastAPI, Uvicorn, Pydantic
+├── test_keyword_sequence.py   # Unit test suite
+├── static/
+│   └── favicon.webp           # Stage 3D icon
+└── app/
+    ├── keyword_extractor.py   # Multilingual RAKE co-occurrence engine
+    ├── language_utils.py      # Unicode-script tagging (Latin/Devanagari/Bengali)
+    └── stopwords.py           # Curated English, Hindi, and Bengali stopword sets
 ```
 
 ---
