@@ -17,6 +17,7 @@ Complete Architecture, Working Principles, and Module-by-Module Guide.
 
 1. [Suite Overview & Modular Philosophy](#1-suite-overview--modular-philosophy)
 2. [Module-by-Module Instructions](#2-module-by-module-instructions)
+   - [Module 0: Automatic Master Pipeline & UI (`00_Auto_Pip/`)](#module-0-automatic-master-pipeline)
    - [Module 1: MP4 to MP3 Extraction (`01_MP4_to_MP3/`)](#module-1-mp4-to-mp3-extraction)
    - [Module 2: MP3 to Text Transcription (`02_MP3_to_Text/`)](#module-2-mp3-to-text-transcription)
    - [Module 3: Text to Keyword Extraction (`03_Text_to_Keyword/`)](#module-3-text-to-keyword-extraction)
@@ -45,6 +46,33 @@ This structure allows researchers and evaluators to inspect, benchmark, and run 
 ---
 
 ## 2. Module-by-Module Instructions
+
+### <a id="module-0-automatic-master-pipeline"></a>Module 0: Automatic Master Pipeline & UI (`00_Auto_Pip/`)
+
+- **Core Function:** Master orchestrator unifying all 8 microservices into an automated dubbing pipeline with an interactive web dashboard.
+- **Key Features:**
+  - **Acoustic Speaker Voice Gender Matching:** Performs fundamental frequency ($F_0$ pitch) autocorrelation on source audio to identify speaker gender and automatically pair with male (`hi-IN-MadhurNeural`) or female (`hi-IN-SwaraNeural`) Edge neural voices.
+  - **Zero Truncation Video Preservation:** Eliminates FFmpeg `-shortest` cutoff via audio silence padding (`-af apad`) and strict video duration preservation (`-t <video_duration>`).
+  - **Dynamic Pacing Control:** Adapts speech synthesis pacing rate (`tts_rate` e.g. `-9%`) to align spoken Hindi coverage across 85%–92% of source video length.
+- **Execution (Interactive Web UI):**
+
+  ```bash
+  cd 00_Auto_Pip
+  python main.py
+  # Or with uvicorn hot-reload:
+  # uvicorn main:app --reload --port 8000
+  ```
+
+- **Execution (Headless CLI):**
+
+  ```bash
+  cd 00_Auto_Pip
+  python orchestrator.py "path/to/video.mp4"
+  ```
+
+- **Port:** `http://127.0.0.1:8000` (FastAPI Web App & UI Dashboard)
+
+---
 
 ### <a id="module-1-mp4-to-mp3-extraction"></a>Module 1: MP4 to MP3 Extraction (`01_MP4_to_MP3/`)
 
