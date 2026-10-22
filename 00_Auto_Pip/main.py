@@ -9,6 +9,7 @@ import json
 import os
 import shutil
 import sys
+import subprocess
 import threading
 import time
 import uuid
@@ -120,6 +121,19 @@ def start_missing_services():
 def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
     job = job_store[job_id]
     try:
+        # Probe video duration using ffprobe
+        video_duration = 0.0
+        try:
+            cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", str(input_video_path)]
+            probe_res = subprocess.run(cmd, capture_output=True, text=True)
+            if probe_res.returncode == 0:
+                video_duration = float(json.loads(probe_res.stdout)["format"]["duration"])
+        except Exception:
+            pass
+        job["video_duration"] = video_duration
+        if video_duration > 0:
+            job["logs"].append(f"Source video detected: {video_duration:.2f} seconds duration")
+
         job["status"] = "running"
         job["current_step"] = 1
         job["step_name"] = "Extracting Audio (Stage 01)"
@@ -195,30 +209,56 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         job["step_name"] = "Translating Terminology (Stage 05a)"
         job["progress"] = 65
         job["logs"].append("Stage 05a: Translating keywords into Hindi with pronunciation mapping...")
-        r = orchestrator.call("kw_translation", "/api/translate-batch", json={"keywords": keywords or [keyword_text], "target_language": "hindi"})
-        res5a = orchestrator.json_result(r, "kw_translation")
-        (work_dir / "translated_keywords.json").write_text(json.dumps(res5a, ensure_ascii=False, indent=2), encoding="utf-8")
-        job["logs"].append("Stage 05a: Vocabulary translation mapped successfully")
+        try:
+            r = orchestrator.call("kw_translation", "/api/translate-batch", json={"keywords": keywords or [keyword_text], "target_language": "hindi"})
+            res5a = orchestrator.json_result(r, "kw_translation")
+            (work_dir / "translated_keywords.json").write_text(json.dumps(res5a, ensure_ascii=False, indent=2), encoding="utf-8")
+            job["logs"].append("Stage 05a: Vocabulary translation mapped successfully")
+        except (Exception, SystemExit) as e5a:
+            job["logs"].append(f"Stage 05a: Vocabulary mapper offline ({e5a}), proceeding to sentence reformation")
 
         # Stage 05b
         job["current_step"] = 6
-        job["step_name"] = "Sentence Reformation & Précis (Stage 05b)"
+        job["step_name"] = "Sentence Reformation & Translation (Stage 05b)"
         job["progress"] = 75
-        job["logs"].append("Stage 05b: Removing disfluencies and condensing into 35%-40% duration précis...")
-        r = orchestrator.call("sentence_reformation", "/api/pipeline", json={"text": constructed_sentence, "target_language": "hindi"})
+        job["logs"].append("Stage 05b: Removing disfluencies and preparing dubbed vernacular speech...")
+        
+        # When dubbing video, preserve full spoken dialogue context from transcript while removing disfluencies
+        reformation_input = text if len(text.split()) >= len(constructed_sentence.split()) else constructed_sentence
+        r = orchestrator.call("sentence_reformation", "/api/pipeline", json={"text": reformation_input, "target_language": "hindi"})
         res5b = orchestrator.json_result(r, "sentence_reformation")
-        final_text = str(res5b.get("step2_precise_hindi") or res5b.get("step1_meaningful_hindi") or "").strip()
+        
+        # Default to full meaningful translation so speech covers the full video! (step1_meaningful_hindi)
+        # Use précis (step2_precise_hindi) only if explicitly configured
+        dub_mode = job.get("dub_mode", "full")
+        if dub_mode == "precis":
+            final_text = str(res5b.get("step2_precise_hindi") or res5b.get("step1_meaningful_hindi") or "").strip()
+        else:
+            final_text = str(res5b.get("step1_meaningful_hindi") or res5b.get("step2_precise_hindi") or "").strip()
+
         (work_dir / "reformed_text.json").write_text(json.dumps(res5b, ensure_ascii=False, indent=2), encoding="utf-8")
         (work_dir / "dubbed_text.txt").write_text(final_text, encoding="utf-8")
         job["dubbed_text"] = final_text
-        job["logs"].append(f"Stage 05b: Final condensed Hindi text: '{final_text}'")
+        job["logs"].append(f"Stage 05b: Prepared {len(final_text.split())} words for speech synthesis: '{final_text[:60]}...'")
 
         # Stage 06
         job["current_step"] = 7
         job["step_name"] = "Neural Speech Synthesis (Stage 06 TTS)"
         job["progress"] = 85
-        job["logs"].append("Stage 06: Generating natural neural Hindi audio via Edge TTS...")
-        r = orchestrator.call("text_to_mp3", "/api/synthesize", json={"text": final_text, "voice": "hi-IN-SwaraNeural"})
+
+        # Calculate dynamic pacing rate to match ~85%-92% of original video duration
+        tts_rate = "+0%"
+        word_count = len(final_text.split())
+        if video_duration > 8 and word_count > 0:
+            est_dur = word_count / 2.25  # ~2.25 words per second in Hindi TTS
+            target_speech_dur = min(video_duration * 0.88, video_duration - 1.2)
+            speed_factor = est_dur / target_speech_dur
+            rate_val = int((speed_factor - 1.0) * 100)
+            rate_val = max(-20, min(25, rate_val))
+            tts_rate = f"{rate_val:+d}%"
+
+        job["logs"].append(f"Stage 06: Generating natural neural Hindi audio via Edge TTS (pacing rate: {tts_rate})...")
+        r = orchestrator.call("text_to_mp3", "/api/synthesize", json={"text": final_text, "voice": "hi-IN-SwaraNeural", "rate": tts_rate})
         res6 = orchestrator.json_result(r, "text_to_mp3")
         audio_url = str(res6.get("audio_url", ""))
         audio_subpath = audio_url[audio_url.find("/api/audio/"):] if "/api/audio/" in audio_url else audio_url
@@ -253,7 +293,7 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         job["final_video_available"] = True
         job["logs"].append("[DONE] Pipeline execution completed successfully!")
 
-    except Exception as exc:
+    except (Exception, SystemExit) as exc:
         job["status"] = "error"
         job["error"] = str(exc)
         job["logs"].append(f"[ERROR] Pipeline halted: {exc}")
