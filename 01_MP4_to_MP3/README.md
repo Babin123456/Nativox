@@ -206,7 +206,7 @@ Streams the extracted MP3 audio file with range requests for seeking.
 ## 👥 Authors & Academic Context
 
 - **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
-- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
