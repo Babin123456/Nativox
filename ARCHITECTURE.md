@@ -186,10 +186,9 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 2. Stage 2 transcribes speech into timestamped tokens.
 3. Stage 3 isolates domain keywords.
 4. Stage 4 reconstructs grammatically sound sentences from keywords using document-trained models.
-5. Stage 5(a) maps keywords to the target language and generates phonetic guides.
-6. Stage 5(b) removes fillers and formats vernacular Hindi sentences.
-7. **Stage 6 synthesizes natural target-language speech matching the speaker's detected gender (`hi-IN-MadhurNeural` for Male, `hi-IN-SwaraNeural` for Female) and adaptive pacing.**
-8. **Stage 7 merges the original video with the dubbed MP3, guaranteeing 100% video length preservation to produce the final dubbed MP4.**
+5. Stage 5(b) removes fillers, restores conversational flow, and formats vernacular Hindi sentences (Stage 5(a) remains as a standalone research module).
+6. **Stage 6 synthesizes natural target-language speech matching the speaker's detected gender (`hi-IN-MadhurNeural` for Male, `hi-IN-SwaraNeural` for Female) and adaptive pacing.**
+7. **Stage 7 merges the original video with the dubbed MP3, guaranteeing 100% video length preservation to produce the final dubbed MP4.**
 
 ---
 
