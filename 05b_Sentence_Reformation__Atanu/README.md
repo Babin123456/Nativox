@@ -48,10 +48,10 @@ Stage 5(b) addresses two critical directives set by project mentor **Dr. Debjit 
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 05b_Sentence_Reformation__Atanu/backend
+cd 05b_Sentence_Reformation__Atanu
 ```
 
 ### 2. Choose Your Setup Track
@@ -127,11 +127,11 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   python -m uvicorn main:app --reload --port 8012
   ```
 
-The web interface will open at **`http://127.0.0.1:8012`**.
+The service will start at **`http://127.0.0.1:8012`**. Visit **`http://127.0.0.1:8012/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8012`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8012`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/api/reconstruct` and `/api/precis`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 5(b) operates as a headless FastAPI microservice. You can reconstruct sentences and compute paragraph précis directly using the Swagger UI at `http://127.0.0.1:8012/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -220,18 +220,15 @@ Compresses full transcript paragraphs into a 35%–40% Hindi précis summary.
 ```text
 05b_Sentence_Reformation__Atanu/
 ├── README.md                  # Stage documentation
-├── main.py                    # Root convenience entrypoint
-├── backend/
-│   ├── main.py                # FastAPI REST endpoints & static server
-│   ├── requirements.txt       # FastAPI, Uvicorn, deep-translator, pydantic
-│   ├── test_reformation.py    # Unit & validation test suite
-│   └── app/
-│       ├── precis.py          # 35%-40% paragraph précis compression engine
-│       ├── reformer.py        # Disfluency cleaner & SOV Hindi reconstruction
-│       └── schemas.py         # Pydantic request & response models
-└── frontend/
-    ├── favicon.webp           # WebP brand favicon
-    └── index.html             # Real-time sentence reformation & précis dashboard
+├── main.py                    # FastAPI REST endpoints & status server
+├── requirements.txt           # FastAPI, Uvicorn, deep-translator, pydantic
+├── test_reformation.py        # Unit & validation test suite
+├── static/
+│   └── favicon.webp           # Stage 3D icon
+└── app/
+    ├── precis.py              # 35%-40% paragraph précis compression engine
+    ├── reformer.py            # Disfluency cleaner & SOV Hindi reconstruction
+    └── schemas.py             # Pydantic request & response models
 ```
 
 ---
