@@ -16,9 +16,9 @@
       --border: #2B384E;
       --text: #F1F5F9;
       --text-muted: #94A3B8;
-      --primary: #38BDF8;
-      --primary-hover: #0284C7;
-      --primary-glow: rgba(56, 189, 248, 0.15);
+      --primary: #F97316;
+      --primary-hover: #EA580C;
+      --primary-glow: rgba(249, 115, 22, 0.2);
       --accent: #E8A33D;
       --accent-glow: rgba(232, 163, 61, 0.15);
       --success: #34D399;
@@ -85,6 +85,51 @@
       line-height: 1.5;
       max-width: 680px;
       margin: 0 auto;
+    }
+
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
+    }
+
+    .flow-step.active {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--step-color, var(--primary));
+      color: var(--step-color, var(--primary));
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.4;
     }
 
     /* Tabs */
@@ -440,46 +485,42 @@
       </p>
 
       <!-- Suite Pipeline Flow -->
-      <div class="pipeline-flow" style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; margin-top:20px;">
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="video" style="width:14px;height:14px;"></i>
-          1. MP4→MP3
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="mic" style="width:14px;height:14px;"></i>
-          2. MP3→Text
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="key" style="width:14px;height:14px;"></i>
-          3. Keywords
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="file-text" style="width:14px;height:14px;"></i>
-          4. Sentences
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="languages" style="width:14px;height:14px;"></i>
-          5a. Translate
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--primary-glow); border:1px solid rgba(56,189,248,0.5); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--primary); font-weight:700; box-shadow:0 0 14px rgba(56,189,248,0.2);">
-          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
-          5b. Reform
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="volume-2" style="width:14px;height:14px;"></i>
-          6. Speech
-        </span>
-        <span style="color:var(--text-muted); font-size:11px; opacity:0.5;">→</span>
-        <span class="flow-step" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:12px; color:var(--text-muted); font-weight:500;">
-          <i data-lucide="film" style="width:14px;height:14px;"></i>
-          7. Final MP4
-        </span>
+      <div class="pipeline-flow">
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #6366F1;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#6366F1;"></i> 0. Auto Pip
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: #0EA5E9;">
+          <i data-lucide="video" style="width:14px;height:14px;color:#0EA5E9;"></i> 1. MP4→MP3
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: #F59E0B;">
+          <i data-lucide="mic" style="width:14px;height:14px;color:#F59E0B;"></i> 2. MP3→Text
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: #10B981;">
+          <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #8B5CF6;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#8B5CF6;"></i> 4. Sentences
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: #06B6D4;">
+          <i data-lucide="languages" style="width:14px;height:14px;color:#06B6D4;"></i> 5a. Translate
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8012" class="flow-step active" style="--step-color: #F97316;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #EC4899;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#EC4899;"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
+          <i data-lucide="film" style="width:14px;height:14px;color:#22C55E;"></i> 7. Final MP4
+        </a>
       </div>
     </header>
 
