@@ -18,7 +18,7 @@ Part of the **Nativox** AI Multilingual Dubbing Suite.
 
 ## 📖 Operational Overview
 
-Stage 5(b) addresses two critical directives set by project mentor **Dr. Debjit Ghosh**:
+Stage 5(b) addresses two critical directives set by project mentor **Mr. Debjit Ghosh**:
 
 1. **Task 1: Meaningless $\to$ Meaningful Sentence Reformation:**  
    Spoken audio transcripts and raw translated keyword sequences often lack grammatical coherence, case markers (*vibhakti*), and correct word order. Stage 5(b) takes meaningless or broken speech segments as input, eliminates verbal disfluencies (*"um, uh, basically, you know"*), restores predicate syntax, and synthesizes natural, grammatically correct Hindi sentences (Subject-Object-Verb, SOV).
@@ -236,7 +236,7 @@ Compresses full transcript paragraphs into a 35%–40% Hindi précis summary.
 ## 👥 Authors & Academic Context
 
 - **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
-- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
