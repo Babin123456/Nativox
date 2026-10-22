@@ -52,10 +52,10 @@ The extracted MP3 serves as the clean acoustic input for **Stage 2 (Automatic Sp
 
 ## 🚀 Setup & Execution
 
-### 1. Navigate to Backend Directory
+### 1. Navigate to Stage Directory
 
 ```bash
-cd 01_MP4_to_MP3/backend
+cd 01_MP4_to_MP3
 ```
 
 ### 2. Choose Your Setup Track
@@ -77,7 +77,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **Windows Git Bash:**
@@ -86,7 +86,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **macOS / Linux:**
@@ -95,7 +95,7 @@ Use this track if your default system `python` command is Python 3.11.
   python3 -m venv venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 ---
@@ -110,7 +110,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **Windows Git Bash:**
@@ -119,7 +119,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **macOS / Linux:**
@@ -128,14 +128,14 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
-The web interface will open at **`http://127.0.0.1:8000`**.
+The service will start at **`http://127.0.0.1:8001`**. Visit **`http://127.0.0.1:8001/docs`** for interactive Swagger API testing.
 
-> [!IMPORTANT]
-> **Access via `http://127.0.0.1:8000`, not raw `index.html`:**
-> The FastAPI backend serves `frontend/index.html` directly on port `8000`. Opening `index.html` directly via `file:///` causes browser CORS errors that block requests to `/extract`.
+> [!TIP]
+> **Headless Microservice & Swagger Docs:**
+> Stage 1 operates as a headless FastAPI microservice. You can test uploading videos and extracting audio directly in the interactive Swagger UI at `http://127.0.0.1:8001/docs`. The 3D favicon is served on `/favicon.webp` and `/favicon.ico`.
 
 ---
 
@@ -146,7 +146,7 @@ graph LR
     A["Raw Video File (.mp4 / .mov / .mkv)"] --> B["FastAPI Upload Staging"]
     B --> C["FFmpeg Binary Subprocess (libmp3lame)"]
     C --> D["Extracted MP3 Audio File"]
-    D --> E["Side-by-Side Synchronized HTML5 Preview"]
+    D --> E["FastAPI Interactive Docs (/docs)"]
     D -.-> F["Input to Stage 2 (ASR Transcription)"]
 
     linkStyle default stroke:#0284C7,stroke-width:2.5px;
@@ -191,11 +191,11 @@ Streams the extracted MP3 audio file with range requests for seeking.
 ```text
 01_MP4_to_MP3/
 ├── README.md               # Stage documentation
-├── backend/
-│   ├── main.py             # FastAPI REST endpoints & FFmpeg subprocess executor
-│   └── requirements.txt    # FastAPI, Uvicorn, Python-Multipart
+├── main.py                 # FastAPI REST endpoints & FFmpeg subprocess executor
+├── requirements.txt        # FastAPI, Uvicorn, Python-Multipart
 ├── frontend/
-│   └── index.html          # Dual-player side-by-side UI
+│   ├── favicon.webp        # Stage 3D icon
+│   └── index.html          # Interactive stage web interface
 └── storage/
     ├── uploads/            # Temporary incoming video files
     └── outputs/            # Transcoded audio output files
@@ -206,7 +206,7 @@ Streams the extracted MP3 audio file with range requests for seeking.
 ## 👥 Authors & Academic Context
 
 - **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
-- **Faculty Guide:** Dr. Debjit Ghosh (Department of Computer Science & Engineering)
+- **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---

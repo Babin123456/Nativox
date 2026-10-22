@@ -15,7 +15,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.merger import merge_video_audio, probe_media, find_ffmpeg
@@ -39,7 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 UPLOAD_DIR = BASE_DIR / "storage" / "uploads"
 OUTPUT_DIR = BASE_DIR / "storage" / "outputs"
@@ -103,6 +103,7 @@ async def merge_endpoint(
         )
 
     job_id = uuid.uuid4().hex[:10]
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     video_path = UPLOAD_DIR / f"{job_id}_video{video_ext}"
     audio_path = UPLOAD_DIR / f"{job_id}_audio{audio_ext}"
 
@@ -215,18 +216,19 @@ def probe_endpoint(filename: str):
     }
 
 
-# ── Frontend Static Serving ───────────────────────────────────────────────
+# ── Static Assets (Favicon) & Service Status ───────────────────────────────
 
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/")
-def serve_index():
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
     index_file = FRONTEND_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(str(index_file))
-    return {"message": "Nativox Stage 7 Backend is Running. Frontend not found."}
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Video Merger Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)

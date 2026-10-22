@@ -20,21 +20,12 @@ STAGES = {
 }
 
 SERVICE_CONFIG = {
-    "mp4_to_mp3": ("01_MP4_to_MP3\\backend", 8001, "/health"),
-    "mp3_to_text": ("02_MP3_to_Text\\backend", 8002, "/api/languages"),
-    "text_to_kw": ("03_Text_to_Keyword\\backend", 8003, "/api/health"),
-    "kw_translation": (
-        "05a_Keyword_Translation__Sagnik\\backend",
-        8011,
-        "/api/health",
-    ),
-    "sentence_reformation": (
-        "05b_Sentence_Reformation__Atanu\\backend",
-        8012,
-        "/api/health",
-    ),
-    "text_to_mp3": ("06_Converted_Text_to_MP3\\backend", 8013, "/api/health"),
-    "merge_mp3_mp4": ("07_Merge_MP3_with_MP4\\backend", 8014, "/api/health"),
+    "mp4_to_mp3": ("01_MP4_to_MP3", 8001, "/health"),
+    "mp3_to_text": ("02_MP3_to_Text", 8002, "/api/languages"),
+    "text_to_kw": ("03_Text_to_Keyword", 8003, "/api/health"),
+    "sentence_reformation": ("05b_Sentence_Reformation__Atanu", 8012, "/api/health"),
+    "text_to_mp3": ("06_Converted_Text_to_MP3", 8013, "/api/health"),
+    "merge_mp3_mp4": ("07_Merge_MP3_with_MP4", 8014, "/api/health"),
 }
 STARTUP_TIMEOUT_SECONDS = 120
 
@@ -71,9 +62,9 @@ def start_services(root: Path) -> list[subprocess.Popen]:
         except requests.RequestException:
             pass
 
-        backend_dir = root / relative_dir
-        if not backend_dir.is_dir():
-            raise SystemExit(f"Backend directory for '{stage}' was not found: {backend_dir}")
+        stage_dir = root / relative_dir
+        if not stage_dir.is_dir():
+            raise SystemExit(f"Directory for '{stage}' was not found: {stage_dir}")
         print(f"[start] {stage} on port {port}")
         process = subprocess.Popen(
             [
@@ -86,7 +77,7 @@ def start_services(root: Path) -> list[subprocess.Popen]:
                 "--port",
                 str(port),
             ],
-            cwd=backend_dir,
+            cwd=stage_dir,
             env=os.environ.copy(),
         )
         owned_processes.append(process)
@@ -120,7 +111,7 @@ def call(stage: str, path: str, **kwargs) -> requests.Response:
         response = requests.post(url, timeout=900, **kwargs)
     except requests.exceptions.ConnectionError as exc:
         raise SystemExit(
-            f"Stage '{stage}' is not running at {url}. Run start_all.bat first."
+            f"Stage '{stage}' is not running at {url}. Start the services or run with auto-start enabled."
         ) from exc
     except requests.exceptions.Timeout as exc:
         raise SystemExit(f"Stage '{stage}' timed out while calling {url}.") from exc
@@ -142,7 +133,7 @@ def download(stage: str, path: str) -> requests.Response:
         response = requests.get(url, timeout=900)
     except requests.exceptions.ConnectionError as exc:
         raise SystemExit(
-            f"Stage '{stage}' is not running at {url}. Run start_all.bat first."
+            f"Stage '{stage}' is not running at {url}. Start the services or run with auto-start enabled."
         ) from exc
     except requests.exceptions.Timeout as exc:
         raise SystemExit(f"Stage '{stage}' timed out while downloading {url}.") from exc
@@ -237,8 +228,11 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     if str(stage4_dir) not in sys.path:
         sys.path.insert(0, str(stage4_dir))
     try:
-        from construct import SentenceConstructor
-        constructor = SentenceConstructor(model_path=str(stage4_dir / "saved_model"))
+        import importlib
+        construct_mod = importlib.import_module("construct")
+        SentenceConstructor = getattr(construct_mod, "SentenceConstructor")
+        model_dir = stage4_dir / "saved_model"
+        constructor = SentenceConstructor(model_path=str(model_dir))
         constructed_sentence = constructor.construct(keyword_text).strip()
     except OSError as exc:
         if exc.errno == 4551 or "c10.dll" in str(exc):
@@ -255,22 +249,8 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     )
     print(f"     saved {work / 'constructed_sentence.txt'}")
 
-    # Stage 05a: translate keywords for the terminology/phonetic bridge.
-    print("[05a] Translating keywords for terminology support...")
-    r = call(
-        "kw_translation",
-        "/api/translate-batch",
-        json={"keywords": keywords, "target_language": "hindi"},
-    )
-    translation_result = json_result(r, "kw_translation")
-    (work / "translated_keywords.json").write_text(
-        json.dumps(translation_result, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    print(f"     saved {work / 'translated_keywords.json'}")
-
-    # Stage 05b: sentence -> meaningful Hindi précis.
-    print("[05b] Re-forming and compressing the sentence...")
+    # Stage 05b: sentence -> meaningful Hindi translation & précis (skipping 05a).
+    print("[05b] Re-forming and translating sentence (Stage 05b)...")
     r = call(
         "sentence_reformation",
         "/api/pipeline",
@@ -342,12 +322,49 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     return work
 
 
+def check_services_status() -> None:
+    print("[*] Checking status of Nativox microservices:")
+    all_ok = True
+    for stage, (relative_dir, port, health_path) in SERVICE_CONFIG.items():
+        url = f"{STAGES[stage]}{health_path}"
+        try:
+            r = requests.get(url, timeout=2)
+            if r.ok:
+                print(f"  [ONLINE]  {stage:<22} port {port} -> {url}")
+            else:
+                print(f"  [ERROR]   {stage:<22} port {port} -> HTTP {r.status_code}")
+                all_ok = False
+        except requests.RequestException:
+            print(f"  [OFFLINE] {stage:<22} port {port} -> {url}")
+            all_ok = False
+    print("Stage 04 (Sentence Construction) is loaded in-process or available on port 8004.")
+    if all_ok:
+        print("\n[+] All HTTP stage microservices are healthy and reachable.")
+    else:
+        print("\n[!] Some services are offline. Run orchestrator with auto-start enabled to launch them automatically.")
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise SystemExit(
-            'Usage: python orchestrator.py "path\\to\\video.mp4" '
-            '[--work-dir "output\\folder"]'
+    if len(sys.argv) < 2 or sys.argv[1] in ("--help", "-h"):
+        print(
+            "Nativox Pipeline Orchestrator\n"
+            "Usage:\n"
+            '  python orchestrator.py "path/to/video.mp4" [--work-dir "output/folder"]\n'
+            '  python orchestrator.py "path/to/video.mp4" --no-auto-start\n'
+            "  python orchestrator.py --status\n"
+            "  python orchestrator.py --start-services\n"
         )
+        sys.exit(0)
+
+    if sys.argv[1] in ("--status", "-s"):
+        check_services_status()
+        sys.exit(0)
+
+    if sys.argv[1] == "--start-services":
+        root = Path(__file__).resolve().parent.parent
+        start_services(root)
+        print("[+] All HTTP stages are ready.")
+        sys.exit(0)
 
     input_argument = sys.argv[1]
     work_dir = None
@@ -360,7 +377,7 @@ if __name__ == "__main__":
             auto_start = False
         else:
             raise SystemExit(
-                'Usage: python orchestrator.py "path\\to\\video.mp4" '
-                '[--work-dir "output\\folder"] [--no-auto-start]'
+                'Usage: python orchestrator.py "path/to/video.mp4" '
+                '[--work-dir "output/folder"] [--no-auto-start] [--status]'
             )
-    run_pipeline(input_argument, work_dir, auto_start=auto_start)
+    run_pipeline(input_argument, work_dir, auto_start=auto_start)

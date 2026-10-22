@@ -15,7 +15,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import (
@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
 
 
 @app.get("/api/languages")
@@ -103,13 +103,18 @@ async def transcribe(
     }
 
 
-# --- Serve the frontend from the same process ---------------------------
-app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+# --- Serve static assets (favicon) --------------------------------------
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/")
-def index():
-    return FileResponse(str(FRONTEND_DIR / "index.html"))
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Transcribe Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nativox — Stage 00: Automatic Pipeline Orchestrator</title>
+  <meta name="description" content="Master end-to-end neural AI video dubbing pipeline orchestrator. Executes audio extraction, Whisper transcription, keyword isolation, T5 syntax reconstruction, terminology translation, précis reformation, Edge neural TTS, and remuxing automatically." />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #8B5CF6;
+      --primary-hover: #7C3AED;
+      --primary-glow: rgba(139, 92, 246, 0.25);
+      --accent: #E8A33D;
+      --success: #22C55E;
+      --success-glow: rgba(34, 197, 94, 0.2);
+      --danger: #F87171;
+      --radius: 12px;
+
+      /* Stage Colors */
+      --c-00: #8B5CF6;
+      --c-01: #0EA5E9;
+      --c-02: #F59E0B;
+      --c-03: #10B981;
+      --c-04: #38BDF8;
+      --c-05a: #06B6D4;
+      --c-05b: #F97316;
+      --c-06: #F43F5E;
+      --c-07: #22C55E;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-glow);
+      color: #DDD6FE;
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* ── Pipeline Flow Bar ───────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 22px;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
+    }
+
+    .flow-step.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--primary);
+      color: #DDD6FE;
+      font-weight: 700;
+      box-shadow: 0 0 14px rgba(139, 92, 246, 0.25);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.4;
+    }
+
+    /* ── Service Health Grid ─────────────────────────────────── */
+    .services-bar {
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .services-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .services-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .services-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .service-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .service-chip.online {
+      border-color: rgba(34, 197, 94, 0.35);
+      color: #86EFAC;
+    }
+
+    .service-chip.offline {
+      border-color: rgba(248, 113, 113, 0.35);
+      color: #FCA5A5;
+    }
+
+    .dot-status {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    .service-chip.online .dot-status {
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* ── Main Execution Card ─────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ── Dropzone ────────────────────────────────────────────── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--surface-alt);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .dropzone:hover, .dropzone.drag {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .dz-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .dz-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .dz-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    #fileInput { display: none; }
+
+    .file-chip {
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .file-chip.show { display: flex; }
+    .file-chip span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--primary); }
+    .file-chip button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+    }
+    .file-chip button:hover { color: var(--danger); }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #FFFFFF;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* ── Progress Tracker ────────────────────────────────────── */
+    .progress-section {
+      margin-top: 24px;
+      display: none;
+    }
+
+    .progress-section.show { display: block; }
+
+    .progress-bar-wrap {
+      background: var(--surface-alt);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--c-01), var(--c-03), var(--c-05b), var(--c-07));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .stages-stepper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .step-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .step-card.active {
+      border-color: var(--card-color);
+      color: var(--card-color);
+      background: rgba(255, 255, 255, 0.03);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+      font-weight: 700;
+    }
+
+    .step-card.done {
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #86EFAC;
+    }
+
+    /* Terminal logs */
+    .log-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #CBD5E1;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .log-entry { margin-bottom: 4px; }
+    .log-entry.error { color: var(--danger); }
+    .log-entry.done { color: var(--success); font-weight: 700; }
+
+    /* ── Side-by-Side Result Comparison ──────────────────────── */
+    .results-grid {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    .media-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .media-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .media-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    video {
+      width: 100%;
+      max-height: 250px;
+      border-radius: 8px;
+      background: #000;
+      border: 1px solid var(--border);
+      outline: none;
+    }
+
+    .download-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-dl {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .btn-dl:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-dl.primary-dl {
+      background: var(--success);
+      color: #052014;
+      font-weight: 700;
+      border: none;
+    }
+    .btn-dl.primary-dl:hover {
+      filter: brightness(1.1);
+      color: #000;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    footer strong {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="badge">
+        <i data-lucide="workflow" style="width:16px;height:16px;"></i>
+        Stage 00 — Automatic Pipeline Orchestrator
+      </div>
+      <h1>Neural AI Video Dubbing Suite</h1>
+      <p class="subtitle">
+        Master pipeline orchestrator uniting all 8 microservices. Automatically extracts, transcribes, translates, reconstructs, reforms précis, synthesizes neural voice, and remuxes full dubbed videos.
+      </p>
+
+      <!-- Complete Suite Pipeline Flow (Consistent Numbering & Icons) -->
+      <div class="pipeline-flow">
+        <a href="http://127.0.0.1:8000" class="flow-step active" style="--step-color: var(--c-00);">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:var(--c-00);"></i> 0. Auto Pip
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: var(--c-01);">
+          <i data-lucide="video" style="width:14px;height:14px;color:var(--c-01);"></i> 1. MP4→MP3
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: var(--c-02);">
+          <i data-lucide="mic" style="width:14px;height:14px;color:var(--c-02);"></i> 2. MP3→Text
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: var(--c-03);">
+          <i data-lucide="key" style="width:14px;height:14px;color:var(--c-03);"></i> 3. Keywords
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: var(--c-04);">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:var(--c-04);"></i> 4. Sentences
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8012" class="flow-step" style="--step-color: var(--c-05b);">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--c-05b);"></i> 5. Reform
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: var(--c-06);">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:var(--c-06);"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: var(--c-07);">
+          <i data-lucide="film" style="width:14px;height:14px;color:var(--c-07);"></i> 7. Final MP4
+        </a>
+      </div>
+    </header>
+
+    <!-- Services Health Monitor -->
+    <div class="services-bar">
+      <div class="services-header">
+        <div class="services-title">
+          <i data-lucide="activity" style="width:16px;height:16px;color:var(--primary);"></i>
+          Microservice Health Monitor
+        </div>
+        <button type="button" class="btn-dl" onclick="refreshServicesStatus()">
+          <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i> Refresh Status
+        </button>
+      </div>
+      <div class="services-chips" id="servicesChips">
+        <span class="service-chip">Checking stage statuses...</span>
+      </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card">
+      <div class="card-title">
+        <i data-lucide="upload-cloud" style="width:20px;height:20px;color:var(--primary);"></i>
+        Upload Source Video for Automated Dubbing
+      </div>
+
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload video file dropzone">
+        <div class="dz-icon-wrap">
+          <i data-lucide="video" style="width:26px;height:26px;"></i>
+        </div>
+        <div class="dz-title">Click to choose a video, or drag and drop here</div>
+        <div class="dz-sub">Supports MP4, MOV, MKV, AVI, and WebM video files</div>
+      </div>
+      <input type="file" id="fileInput" accept=".mp4,.mov,.mkv,.avi,.webm,.m4v" />
+
+      <div class="file-chip" id="fileChip">
+        <i data-lucide="file-video" style="width:16px;height:16px;"></i>
+        <span id="fileName"></span>
+        <button type="button" id="clearBtn" aria-label="Clear selected file">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+
+      <button id="runBtn" class="btn-primary" disabled onclick="executeAutomatedPipeline()">
+        <i data-lucide="play" style="width:18px;height:18px;"></i>
+        Execute Full End-to-End Dubbing Pipeline
+      </button>
+
+      <!-- Multi-Stage Progress Tracker -->
+      <div class="progress-section" id="progressSection">
+        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:8px;">
+          <span id="stepName" style="color:var(--primary);">Initializing pipeline...</span>
+          <span id="progressPct" style="font-family:'JetBrains Mono',monospace;">0%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="stages-stepper">
+          <div class="step-card" id="step1" style="--card-color: var(--c-01);">
+            <i data-lucide="video" style="width:14px;height:14px;"></i>
+            <span>1. MP4→MP3</span>
+          </div>
+          <div class="step-card" id="step2" style="--card-color: var(--c-02);">
+            <i data-lucide="mic" style="width:14px;height:14px;"></i>
+            <span>2. Whisper</span>
+          </div>
+          <div class="step-card" id="step3" style="--card-color: var(--c-03);">
+            <i data-lucide="key" style="width:14px;height:14px;"></i>
+            <span>3. Keywords</span>
+          </div>
+          <div class="step-card" id="step4" style="--card-color: var(--c-04);">
+            <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+            <span>4. Sentences</span>
+          </div>
+          <div class="step-card" id="step5" style="--card-color: var(--c-05b);">
+            <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+            <span>5. Reform</span>
+          </div>
+          <div class="step-card" id="step6" style="--card-color: var(--c-06);">
+            <i data-lucide="volume-2" style="width:14px;height:14px;"></i>
+            <span>6. Speech</span>
+          </div>
+          <div class="step-card" id="step7" style="--card-color: var(--c-07);">
+            <i data-lucide="film" style="width:14px;height:14px;"></i>
+            <span>7. Final MP4</span>
+          </div>
+        </div>
+
+        <!-- Live Terminal Log -->
+        <div class="log-box" id="logBox">
+          <div class="log-entry">Waiting for pipeline trigger...</div>
+        </div>
+      </div>
+
+      <!-- Results Grid (Dual Video Comparison) -->
+      <div class="results-grid" id="resultsGrid">
+        <div class="media-box">
+          <div class="media-header">
+            <div class="media-title">
+              <i data-lucide="video" style="width:16px;height:16px;color:var(--c-01);"></i>
+              Original Source Video
+            </div>
+            <span style="font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--text-muted);">Source Track</span>
+          </div>
+          <video id="origVideoPreview" controls></video>
+        </div>
+
+        <div class="media-box" style="border-color: rgba(34, 197, 94, 0.4);">
+          <div class="media-header">
+            <div class="media-title" style="color:var(--c-07);">
+              <i data-lucide="film" style="width:16px;height:16px;color:var(--c-07);"></i>
+              Final Dubbed Video (Output)
+            </div>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(34, 197, 94, 0.15); color:var(--success); font-weight:700;">
+              Ready
+            </span>
+          </div>
+          <video id="finalVideoPlayer" controls></video>
+          
+          <div class="download-row">
+            <a id="dlFinalVideo" class="btn-dl primary-dl" download>
+              <i data-lucide="download" style="width:14px;height:14px;"></i> Download Final MP4
+            </a>
+            <a id="dlAudio" class="btn-dl" download>
+              <i data-lucide="music" style="width:14px;height:14px;"></i> Dubbed Audio
+            </a>
+            <a id="dlTranscript" class="btn-dl" download>
+              <i data-lucide="file-text" style="width:14px;height:14px;"></i> Transcript
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Mr. Debjit Ghosh</strong>
+      </p>
+    </footer>
+
+  </div>
+
+  <script>
+    let selectedFile = null;
+    let currentJobId = null;
+    let pollInterval = null;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileChip = document.getElementById('fileChip');
+    const fileName = document.getElementById('fileName');
+    const clearBtn = document.getElementById('clearBtn');
+    const runBtn = document.getElementById('runBtn');
+    const progressSection = document.getElementById('progressSection');
+    const progressFill = document.getElementById('progressFill');
+    const progressPct = document.getElementById('progressPct');
+    const stepName = document.getElementById('stepName');
+    const logBox = document.getElementById('logBox');
+    const resultsGrid = document.getElementById('resultsGrid');
+    const origVideoPreview = document.getElementById('origVideoPreview');
+    const finalVideoPlayer = document.getElementById('finalVideoPlayer');
+    const dlFinalVideo = document.getElementById('dlFinalVideo');
+    const dlAudio = document.getElementById('dlAudio');
+    const dlTranscript = document.getElementById('dlTranscript');
+
+    function renderIcons() {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      fileChip.classList.remove('show');
+      runBtn.disabled = true;
+      progressSection.classList.remove('show');
+      resultsGrid.style.display = 'none';
+      origVideoPreview.src = '';
+      finalVideoPlayer.src = '';
+    });
+
+    function handleFile(file) {
+      selectedFile = file;
+      fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)`;
+      fileChip.classList.add('show');
+      runBtn.disabled = false;
+      origVideoPreview.src = URL.createObjectURL(file);
+    }
+
+    async function refreshServicesStatus() {
+      const container = document.getElementById('servicesChips');
+      try {
+        const res = await fetch('/api/services-status');
+        const data = await res.json();
+        container.innerHTML = '';
+
+        const names = {
+          mp4_to_mp3: "01 MP4→MP3",
+          mp3_to_text: "02 Whisper",
+          text_to_kw: "03 Keywords",
+          kw_translation: "05a Translate",
+          sentence_reformation: "05b Reform",
+          text_to_mp3: "06 TTS",
+          merge_mp3_mp4: "07 Merge",
+        };
+
+        for (const [key, info] of Object.entries(data.stages)) {
+          const chip = document.createElement('span');
+          chip.className = `service-chip ${info.online ? 'online' : 'offline'}`;
+          chip.innerHTML = `<span class="dot-status"></span> ${names[key] || key} (${info.port})`;
+          container.appendChild(chip);
+        }
+      } catch (e) {
+        container.innerHTML = '<span class="service-chip offline">Failed to fetch service health.</span>';
+      }
+    }
+
+    async function executeAutomatedPipeline() {
+      if (!selectedFile) return;
+
+      runBtn.disabled = true;
+      runBtn.innerHTML = '<span class="spinner"></span> Processing Full Pipeline...';
+      progressSection.classList.add('show');
+      resultsGrid.style.display = 'none';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const res = await fetch('/api/run-pipeline', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) throw new Error('Failed to start pipeline job.');
+        const data = await res.json();
+        currentJobId = data.job_id;
+
+        // Poll for progress
+        pollInterval = setInterval(pollJobProgress, 1200);
+      } catch (err) {
+        alert('Error: ' + err.message);
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i data-lucide="play" style="width:18px;height:18px;"></i> Execute Full End-to-End Dubbing Pipeline';
+        renderIcons();
+      }
+    }
+
+    async function pollJobProgress() {
+      if (!currentJobId) return;
+
+      try {
+        const res = await fetch(`/api/jobs/${currentJobId}`);
+        if (!res.ok) return;
+        const job = await res.json();
+
+        progressFill.style.width = `${job.progress}%`;
+        progressPct.textContent = `${job.progress}%`;
+        stepName.textContent = job.step_name;
+
+        // Update stepper
+        const stepMap = { 1: 'step1', 2: 'step2', 3: 'step3', 4: 'step4', 5: 'step5', 6: 'step6', 7: 'step7' };
+        for (let i = 1; i <= 7; i++) {
+          const el = document.getElementById(stepMap[i]);
+          if (!el) continue;
+          if (i < job.current_step || job.status === 'completed') {
+            el.className = 'step-card done';
+          } else if (i === job.current_step) {
+            el.className = 'step-card active';
+          } else {
+            el.className = 'step-card';
+          }
+        }
+
+        // Update logs
+        if (job.logs) {
+          logBox.innerHTML = job.logs.map(l => `<div class="log-entry">${l}</div>`).join('');
+          logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        if (job.status === 'completed') {
+          clearInterval(pollInterval);
+          runBtn.disabled = false;
+          runBtn.innerHTML = '<i data-lucide="check" style="width:18px;height:18px;"></i> Pipeline Finished Successfully!';
+          resultsGrid.style.display = 'grid';
+
+          finalVideoPlayer.src = `/api/jobs/${currentJobId}/final-video`;
+          dlFinalVideo.href = `/api/jobs/${currentJobId}/final-video`;
+          dlAudio.href = `/api/jobs/${currentJobId}/dubbed-audio`;
+          dlTranscript.href = `/api/jobs/${currentJobId}/artifact/transcript.txt`;
+          renderIcons();
+        } else if (job.status === 'error') {
+          clearInterval(pollInterval);
+          runBtn.disabled = false;
+          runBtn.innerHTML = '<i data-lucide="alert-circle" style="width:18px;height:18px;"></i> Execution Halted (See Logs)';
+          renderIcons();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    refreshServicesStatus();
+    renderIcons();
+  </script>
+</body>
+</html>

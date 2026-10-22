@@ -2,16 +2,18 @@
 Text to Keyword - backend entrypoint.
 
 Run with:
-    uvicorn main:app --reload --port 8010
+    uvicorn main:app --reload --port 8003
 
-Then open http://127.0.0.1:8010 in a browser - this same process serves
+Then open http://127.0.0.1:8003 in a browser - this same process serves
 both the API (under /api) and the static frontend (everything else).
 """
 
 import os
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -72,7 +74,25 @@ def extract(req: ExtractRequest):
     }
 
 
-# --- Serve the static frontend from the same process -----------------
-_FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-if os.path.isdir(_FRONTEND_DIR):
-    app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
+# --- Static assets (favicon) and service endpoints --------------------
+FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+
+
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Text to Keyword Online</h1>")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.webp", include_in_schema=False)
+def serve_favicon():
+    favicon_path = FRONTEND_DIR / "favicon.webp"
+    if favicon_path.exists():
+        return FileResponse(str(favicon_path), media_type="image/webp")
+    raise HTTPException(status_code=404, detail="Favicon not found")

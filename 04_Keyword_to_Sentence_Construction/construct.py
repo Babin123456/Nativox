@@ -43,8 +43,19 @@ class SentenceConstructor:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Determine model path
-        if os.path.exists(model_path) and os.path.exists(os.path.join(model_path, "config.json")):
-            load_target = model_path
+        resolved_path = None
+        candidate_paths = [
+            model_path,
+            os.path.join(os.path.dirname(__file__), "..", "saved_model"),
+            os.path.join(os.path.dirname(__file__), "saved_model"),
+        ]
+        for candidate in candidate_paths:
+            if candidate and os.path.exists(candidate) and os.path.exists(os.path.join(candidate, "config.json")):
+                resolved_path = candidate
+                break
+
+        if resolved_path:
+            load_target = resolved_path
             print(f"[OK] Loading fine-tuned model checkpoint from: {os.path.abspath(load_target)}")
         else:
             print(f"[!] Fine-tuned checkpoint not found at '{model_path}'.")

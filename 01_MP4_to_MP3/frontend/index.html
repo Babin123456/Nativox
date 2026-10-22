@@ -1,348 +1,666 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MP4 → MP3 Extractor</title>
-<link rel="icon" type="image/webp" href="/static/favicon.webp" />
-<style>
-  :root {
-    --bg: #0f1115;
-    --panel: #171a21;
-    --border: #262b36;
-    --accent: #5b8cff;
-    --accent-hover: #4472e8;
-    --text: #e7e9ee;
-    --muted: #8b91a1;
-    --error: #ff6b6b;
-    --success: #4cd97b;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .card {
-    width: 100%;
-    max-width: 960px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-  }
-  h1 {
-    font-size: 22px;
-    margin: 0 0 4px;
-  }
-  p.sub {
-    color: var(--muted);
-    margin: 0 0 24px;
-    font-size: 14px;
-  }
-  #dropzone {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 28px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  #dropzone.drag {
-    border-color: var(--accent);
-    background: rgba(91, 140, 255, 0.08);
-  }
-  #dropzone p {
-    margin: 8px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-  }
-  #fileInput { display: none; }
-  .filename {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--text);
-    word-break: break-all;
-    font-weight: 500;
-  }
-  button {
-    width: 100%;
-    margin-top: 16px;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    background: var(--accent);
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  button:hover:not(:disabled) { background: var(--accent-hover); }
-  button:disabled {
-    background: #2b2f3a;
-    color: var(--muted);
-    cursor: not-allowed;
-  }
-  #status {
-    margin-top: 16px;
-    font-size: 13px;
-    min-height: 18px;
-  }
-  #status.error { color: var(--error); }
-  #status.success { color: var(--success); }
-
-  /* Side-by-Side Dual View */
-  .comparison-grid {
-    margin-top: 24px;
-    display: none;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 768px) {
-    .comparison-grid {
-      grid-template-columns: 1fr;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nativox — Stage 1: MP4 to MP3 Audio Extractor</title>
+  <meta name="description" content="Extract high-fidelity MP3 audio from source MP4 video streams using hardware-accelerated FFmpeg. Part of the Nativox AI Multilingual Dubbing Suite." />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #0EA5E9;
+      --primary-hover: #0284C7;
+      --primary-glow: rgba(14, 165, 233, 0.2);
+      --accent: #E8A33D;
+      --success: #22C55E;
+      --danger: #F87171;
+      --radius: 12px;
     }
-  }
-  .media-box {
-    background: #11141a;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .media-box h3 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #cad1de;
-  }
-  .badge {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(91, 140, 255, 0.15);
-    color: var(--accent);
-    font-weight: 600;
-  }
-  video {
-    width: 100%;
-    max-height: 280px;
-    border-radius: 8px;
-    background: #000;
-    outline: none;
-  }
-  audio {
-    width: 100%;
-    outline: none;
-    margin-top: auto;
-  }
-  .audio-placeholder {
-    height: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 1px dashed var(--border);
-    border-radius: 8px;
-    background: #141820;
-    color: var(--muted);
-    font-size: 13px;
-    gap: 8px;
-  }
-  .audio-placeholder .icon {
-    font-size: 32px;
-  }
-  .download-link {
-    display: inline-block;
-    margin-top: 4px;
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .download-link:hover { text-decoration: underline; }
-  .icon { font-size: 28px; }
-</style>
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
+    }
+
+    .flow-step.active {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--step-color, var(--primary));
+      color: var(--step-color, var(--primary));
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.4;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ── Dropzone ────────────────────────────────────────────── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--surface-alt);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .dropzone:hover, .dropzone.drag {
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.06);
+    }
+
+    .dz-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .dz-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .dz-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    #fileInput { display: none; }
+
+    .file-chip {
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .file-chip.show { display: flex; }
+    .file-chip span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--primary); }
+    .file-chip button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    .file-chip button:hover { color: var(--danger); }
+
+    /* ── Action Buttons ──────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #07131D;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: #1C2636;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-msg {
+      margin-top: 16px;
+      font-size: 13.5px;
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-msg.error { color: var(--danger); }
+    .status-msg.success { color: var(--success); }
+
+    /* ── Side-by-Side Dual View ──────────────────────────────── */
+    .comparison-grid {
+      margin-top: 28px;
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .comparison-grid { grid-template-columns: 1fr; }
+    }
+
+    .media-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .media-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .media-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .tag-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    video {
+      width: 100%;
+      max-height: 260px;
+      border-radius: 8px;
+      background: #000;
+      outline: none;
+      border: 1px solid var(--border);
+    }
+
+    audio {
+      width: 100%;
+      outline: none;
+      border-radius: 8px;
+    }
+
+    .audio-placeholder {
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      font-size: 13.5px;
+      gap: 12px;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      background: var(--success);
+      color: #052014;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-download:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    footer strong {
+      color: var(--text);
+    }
+  </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>MP4 → MP3 Extractor</h1>
-  <p class="sub">Upload a video, preview the MP4 video on the left, and play or download the extracted MP3 on the right.</p>
+  <div class="container">
 
-  <div id="dropzone">
-    <div class="icon">🎬</div>
-    <p>Click to choose a video, or drag one here</p>
-    <div class="filename" id="filename"></div>
-  </div>
-  <input type="file" id="fileInput" accept=".mp4,.mov,.mkv,.avi,.webm,.m4v" />
-
-  <button id="extractBtn" disabled>Extract Audio</button>
-  <div id="status"></div>
-
-  <!-- Dual Comparison Grid: MP4 (Left) | Extracted MP3 (Right) -->
-  <div class="comparison-grid" id="comparisonGrid">
-    <div class="media-box" id="videoBox">
-      <h3>
-        <span>🎬 Uploaded Video</span>
-        <span class="badge">MP4 Source</span>
-      </h3>
-      <video id="videoPreview" controls></video>
-    </div>
-
-    <div class="media-box" id="audioBox">
-      <h3>
-        <span>🎵 Extracted Audio</span>
-        <span class="badge">MP3 Output</span>
-      </h3>
-      <div id="audioPlaceholder" class="audio-placeholder">
-        <span class="icon">⏳</span>
-        <span>Awaiting extraction...</span>
+    <!-- Header -->
+    <header>
+      <div class="badge">
+        <i data-lucide="video" style="width:16px;height:16px;"></i>
+        Stage 1 — FFmpeg Audio Extraction
       </div>
-      <div id="audioResult" style="display: none; flex-direction: column; gap: 12px; height: 100%;">
-        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
-          <div style="text-align: center; color: var(--success); font-size: 14px; font-weight: 500;">
-            ✓ Audio track isolated successfully
+      <h1>MP4 to MP3 Audio Extractor</h1>
+      <p class="subtitle">
+        High-throughput audio demuxing engine. Extracts pristine 192kbps MP3 audio streams from multi-format video containers without re-encoding delays.
+      </p>
+
+      <!-- Suite Pipeline Flow -->
+      <div class="pipeline-flow">
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #8B5CF6;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#8B5CF6;"></i> 0. Auto Pip
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8001" class="flow-step active" style="--step-color: #0EA5E9;">
+          <i data-lucide="video" style="width:14px;height:14px;color:#0EA5E9;"></i> 1. MP4→MP3
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: #F59E0B;">
+          <i data-lucide="mic" style="width:14px;height:14px;color:#F59E0B;"></i> 2. MP3→Text
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: #10B981;">
+          <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #38BDF8;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#38BDF8;"></i> 4. Sentences
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: #06B6D4;">
+          <i data-lucide="languages" style="width:14px;height:14px;color:#06B6D4;"></i> 5a. Translate
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8012" class="flow-step" style="--step-color: #F97316;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #F43F5E;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#F43F5E;"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
+          <i data-lucide="film" style="width:14px;height:14px;color:#22C55E;"></i> 7. Final MP4
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Card -->
+    <div class="card">
+      <div class="card-title">
+        <i data-lucide="upload-cloud" style="width:20px;height:20px;color:var(--primary);"></i>
+        Upload Source Video Container
+      </div>
+
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload video file dropzone">
+        <div class="dz-icon-wrap">
+          <i data-lucide="video" style="width:26px;height:26px;"></i>
+        </div>
+        <div class="dz-title">Click to browse or drag and drop your video file</div>
+        <div class="dz-sub">Accepts MP4, MOV, MKV, AVI, WEBM, and M4V containers</div>
+      </div>
+      <input type="file" id="fileInput" accept=".mp4,.mov,.mkv,.avi,.webm,.m4v" />
+
+      <div class="file-chip" id="fileChip">
+        <i data-lucide="file-video" style="width:16px;height:16px;"></i>
+        <span id="fileName"></span>
+        <button type="button" id="clearBtn" aria-label="Clear selected file">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+
+      <button id="extractBtn" class="btn-primary" disabled>
+        <i data-lucide="music" style="width:18px;height:18px;"></i>
+        Extract MP3 Audio
+      </button>
+      <div id="status" class="status-msg" aria-live="polite"></div>
+
+      <!-- Side-by-Side Dual View: MP4 (Left) | Extracted MP3 (Right) -->
+      <div class="comparison-grid" id="comparisonGrid">
+        <!-- Left: Uploaded Source Video -->
+        <div class="media-box" id="videoBox">
+          <div class="media-header">
+            <div class="media-title">
+              <i data-lucide="video" style="width:16px;height:16px;color:var(--primary);"></i>
+              Source Video Preview
+            </div>
+            <span class="tag-badge">MP4 Source</span>
+          </div>
+          <video id="videoPreview" controls aria-label="Source video player"></video>
+        </div>
+
+        <!-- Right: Extracted Audio -->
+        <div class="media-box" id="audioBox">
+          <div class="media-header">
+            <div class="media-title">
+              <i data-lucide="music" style="width:16px;height:16px;color:var(--success);"></i>
+              Extracted MP3 Track
+            </div>
+            <span class="tag-badge">MP3 Output</span>
+          </div>
+
+          <div id="audioPlaceholder" class="audio-placeholder">
+            <i data-lucide="clock" style="width:28px;height:28px;"></i>
+            <span>Awaiting extraction process...</span>
+          </div>
+
+          <div id="audioResult" style="display:none; flex-direction:column; gap:16px; height:100%;">
+            <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+              <div style="text-align:center; color:var(--success); font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+                Audio track isolated successfully
+              </div>
+            </div>
+            <audio id="audioPlayer" controls aria-label="Extracted MP3 audio player"></audio>
+            <a id="downloadLink" class="btn-download" download>
+              <i data-lucide="download" style="width:18px;height:18px;"></i>
+              Download MP3 Audio
+            </a>
           </div>
         </div>
-        <audio id="audioPlayer" controls></audio>
-        <div>
-          <a id="downloadLink" class="download-link" download>⬇ Download MP3 Audio</a>
-        </div>
       </div>
     </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Mr. Debjit Ghosh</strong>
+      </p>
+    </footer>
+
   </div>
-</div>
 
-<script>
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('fileInput');
-  const filenameEl = document.getElementById('filename');
-  const extractBtn = document.getElementById('extractBtn');
-  const statusEl = document.getElementById('status');
-  const comparisonGrid = document.getElementById('comparisonGrid');
-  const videoPreview = document.getElementById('videoPreview');
-  const audioPlaceholder = document.getElementById('audioPlaceholder');
-  const audioResult = document.getElementById('audioResult');
-  const audioPlayer = document.getElementById('audioPlayer');
-  const downloadLink = document.getElementById('downloadLink');
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileChip = document.getElementById('fileChip');
+    const fileName = document.getElementById('fileName');
+    const clearBtn = document.getElementById('clearBtn');
+    const extractBtn = document.getElementById('extractBtn');
+    const statusEl = document.getElementById('status');
+    const comparisonGrid = document.getElementById('comparisonGrid');
+    const videoPreview = document.getElementById('videoPreview');
+    const audioPlaceholder = document.getElementById('audioPlaceholder');
+    const audioResult = document.getElementById('audioResult');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const downloadLink = document.getElementById('downloadLink');
 
-  let selectedFile = null;
-  let videoObjectUrl = null;
-  let audioObjectUrl = null;
+    let selectedFile = null;
+    let videoObjectUrl = null;
+    let audioObjectUrl = null;
 
-  dropzone.addEventListener('click', () => fileInput.click());
-
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.classList.add('drag');
-  });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('drag');
-    if (e.dataTransfer.files.length) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  });
-
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files.length) handleFile(fileInput.files[0]);
-  });
-
-  function handleFile(file) {
-    selectedFile = file;
-    filenameEl.textContent = file.name;
-    extractBtn.disabled = false;
-    statusEl.textContent = '';
-    statusEl.className = '';
-
-    // Show Left Video Preview immediately
-    if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
-    videoObjectUrl = URL.createObjectURL(file);
-    videoPreview.src = videoObjectUrl;
-    
-    // Reset Right Audio Box to awaiting state
-    audioPlaceholder.style.display = 'flex';
-    audioResult.style.display = 'none';
-    comparisonGrid.style.display = 'grid';
-  }
-
-  extractBtn.addEventListener('click', async () => {
-    if (!selectedFile) return;
-
-    extractBtn.disabled = true;
-    statusEl.className = '';
-    statusEl.textContent = 'Extracting audio… processing video stream with FFmpeg.';
-    audioPlaceholder.innerHTML = '<span class="icon">⚙️</span><span>Extracting audio...</span>';
-
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    // Support opening both directly via http://127.0.0.1:8000 and external/file:// viewers
-    const endpoint = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && (window.location.port === '8000')
-      ? '/extract'
-      : 'http://127.0.0.1:8000/extract';
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        let message = `Extraction failed (HTTP ${response.status})`;
-        try {
-          const errText = await response.text();
-          try {
-            const errJson = JSON.parse(errText);
-            message = errJson.detail || message;
-          } catch (_) {
-            if (errText) message = `${message}: ${errText}`;
-          }
-        } catch (_) {}
-        throw new Error(message);
+    function renderIcons() {
+      if (window.lucide) {
+        lucide.createIcons();
       }
+    }
 
-      const blob = await response.blob();
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag');
+    });
+
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files[0]) {
+        handleFileSelect(fileInput.files[0]);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      fileChip.classList.remove('show');
+      extractBtn.disabled = true;
+      statusEl.textContent = '';
+      comparisonGrid.style.display = 'none';
+      if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
       if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
-      audioObjectUrl = URL.createObjectURL(blob);
+      videoObjectUrl = null;
+      audioObjectUrl = null;
+      videoPreview.src = '';
+      audioPlayer.src = '';
+    });
 
-      audioPlayer.src = audioObjectUrl;
-      downloadLink.href = audioObjectUrl;
-      downloadLink.download = selectedFile.name.replace(/\.[^/.]+$/, '') + '.mp3';
-
-      audioPlaceholder.style.display = 'none';
-      audioResult.style.display = 'flex';
-
-      statusEl.textContent = 'Extraction complete! Audio is ready on the right.';
-      statusEl.className = 'success';
-    } catch (err) {
-      console.error('Extraction error details:', err);
-      let message = err.message || 'Something went wrong.';
-      if (err.name === 'TypeError' && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
-        message = `Cannot reach backend at ${endpoint}. Please ensure the backend is running at http://127.0.0.1:8000.`;
-      }
-      statusEl.textContent = message;
-      statusEl.className = 'error';
-      audioPlaceholder.innerHTML = `<span class="icon">⚠️</span><span>${message}</span>`;
-    } finally {
+    function handleFileSelect(file) {
+      selectedFile = file;
+      fileName.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+      fileChip.classList.add('show');
       extractBtn.disabled = false;
-    }
-  });
-</script>
+      statusEl.textContent = '';
 
+      if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+      videoObjectUrl = URL.createObjectURL(file);
+      videoPreview.src = videoObjectUrl;
+      comparisonGrid.style.display = 'grid';
+
+      audioResult.style.display = 'none';
+      audioPlaceholder.style.display = 'flex';
+      renderIcons();
+    }
+
+    extractBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      extractBtn.disabled = true;
+      extractBtn.innerHTML = '<span class="spinner"></span> Extracting Audio Stream...';
+      statusEl.className = 'status-msg';
+      statusEl.textContent = 'Demuxing video audio track via FFmpeg...';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const response = await fetch('/extract-audio', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          let errDetail = 'Failed to extract audio.';
+          try {
+            const errJson = await response.json();
+            if (errJson.detail) errDetail = errJson.detail;
+          } catch (_) {}
+          throw new Error(errDetail);
+        }
+
+        const blob = await response.blob();
+        if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+        audioObjectUrl = URL.createObjectURL(blob);
+
+        audioPlayer.src = audioObjectUrl;
+        audioPlaceholder.style.display = 'none';
+        audioResult.style.display = 'flex';
+
+        const baseName = selectedFile.name.replace(/\.[^/.]+$/, "");
+        downloadLink.href = audioObjectUrl;
+        downloadLink.download = `${baseName}.mp3`;
+
+        statusEl.className = 'status-msg success';
+        statusEl.innerHTML = '<i data-lucide="check-circle" style="width:16px;height:16px;"></i> Audio extracted successfully!';
+        renderIcons();
+      } catch (err) {
+        statusEl.className = 'status-msg error';
+        statusEl.innerHTML = `<i data-lucide="alert-circle" style="width:16px;height:16px;"></i> ${err.message}`;
+        renderIcons();
+      } finally {
+        extractBtn.disabled = false;
+        extractBtn.innerHTML = '<i data-lucide="music" style="width:18px;height:18px;"></i> Extract MP3 Audio';
+        renderIcons();
+      }
+    });
+
+    renderIcons();
+  </script>
 </body>
 </html>

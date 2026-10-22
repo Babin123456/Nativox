@@ -1,7 +1,11 @@
 """
 Unit tests for Stage 5: Sentence Reformation & Précis Compression.
 """
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from app.reformer import clean_disfluencies, reconstruct_english_syntax, reconstruct_sentence
 from app.precis import compress_paragraph_to_budget, generate_precis

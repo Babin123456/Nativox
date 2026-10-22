@@ -1,305 +1,769 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Nativox — Keyword Translation</title>
-<link rel="icon" type="image/webp" href="/static/favicon.webp" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@500;600&family=Noto+Serif+Bengali:wght@500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --paper: #FAF7F0;
-    --paper-alt: #F1ECE0;
-    --ink: #1B2430;
-    --ink-soft: #5A6472;
-    --thread: #A3352B;
-    --line: #D8D2C4;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Inter', sans-serif;
-  }
-  body {
-    min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 48px 20px;
-  }
-  .page { width: 100%; max-width: 640px; position: relative; }
-  .ribbon {
-    position: absolute; top: -14px; left: 40px;
-    width: 18px; height: 46px; background: var(--thread);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
-    z-index: 2;
-  }
-  .card {
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 44px 40px 40px;
-  }
-  .kicker { font-size: 13px; color: var(--ink-soft); margin: 0 0 6px; }
-  .kicker .div { color: var(--thread); }
-  h1 {
-    font-family: 'Source Serif 4', serif;
-    font-weight: 600; font-size: 21px;
-    margin: 0 0 8px; line-height: 1.35;
-  }
-  .subhead {
-    font-size: 13.5px; color: var(--ink-soft); margin: 0 0 28px; line-height: 1.5;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nativox — Stage 5(a): Contextual Keyword Translation</title>
+  <meta name="description" content="Cross-lingual terminology translation and phonetic pronunciation transliteration across English, Hindi, and Bengali. Part of the Nativox AI Multilingual Dubbing Suite." />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #06B6D4;
+      --primary-hover: #0891B2;
+      --primary-glow: rgba(6, 182, 212, 0.15);
+      --accent: #E8A33D;
+      --accent-glow: rgba(232, 163, 61, 0.15);
+      --success: #34D399;
+      --success-glow: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --purple: #A78BFA;
+      --purple-glow: rgba(167, 139, 250, 0.15);
+      --radius: 12px;
+    }
 
-  label {
-    display: block; font-size: 12.5px; color: var(--ink-soft);
-    margin-bottom: 8px; font-style: italic;
-  }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  textarea {
-    width: 100%;
-    min-height: 140px;
-    resize: vertical;
-    border: none;
-    border-bottom: 2px solid var(--ink);
-    background: transparent;
-    outline: none;
-    font-family: 'Source Serif 4', 'Noto Serif Devanagari', 'Noto Serif Bengali', serif;
-    font-size: 19px;
-    color: var(--ink);
-    padding: 4px 2px 12px;
-    line-height: 1.6;
-  }
-  textarea::placeholder { color: #B7AF9E; font-weight: 400; font-family: 'Inter', sans-serif; font-size: 14px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+    }
 
-  .controls {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: 20px; gap: 16px; flex-wrap: wrap;
-  }
+    .container {
+      width: 100%;
+      max-width: 1080px;
+    }
 
-  .target-select {
-    display: flex; align-items: center; gap: 10px;
-  }
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
 
-  .target-select label { margin: 0; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
 
-  select {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    background: var(--paper-alt);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 8px 10px;
-    outline: none;
-    cursor: pointer;
-  }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
 
-  button {
-    border: none;
-    background: var(--thread);
-    color: var(--paper);
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 3px;
-    transition: background 0.15s ease;
-  }
-  button:hover { background: #862A22; }
-  button:disabled { background: #C9C2B2; cursor: default; }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 720px;
+      margin: 0 auto;
+    }
 
-  .status { margin-top: 24px; font-size: 14px; color: var(--ink-soft); min-height: 20px; }
-  .status.error { color: var(--thread); }
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
 
-  .results { margin-top: 8px; }
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
 
-  .results-head {
-    font-size: 13px; color: var(--ink-soft); margin: 30px 0 6px;
-  }
-  .results-head b { color: var(--ink); font-weight: 600; }
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
+    }
 
-  .row {
-    display: grid;
-    grid-template-columns: 30px 1fr 20px 1fr;
-    align-items: baseline;
-    gap: 12px;
-    padding: 14px 0;
-    border-top: 1px solid var(--line);
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  .row.show { animation: rise 0.35s ease forwards; }
+    .flow-step.active {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--step-color, var(--primary));
+      color: var(--step-color, var(--primary));
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
 
-  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.4;
+    }
 
-  .idx { font-size: 12px; color: var(--ink-soft); }
+    /* ── Main Dual Grid ──────────────────────────────────────── */
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
 
-  .src { }
-  .src .word { font-size: 17px; }
-  .src .word.hindi { font-family: 'Noto Serif Devanagari', serif; }
-  .src .word.bengali { font-family: 'Noto Serif Bengali', serif; }
-  .src .word.english { font-family: 'Source Serif 4', serif; font-weight: 600; }
-  .src .tag { display: block; font-size: 11px; color: var(--ink-soft); font-style: italic; margin-top: 2px; }
+    @media (max-width: 860px) {
+      .dual-grid { grid-template-columns: 1fr; }
+    }
 
-  .arrow { color: var(--thread); text-align: center; font-size: 15px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
 
-  .tgt .word { font-size: 19px; }
-  .tgt .word.hindi { font-family: 'Noto Serif Devanagari', serif; font-weight: 500; }
-  .tgt .word.bengali { font-family: 'Noto Serif Bengali', serif; font-weight: 500; }
-  .tgt .word.english { font-family: 'Source Serif 4', serif; font-weight: 600; }
-  .tgt .pron { font-size: 13px; color: var(--ink-soft); font-style: italic; margin-top: 2px; }
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .footer-note { margin-top: 34px; font-size: 12px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 14px; }
+    .card-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
 
-  @media (prefers-reduced-motion: reduce) {
-    .row, .row.show { animation: none; opacity: 1; transform: none; }
-  }
-  @media (max-width: 480px) {
-    .card { padding: 34px 22px 30px; }
-    .row { grid-template-columns: 22px 1fr 16px 1fr; gap: 8px; }
-    .src .word, .tgt .word { font-size: 15px; }
-  }
-</style>
+    textarea {
+      width: 100%;
+      height: 150px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14.5px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .char-count {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Target Selector */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: var(--surface-alt);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .control-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Samples */
+    .samples-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .sample-chip {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .sample-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #041B20;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-msg {
+      margin-top: 14px;
+      font-size: 12.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-msg.error { color: var(--danger); }
+    .status-msg.success { color: var(--success); }
+
+    /* ── Results Panel ───────────────────────────────────────── */
+    .results-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      max-height: 440px;
+      padding-right: 4px;
+    }
+
+    .trans-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .trans-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trans-source {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .trans-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.4;
+    }
+
+    .trans-text.lang-hi {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+      color: #FDE68A;
+    }
+
+    .trans-text.lang-bn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      color: #FBCFE8;
+    }
+
+    .trans-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid var(--surface-alt);
+      font-size: 12px;
+    }
+
+    .pronunciation-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface-alt);
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+    }
+
+    .out-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    footer strong {
+      color: var(--text);
+    }
+  </style>
 </head>
 <body>
 
-<div class="page">
-  <div class="ribbon"></div>
-  <div class="card">
-    <p class="kicker">English <span class="div">·</span> हिंदी <span class="div">·</span> বাংলা</p>
-    <h1>Paste a list of keywords. Pick a target language. Get all of them translated, in the same order.</h1>
-    <p class="subhead">Each line can be in any of the three languages — it's detected per word automatically. One per line works best.</p>
+  <div class="container">
 
-    <form id="batchForm">
-      <label for="keywords">Keywords (one per line)</label>
-      <textarea id="keywords" placeholder="water&#10;पानी&#10;আকাশ&#10;house&#10;..."></textarea>
+    <!-- Header -->
+    <header>
+      <div class="badge">
+        <i data-lucide="languages" style="width:16px;height:16px;"></i>
+        Stage 5(a) — Multilingual Terminology Translation
+      </div>
+      <h1>Contextual Keyword Translation</h1>
+      <p class="subtitle">
+        Cross-lingual terminology translation and phonetic pronunciation transliteration across English, Hindi, and Bengali speech domains.
+      </p>
 
-      <div class="controls">
-        <div class="target-select">
-          <label for="target">Translate into</label>
-          <select id="target">
+      <!-- Suite Pipeline Flow -->
+      <div class="pipeline-flow">
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #8B5CF6;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#8B5CF6;"></i> 0. Auto Pip
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: #0EA5E9;">
+          <i data-lucide="video" style="width:14px;height:14px;color:#0EA5E9;"></i> 1. MP4→MP3
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: #F59E0B;">
+          <i data-lucide="mic" style="width:14px;height:14px;color:#F59E0B;"></i> 2. MP3→Text
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: #10B981;">
+          <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #38BDF8;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#38BDF8;"></i> 4. Sentences
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8005" class="flow-step active" style="--step-color: #06B6D4;">
+          <i data-lucide="languages" style="width:14px;height:14px;color:#06B6D4;"></i> 5a. Translate
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8012" class="flow-step" style="--step-color: #F97316;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #F43F5E;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#F43F5E;"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
+          <i data-lucide="film" style="width:14px;height:14px;color:#22C55E;"></i> 7. Final MP4
+        </a>
+      </div>
+    </header>
+
+    <!-- Dual Layout -->
+    <div class="dual-grid">
+
+      <!-- Left: Input & Config -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="file-text" style="width:18px;height:18px;color:var(--primary);"></i>
+          Source Terms or Keywords
+        </div>
+        <p class="card-hint">
+          Enter single terms or multiple keywords separated by commas or lines.
+        </p>
+
+        <textarea id="inputText" placeholder="e.g. artificial intelligence, neural network, database" oninput="updateCounts()"></textarea>
+        <div class="char-count">
+          <span id="charCount">0 characters</span>
+          <span id="wordCount">0 keywords</span>
+        </div>
+
+        <!-- Target Language Selector -->
+        <div class="controls-row">
+          <span class="control-label">
+            <i data-lucide="languages" style="width:14px;height:14px;"></i>
+            Target Language:
+          </span>
+          <select id="targetSelect">
+            <option value="all">All Languages (Full Matrix)</option>
+            <option value="hindi">Hindi (Devanagari)</option>
+            <option value="bengali">Bengali (বাংলা)</option>
             <option value="english">English</option>
-            <option value="hindi" selected>Hindi</option>
-            <option value="bengali">Bengali</option>
           </select>
         </div>
-        <button id="goBtn" type="submit">Translate all</button>
+
+        <!-- Presets -->
+        <div class="samples-row">
+          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Presets:</span>
+          <button type="button" class="sample-chip" onclick="loadSample(0)">
+            <i data-lucide="sparkles" style="width:12px;height:12px;"></i> AI Tech
+          </button>
+          <button type="button" class="sample-chip" onclick="loadSample(1)">
+            <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Biology
+          </button>
+          <button type="button" class="sample-chip" onclick="loadSample(2)">
+            <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Astronomy
+          </button>
+        </div>
+
+        <button id="translateBtn" class="btn-primary" onclick="handleTranslate()">
+          <i data-lucide="arrow-right-left" style="width:16px;height:16px;"></i>
+          Translate Terminology
+        </button>
+        <div id="statusMsg" class="status-msg" aria-live="polite"></div>
       </div>
-    </form>
 
-    <div class="status" id="status"></div>
-    <div class="results" id="results"></div>
+      <!-- Right: Translations Output -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="book-open" style="width:18px;height:18px;color:var(--success);"></i>
+          Translated Terms & Transliteration
+        </div>
+        <p class="card-hint">
+          Direct target translations with Romanized pronunciation guides.
+        </p>
 
-    <p class="footer-note">Nativox — Keyword Translation stage. Each keyword's source language is auto-detected; only the target is chosen by you.</p>
+        <div class="results-container" id="resultsBox">
+          <div style="text-align:center; color:var(--text-muted); padding:40px 10px; font-style:italic;">
+            Enter keywords on the left and click "Translate Terminology" to see cross-lingual translations and pronunciation guides.
+          </div>
+        </div>
+
+        <div class="out-actions">
+          <button class="btn-secondary" id="copyAllBtn" disabled onclick="copyAllTranslations()">
+            <i data-lucide="copy" style="width:14px;height:14px;"></i>
+            Copy Translations
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Mr. Debjit Ghosh</strong>
+      </p>
+    </footer>
+
   </div>
-</div>
 
-<script>
-  const form = document.getElementById('batchForm');
-  const keywordsEl = document.getElementById('keywords');
-  const targetEl = document.getElementById('target');
-  const btn = document.getElementById('goBtn');
-  const statusEl = document.getElementById('status');
-  const resultsEl = document.getElementById('results');
+  <script>
+    const SAMPLES = [
+      "machine learning, neural network, computer vision",
+      "photosynthesis, cellular respiration, chloroplast",
+      "gravitational waves, black hole, supernova"
+    ];
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    let lastTranslations = [];
 
-    const rawLines = keywordsEl.value
-      .split(/\r?\n|,/)
-      .map(s => s.trim())
-      .filter(Boolean);
-
-    if (rawLines.length === 0) {
-      statusEl.className = 'status error';
-      statusEl.textContent = 'Add at least one keyword first.';
-      return;
-    }
-
-    btn.disabled = true;
-    resultsEl.innerHTML = '';
-    statusEl.className = 'status';
-    statusEl.textContent = `Translating ${rawLines.length} keyword${rawLines.length > 1 ? 's' : ''}…`;
-
-    try {
-      const data = await translateBatch(rawLines, targetEl.value);
-      render(data);
-      statusEl.textContent = '';
-    } catch (err) {
-      console.error(err);
-      statusEl.className = 'status error';
-      statusEl.textContent = err.message || "Couldn't translate — try again.";
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  async function translateBatch(keywords, targetLanguage) {
-    const response = await fetch('/api/translate-batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ keywords, target_language: targetLanguage })
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.detail || ('Request failed: ' + response.status));
-    }
-    return response.json();
-  }
-
-  function render(data) {
-    const head = document.createElement('p');
-    head.className = 'results-head';
-    head.innerHTML = `${data.results.length} result${data.results.length > 1 ? 's' : ''}, translated into <b>${escapeHtml(data.target_label)}</b>`;
-    resultsEl.appendChild(head);
-
-    data.results.forEach((item, i) => {
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      const idx = document.createElement('div');
-      idx.className = 'idx';
-      idx.textContent = (i + 1) + '.';
-
-      const src = document.createElement('div');
-      src.className = 'src';
-      src.innerHTML = `<span class="word ${item.detected_language}">${escapeHtml(item.original)}</span><span class="tag">${escapeHtml(item.detected_label.slice(0,3).toLowerCase())}.</span>`;
-
-      const arrow = document.createElement('div');
-      arrow.className = 'arrow';
-      arrow.textContent = '→';
-
-      const tgt = document.createElement('div');
-      tgt.className = 'tgt';
-      let tgtHtml = `<span class="word ${item.target_language}">${escapeHtml(item.translated_text)}</span>`;
-      if (item.pronunciation) {
-        tgtHtml += `<div class="pron">${escapeHtml(item.pronunciation)}</div>`;
+    function renderIcons() {
+      if (window.lucide) {
+        lucide.createIcons();
       }
-      tgt.innerHTML = tgtHtml;
+    }
 
-      row.appendChild(idx);
-      row.appendChild(src);
-      row.appendChild(arrow);
-      row.appendChild(tgt);
-      resultsEl.appendChild(row);
+    function loadSample(idx) {
+      document.getElementById("inputText").value = SAMPLES[idx];
+      updateCounts();
+    }
 
-      requestAnimationFrame(() => row.classList.add('show'));
-    });
-  }
+    function updateCounts() {
+      const text = document.getElementById("inputText").value;
+      const count = text.length;
+      const keywords = text.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+      document.getElementById("charCount").textContent = `${count} characters`;
+      document.getElementById("wordCount").textContent = `${keywords.length} keywords`;
+    }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-</script>
+    async function handleTranslate() {
+      const rawText = document.getElementById("inputText").value.trim();
+      const target = document.getElementById("targetSelect").value;
+      const statusMsg = document.getElementById("statusMsg");
+      const btn = document.getElementById("translateBtn");
+      const resultsBox = document.getElementById("resultsBox");
 
+      if (!rawText) {
+        statusMsg.className = "status-msg error";
+        statusMsg.innerHTML = '<i data-lucide="alert-circle" style="width:14px;height:14px;"></i> Please provide keyword text.';
+        renderIcons();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Translating...';
+      statusMsg.className = "status-msg";
+      statusMsg.textContent = "Querying cross-lingual translation engines...";
+
+      try {
+        const keywords = rawText.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+
+        if (target === "all" || keywords.length === 1) {
+          // Single or individual translation matrix
+          const firstTerm = keywords[0] || rawText;
+          const res = await fetch("/api/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: firstTerm })
+          });
+
+          if (!res.ok) {
+            let err = "Translation failed.";
+            try { const j = await res.json(); if (j.detail) err = j.detail; } catch(_) {}
+            throw new Error(err);
+          }
+
+          const data = await res.json();
+          displayMatrixResult(data);
+        } else {
+          // Batch translation
+          const res = await fetch("/api/translate-batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ keywords: keywords, target_language: target })
+          });
+
+          if (!res.ok) {
+            let err = "Batch translation failed.";
+            try { const j = await res.json(); if (j.detail) err = j.detail; } catch(_) {}
+            throw new Error(err);
+          }
+
+          const data = await res.json();
+          displayBatchResult(data);
+        }
+
+        statusMsg.className = "status-msg success";
+        statusMsg.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;"></i> Translation complete!';
+        renderIcons();
+      } catch (err) {
+        statusMsg.className = "status-msg error";
+        statusMsg.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;"></i> ${err.message}`;
+        renderIcons();
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="arrow-right-left" style="width:16px;height:16px;"></i> Translate Terminology';
+        renderIcons();
+      }
+    }
+
+    function displayMatrixResult(data) {
+      const resultsBox = document.getElementById("resultsBox");
+      resultsBox.innerHTML = "";
+      lastTranslations = [];
+
+      (data.translations || []).forEach(t => {
+        lastTranslations.push({ term: data.original, translation: t.text, lang: t.label });
+        const card = document.createElement("div");
+        card.className = "trans-card";
+        const langClass = t.language === "hi" ? "lang-hi" : (t.language === "bn" ? "lang-bn" : "");
+        const pron = t.pronunciation ? `<span class="pronunciation-chip"><i data-lucide="volume-2" style="width:12px;height:12px;"></i> ${t.pronunciation}</span>` : "";
+
+        card.innerHTML = `
+          <div class="trans-header">
+            <span class="trans-source">Source: <b>${data.original}</b> (${data.detected_label || data.detected_language})</span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:var(--surface-alt); border:1px solid var(--border); font-family:'JetBrains Mono',monospace;">
+              ${t.label}
+            </span>
+          </div>
+          <div class="trans-text ${langClass}">${t.text}</div>
+          <div class="trans-footer">
+            ${pron}
+            <button type="button" class="sample-chip" style="padding:3px 8px; font-size:11px;" onclick="copySingle('${t.text.replace(/'/g, "\\'")}')">
+              <i data-lucide="copy" style="width:12px;height:12px;"></i> Copy
+            </button>
+          </div>
+        `;
+        resultsBox.appendChild(card);
+      });
+
+      document.getElementById("copyAllBtn").disabled = lastTranslations.length === 0;
+      renderIcons();
+    }
+
+    function displayBatchResult(data) {
+      const resultsBox = document.getElementById("resultsBox");
+      resultsBox.innerHTML = "";
+      lastTranslations = [];
+
+      (data.results || []).forEach(item => {
+        lastTranslations.push({ term: item.original, translation: item.translated_text, lang: data.target_label });
+        const card = document.createElement("div");
+        card.className = "trans-card";
+        const langClass = data.target_language === "hindi" ? "lang-hi" : (data.target_language === "bengali" ? "lang-bn" : "");
+        const pron = item.pronunciation ? `<span class="pronunciation-chip"><i data-lucide="volume-2" style="width:12px;height:12px;"></i> ${item.pronunciation}</span>` : "";
+
+        card.innerHTML = `
+          <div class="trans-header">
+            <span class="trans-source">Source: <b>${item.original}</b></span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:var(--surface-alt); border:1px solid var(--border); font-family:'JetBrains Mono',monospace;">
+              ${data.target_label}
+            </span>
+          </div>
+          <div class="trans-text ${langClass}">${item.translated_text}</div>
+          <div class="trans-footer">
+            ${pron}
+            <button type="button" class="sample-chip" style="padding:3px 8px; font-size:11px;" onclick="copySingle('${item.translated_text.replace(/'/g, "\\'")}')">
+              <i data-lucide="copy" style="width:12px;height:12px;"></i> Copy
+            </button>
+          </div>
+        `;
+        resultsBox.appendChild(card);
+      });
+
+      document.getElementById("copyAllBtn").disabled = lastTranslations.length === 0;
+      renderIcons();
+    }
+
+    function copySingle(val) {
+      navigator.clipboard.writeText(val);
+    }
+
+    function copyAllTranslations() {
+      if (!lastTranslations.length) return;
+      const text = lastTranslations.map(t => `${t.term} -> ${t.translation} (${t.lang})`).join("\n");
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById("copyAllBtn");
+      btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Copied All!';
+      renderIcons();
+      setTimeout(() => {
+        btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px;"></i> Copy Translations';
+        renderIcons();
+      }, 2000);
+    }
+
+    renderIcons();
+  </script>
 </body>
 </html>

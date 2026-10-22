@@ -20,7 +20,7 @@ from fastapi.staticfiles import StaticFiles
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 UPLOAD_DIR = BASE_DIR / "storage" / "uploads"
 OUTPUT_DIR = BASE_DIR / "storage" / "outputs"
@@ -34,7 +34,11 @@ MAX_FILE_SIZE_MB = 500  # simple sanity cap
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
-app = FastAPI(title="MP4 -> MP3 Extractor")
+app = FastAPI(
+    title="Nativox Stage 1 — MP4 to MP3 Audio Extractor",
+    description="Ingests video files (.mp4, .mov, .mkv), isolates audio tracks with FFmpeg, and provides high-bitrate MP3 extractions.",
+    version="1.0.0",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,14 +48,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve any static assets (css/js/images) the frontend might use later
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
-def serve_frontend() -> str:
+def serve_frontend() -> HTMLResponse:
     """Serve the single-page frontend."""
-    return (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Stage 1 Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -59,7 +66,7 @@ def serve_frontend() -> str:
 def serve_favicon():
     favicon_path = FRONTEND_DIR / "favicon.webp"
     if favicon_path.exists():
-        return FileResponse(favicon_path, media_type="image/webp")
+        return FileResponse(str(favicon_path), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
 
 
@@ -69,6 +76,7 @@ def health() -> dict:
 
 
 @app.post("/extract")
+@app.post("/extract-audio")
 async def extract_audio(file: UploadFile = File(...)):
     """
     Accepts a video file, extracts its audio track as-is (re-encoded to

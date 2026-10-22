@@ -1,585 +1,855 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Text to Keyword</title>
-<link rel="icon" type="image/webp" href="/favicon.webp">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#14151f;
-    --surface:#1c1e2c;
-    --surface-2:#242739;
-    --line:#2d3046;
-    --text:#eceaf5;
-    --text-dim:#9a9ab3;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nativox — Stage 3: Text to Keyword Extractor</title>
+  <meta name="description" content="Trilingual technical term and domain keyword extraction across English, Hindi, and Bengali transcripts. Part of the Nativox AI Multilingual Dubbing Suite." />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #141B26;
+      --surface-alt: #1C2636;
+      --border: #2B384E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #10B981;
+      --primary-hover: #059669;
+      --primary-glow: rgba(16, 185, 129, 0.15);
+      --accent: #E8A33D;
+      --accent-glow: rgba(232, 163, 61, 0.15);
+      --success: #34D399;
+      --success-glow: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --purple: #A78BFA;
+      --purple-glow: rgba(167, 139, 250, 0.15);
+      --en: #38BDF8;
+      --hi: #F59E0B;
+      --bn: #F43F5E;
+      --radius: 12px;
+    }
 
-    --en:#5ac8c8;      /* Latin script accent — teal */
-    --en-soft:rgba(90,200,200,0.14);
-    --hi:#f2a93b;       /* Devanagari accent — marigold */
-    --hi-soft:rgba(242,169,59,0.14);
-    --bn:#e0607a;       /* Bengali script accent — alta red */
-    --bn-soft:rgba(224,96,122,0.14);
-    --mixed:#9b8cff;    /* code-mixed accent — violet */
-    --mixed-soft:rgba(155,140,255,0.14);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    --font-display:'Fraunces', serif;
-    --font-body:'Noto Sans Devanagari','Noto Sans Bengali','Noto Sans', sans-serif;
-    --font-mono:'JetBrains Mono', monospace;
-  }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+    }
 
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(90,200,200,0.10), transparent),
-      radial-gradient(ellipse 900px 500px at 100% 0%, rgba(224,96,122,0.08), transparent),
-      var(--ink);
-    color:var(--text);
-    font-family:var(--font-body);
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
+    .container {
+      width: 100%;
+      max-width: 1080px;
+    }
 
-  a{color:inherit;}
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
 
-  .wrap{
-    max-width:1080px;
-    margin:0 auto;
-    padding:56px 24px 96px;
-  }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
 
-  /* ---------- Hero ---------- */
-  header.hero{margin-bottom:40px;}
-  .eyebrow{
-    font-family:var(--font-mono);
-    font-size:12.5px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:18px;
-  }
-  .eyebrow .dots{display:inline-flex; gap:5px;}
-  .eyebrow .dot{width:6px;height:6px;border-radius:50%;}
-  .eyebrow .dot.en{background:var(--en);}
-  .eyebrow .dot.hi{background:var(--hi);}
-  .eyebrow .dot.bn{background:var(--bn);}
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
 
-  h1{
-    font-family:var(--font-display);
-    font-weight:600;
-    font-size:clamp(34px, 5vw, 54px);
-    line-height:1.08;
-    margin:0 0 16px;
-    letter-spacing:-0.01em;
-  }
-  h1 .accent{
-    font-style:italic;
-    background:linear-gradient(90deg, var(--en), var(--hi) 50%, var(--bn));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-  }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 720px;
+      margin: 0 auto;
+    }
 
-  p.lede{
-    max-width:640px;
-    color:var(--text-dim);
-    font-size:16.5px;
-    margin:0;
-  }
-  p.lede strong{color:var(--text); font-weight:600;}
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
 
-  /* ---------- Layout ---------- */
-  .grid{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:24px;
-    margin-top:36px;
-  }
-  @media(min-width:880px){
-    .grid{grid-template-columns:1fr 1fr;}
-  }
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
 
-  .panel{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:24px;
-  }
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
+    }
 
-  .panel h2{
-    font-family:var(--font-display);
-    font-size:19px;
-    font-weight:600;
-    margin:0 0 4px;
-  }
-  .panel .panel-sub{
-    color:var(--text-dim);
-    font-size:13.5px;
-    margin:0 0 18px;
-  }
+    .flow-step.active {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--step-color, var(--primary));
+      color: var(--step-color, var(--primary));
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
 
-  textarea{
-    width:100%;
-    min-height:190px;
-    resize:vertical;
-    background:var(--surface-2);
-    border:1px solid var(--line);
-    border-radius:10px;
-    color:var(--text);
-    font-family:var(--font-body);
-    font-size:15px;
-    padding:14px 16px;
-    outline:none;
-    transition:border-color .15s ease;
-  }
-  textarea:focus{border-color:var(--en);}
-  textarea::placeholder{color:#5c5e78;}
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.4;
+    }
 
-  /* ---- Signature element: live script spectrum meter ---- */
-  .spectrum{margin-top:16px;}
-  .spectrum-label{
-    display:flex;
-    justify-content:space-between;
-    font-family:var(--font-mono);
-    font-size:11.5px;
-    color:var(--text-dim);
-    margin-bottom:7px;
-  }
-  .spectrum-bar{
-    display:flex;
-    height:9px;
-    border-radius:5px;
-    overflow:hidden;
-    background:var(--surface-2);
-    border:1px solid var(--line);
-  }
-  .spectrum-bar .seg{
-    height:100%;
-    transition:width .25s ease;
-  }
-  .spectrum-bar .seg.en{background:var(--en);}
-  .spectrum-bar .seg.hi{background:var(--hi);}
-  .spectrum-bar .seg.bn{background:var(--bn);}
-  .spectrum-legend{
-    display:flex;
-    gap:16px;
-    margin-top:9px;
-    font-size:12px;
-    color:var(--text-dim);
-    flex-wrap:wrap;
-  }
-  .spectrum-legend span{display:inline-flex; align-items:center; gap:6px;}
-  .swatch{width:8px;height:8px;border-radius:2px;display:inline-block;}
-  .swatch.en{background:var(--en);}
-  .swatch.hi{background:var(--hi);}
-  .swatch.bn{background:var(--bn);}
+    /* ── Main Dual Grid ──────────────────────────────────────── */
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
 
-  .controls{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    margin-top:20px;
-    flex-wrap:wrap;
-  }
+    @media (max-width: 860px) {
+      .dual-grid { grid-template-columns: 1fr; }
+    }
 
-  .samples{display:flex; gap:8px; flex-wrap:wrap;}
-  .chip{
-    font-family:var(--font-mono);
-    font-size:12px;
-    background:transparent;
-    border:1px solid var(--line);
-    color:var(--text-dim);
-    padding:6px 12px;
-    border-radius:999px;
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  .chip:hover{border-color:var(--en); color:var(--text);}
-  .panel-actions{display:flex; gap:8px; margin-top:14px;}
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
 
-  button.primary{
-    background:linear-gradient(90deg, var(--en), var(--mixed));
-    border:none;
-    color:#101120;
-    font-weight:700;
-    font-size:14.5px;
-    font-family:var(--font-body);
-    padding:12px 22px;
-    border-radius:10px;
-    cursor:pointer;
-    transition:transform .12s ease, box-shadow .12s ease;
-    white-space:nowrap;
-  }
-  button.primary:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(90,200,200,0.18);}
-  button.primary:disabled{opacity:0.5; cursor:progress; transform:none; box-shadow:none;}
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  /* ---------- Results ---------- */
-  #results-panel .panel-sub{margin-bottom:14px;}
-  .empty-state{
-    color:var(--text-dim);
-    font-size:14px;
-    border:1px dashed var(--line);
-    border-radius:10px;
-    padding:28px 18px;
-    text-align:center;
-  }
-  .error-state{
-    color:var(--bn);
-    font-size:14px;
-    border:1px solid var(--bn);
-    background:var(--bn-soft);
-    border-radius:10px;
-    padding:14px 16px;
-  }
+    .card-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
 
-  .kw-list{display:flex; flex-direction:column; gap:10px;}
-  .kw-sequence{
-    font-size:15.5px;
-    line-height:1.8;
-    color:var(--text);
-    background:var(--surface-2);
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:16px 18px;
-  }
-  .kw-row{
-    display:grid;
-    grid-template-columns:1fr auto;
-    align-items:center;
-    gap:12px;
-    background:var(--surface-2);
-    border:1px solid var(--line);
-    border-left:3px solid var(--line);
-    border-radius:10px;
-    padding:12px 14px;
-  }
-  .kw-row.lang-en{border-left-color:var(--en);}
-  .kw-row.lang-hi{border-left-color:var(--hi);}
-  .kw-row.lang-bn{border-left-color:var(--bn);}
-  .kw-row.lang-mixed{border-left-color:var(--mixed);}
+    textarea {
+      width: 100%;
+      height: 160px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14.5px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+      outline: none;
+    }
 
-  .kw-main{min-width:0;}
-  .kw-phrase{font-size:15.5px; font-weight:500; word-break:break-word;}
-  .kw-meta{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-top:6px;
-  }
-  .lang-tag{
-    font-family:var(--font-mono);
-    font-size:10.5px;
-    letter-spacing:.04em;
-    text-transform:uppercase;
-    padding:2px 7px;
-    border-radius:5px;
-  }
-  .lang-tag.lang-en{background:var(--en-soft); color:var(--en);}
-  .lang-tag.lang-hi{background:var(--hi-soft); color:var(--hi);}
-  .lang-tag.lang-bn{background:var(--bn-soft); color:var(--bn);}
-  .lang-tag.lang-mixed{background:var(--mixed-soft); color:var(--mixed);}
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
 
-  .score-bar-track{
-    width:64px;
-    height:5px;
-    border-radius:3px;
-    background:var(--line);
-    overflow:hidden;
-  }
-  .score-bar-fill{height:100%; border-radius:3px;}
-  .score-num{
-    font-family:var(--font-mono);
-    font-size:12px;
-    color:var(--text-dim);
-    text-align:right;
-    min-width:34px;
-  }
-  .kw-score{display:flex; align-items:center; gap:8px;}
+    .char-count {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
 
-  footer{
-    margin-top:56px;
-    padding-top:22px;
-    border-top:1px solid var(--line);
-    color:var(--text-dim);
-    font-size:12.5px;
-    display:flex;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  footer code{
-    font-family:var(--font-mono);
-    background:var(--surface-2);
-    padding:1px 6px;
-    border-radius:4px;
-  }
+    /* Spectrum Bar */
+    .spectrum-wrap {
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
 
-  @media (prefers-reduced-motion: reduce){
-    *{transition:none !important; scroll-behavior:auto !important;}
-  }
-</style>
+    .spectrum-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .spectrum-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--surface-alt);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .spectrum-bar .seg-en { background: var(--en); height: 100%; transition: width 0.2s; }
+    .spectrum-bar .seg-hi { background: var(--hi); height: 100%; transition: width 0.2s; }
+    .spectrum-bar .seg-bn { background: var(--bn); height: 100%; transition: width 0.2s; }
+
+    .spectrum-legend {
+      display: flex;
+      gap: 14px;
+      margin-top: 8px;
+      font-size: 11.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .dot-en { color: var(--en); }
+    .dot-hi { color: var(--hi); }
+    .dot-bn { color: var(--bn); }
+
+    /* Benchmark Sample Chips */
+    .samples-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .sample-chip {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .sample-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Slider row */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: var(--surface-alt);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .slider-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .slider-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    input[type=range] {
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #052014;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-msg {
+      margin-top: 14px;
+      font-size: 12.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-msg.error { color: var(--danger); }
+    .status-msg.success { color: var(--success); }
+
+    /* ── Right Panel: Results ────────────────────────────────── */
+    .kw-sequence-wrap {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .kw-sequence-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .kw-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .kw-pill {
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .kw-pill.lang-hi {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #FDE68A;
+    }
+
+    .kw-pill.lang-bn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      border-color: rgba(236, 72, 153, 0.4);
+      color: #FBCFE8;
+    }
+
+    .kw-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .kw-table th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 11.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+
+    .kw-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--surface-alt);
+    }
+
+    .kw-score-bar {
+      height: 6px;
+      background: var(--surface-alt);
+      border-radius: 3px;
+      overflow: hidden;
+      width: 80px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .kw-score-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+    }
+
+    .out-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    footer strong {
+      color: var(--text);
+    }
+  </style>
 </head>
 <body>
 
-<div class="wrap">
+  <div class="container">
 
-  <header class="hero">
-    <div class="eyebrow">
-      <span class="dots"><span class="dot en"></span><span class="dot hi"></span><span class="dot bn"></span></span>
-      TEXT TO KEYWORD &middot; MULTILINGUAL EXTRACTION
+    <!-- Header -->
+    <header>
+      <div class="badge">
+        <i data-lucide="key" style="width:16px;height:16px;"></i>
+        Stage 3 — Multilingual Keyword Extraction
+      </div>
+      <h1>Text to Keyword Extractor</h1>
+      <p class="subtitle">
+        Context-aware terminology isolation. Identifies salient technical tokens and domain keywords across English, Hindi, and Bengali transcripts.
+      </p>
+
+      <!-- Suite Pipeline Flow -->
+      <div class="pipeline-flow">
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #8B5CF6;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#8B5CF6;"></i> 0. Auto Pip
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: #0EA5E9;">
+          <i data-lucide="video" style="width:14px;height:14px;color:#0EA5E9;"></i> 1. MP4→MP3
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: #F59E0B;">
+          <i data-lucide="mic" style="width:14px;height:14px;color:#F59E0B;"></i> 2. MP3→Text
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8003" class="flow-step active" style="--step-color: #10B981;">
+          <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #38BDF8;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#38BDF8;"></i> 4. Sentences
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: #06B6D4;">
+          <i data-lucide="languages" style="width:14px;height:14px;color:#06B6D4;"></i> 5a. Translate
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8012" class="flow-step" style="--step-color: #F97316;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #F43F5E;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#F43F5E;"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
+          <i data-lucide="film" style="width:14px;height:14px;color:#22C55E;"></i> 7. Final MP4
+        </a>
+      </div>
+    </header>
+
+    <!-- Dual Layout -->
+    <div class="dual-grid">
+
+      <!-- Left Panel: Input Text & Controls -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="file-text" style="width:18px;height:18px;color:var(--primary);"></i>
+          Transcript Input (Source Text)
+        </div>
+        <p class="card-hint">
+          Paste speech transcript or choose one of the benchmark samples below.
+        </p>
+
+        <textarea id="inputText" placeholder="Paste full speech transcript here..." oninput="updateScriptMeter()"></textarea>
+        <div class="char-count">
+          <span id="charCount">0 characters</span>
+          <span id="wordCount">0 words</span>
+        </div>
+
+        <!-- Script Distribution Meter -->
+        <div class="spectrum-wrap">
+          <div class="spectrum-label">
+            <span>Script Composition</span>
+            <span id="dominantScript" style="font-family:'JetBrains Mono',monospace;">None</span>
+          </div>
+          <div class="spectrum-bar">
+            <div class="seg-en" id="segEn" style="width: 0%;"></div>
+            <div class="seg-hi" id="segHi" style="width: 0%;"></div>
+            <div class="seg-bn" id="segBn" style="width: 0%;"></div>
+          </div>
+          <div class="spectrum-legend">
+            <span><b class="dot-en">■</b> English (Latin)</span>
+            <span><b class="dot-hi">■</b> Hindi (Devanagari)</span>
+            <span><b class="dot-bn">■</b> Bengali</span>
+          </div>
+        </div>
+
+        <!-- Quick Benchmark Samples -->
+        <div class="samples-row">
+          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Presets:</span>
+          <button type="button" class="sample-chip" onclick="loadSample(0)">
+            <i data-lucide="sparkles" style="width:12px;height:12px;"></i> English Tech
+          </button>
+          <button type="button" class="sample-chip" onclick="loadSample(1)">
+            <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Hindi Science
+          </button>
+          <button type="button" class="sample-chip" onclick="loadSample(2)">
+            <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Bengali Culture
+          </button>
+        </div>
+
+        <!-- Settings: Top N -->
+        <div class="controls-row">
+          <span class="slider-label">
+            <i data-lucide="sliders" style="width:14px;height:14px;"></i>
+            Max Keywords:
+          </span>
+          <input type="range" id="topNSlider" min="5" max="30" value="15" oninput="topNVal.textContent = this.value" />
+          <span class="slider-val" id="topNVal">15</span>
+        </div>
+
+        <button id="extractBtn" class="btn-primary" onclick="extractKeywords()">
+          <i data-lucide="key" style="width:16px;height:16px;"></i>
+          Extract Domain Keywords
+        </button>
+        <div id="statusMsg" class="status-msg" aria-live="polite"></div>
+      </div>
+
+      <!-- Right Panel: Keyword Results -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--success);"></i>
+          Extracted Terminology & Keyphrases
+        </div>
+        <p class="card-hint">
+          Ordered domain tokens and ranked salient keywords.
+        </p>
+
+        <!-- Chronological Sequence -->
+        <div class="kw-sequence-wrap">
+          <div class="kw-sequence-header">
+            <i data-lucide="list" style="width:12px;height:12px;"></i>
+            Chronological Keyword Sequence
+          </div>
+          <div class="kw-pills-row" id="sequencePills">
+            <span style="color:var(--text-muted); font-size:13px; font-style:italic;">Awaiting extraction...</span>
+          </div>
+        </div>
+
+        <!-- Ranked Table -->
+        <div style="flex:1; overflow-y:auto; max-height:300px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+          <table class="kw-table">
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th>Salience</th>
+                <th>Script</th>
+              </tr>
+            </thead>
+            <tbody id="kwTableBody">
+              <tr>
+                <td colspan="3" style="text-align:center; color:var(--text-muted); padding:24px;">
+                  No keywords extracted yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="out-actions">
+          <button class="btn-secondary" id="copySeqBtn" disabled onclick="copySequence()">
+            <i data-lucide="copy" style="width:14px;height:14px;"></i>
+            Copy Keywords
+          </button>
+          <button class="btn-secondary" id="downloadJsonBtn" disabled onclick="downloadJSON()">
+            <i data-lucide="download" style="width:14px;height:14px;"></i>
+            Download JSON
+          </button>
+        </div>
+      </div>
+
     </div>
-    <h1>Keywords, across <span class="accent">three scripts</span> and however you mix them.</h1>
-    <p class="lede">A single script-aware extraction pass for <strong>English</strong>, <strong>Hindi</strong>, and <strong>Bengali</strong> — including sentences that freely switch between them mid-line. No per-language pipeline, no translation step first.</p>
-  </header>
 
-  <div class="grid">
-    <section class="panel" id="input-panel">
-      <h2>Input text</h2>
-      <p class="panel-sub">Paste or type a sentence, a paragraph, or a code-mixed line.</p>
+    <!-- Footer -->
+    <footer>
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Mr. Debjit Ghosh</strong>
+      </p>
+    </footer>
 
-      <textarea id="text-input" placeholder="e.g. ei video ta te amra ekta automated dubbing system use korchi, jekhane speech recognition আর neural machine translation একসাথে kaj kore..."></textarea>
-
-      <div class="spectrum">
-        <div class="spectrum-label">
-          <span>SCRIPT MIX</span>
-          <span id="spectrum-total">0 characters</span>
-        </div>
-        <div class="spectrum-bar">
-          <div class="seg en" id="seg-en" style="width:0%"></div>
-          <div class="seg hi" id="seg-hi" style="width:0%"></div>
-          <div class="seg bn" id="seg-bn" style="width:0%"></div>
-        </div>
-        <div class="spectrum-legend">
-          <span><i class="swatch en"></i>Latin <span id="pct-en">0%</span></span>
-          <span><i class="swatch hi"></i>Devanagari <span id="pct-hi">0%</span></span>
-          <span><i class="swatch bn"></i>Bengali <span id="pct-bn">0%</span></span>
-        </div>
-      </div>
-
-      <div class="controls">
-        <div class="samples">
-          <button class="chip" data-sample="en">Try: English</button>
-          <button class="chip" data-sample="hi">Try: Hindi</button>
-          <button class="chip" data-sample="bn">Try: Bengali</button>
-          <button class="chip" data-sample="mixed">Try: Code-mixed</button>
-        </div>
-        <button class="primary" id="extract-btn">Extract keywords</button>
-      </div>
-    </section>
-
-    <section class="panel" id="sequence-panel">
-      <h2>Keywords in original order</h2>
-      <p class="panel-sub">Same filtering as above, read left to right as it appears in your text</p>
-      <div id="sequence-container">
-        <div class="empty-state">The in-order keyword sequence will appear here.</div>
-      </div>
-      <div class="panel-actions">
-        <button class="chip" id="copy-sequence-btn">Copy text</button>
-        <button class="chip" id="download-sequence-btn">Download .txt</button>
-      </div>
-    </section>
   </div>
 
-  <section class="panel" id="results-panel" style="margin-top:24px;">
-    <h2>Extracted keywords</h2>
-    <p class="panel-sub">Single words only, no stopwords · left border shows detected script</p>
-    <div id="results-container">
-      <div class="empty-state">Extracted keywords will appear here, ranked by score.</div>
-    </div>
-    <div class="panel-actions">
-      <button class="chip" id="copy-ranked-btn">Copy text</button>
-      <button class="chip" id="download-ranked-btn">Download .txt</button>
-    </div>
-  </section>
+  <script>
+    const SAMPLES = [
+      "Artificial intelligence and deep learning models are revolutionizing neural speech synthesis and automatic speech recognition across multiple languages.",
+      "कृत्रिम बुद्धिमत्ता और मशीन लर्निंग तकनीकें प्राकृतिक भाषा प्रसंस्करण में क्रांतिकारी बदलाव ला रही हैं और वैज्ञानिकों को नई दिशा प्रदान कर रही हैं।",
+      "কম্পিউটার বিজ্ঞান এবং কৃত্রিম বুদ্ধিমত্তা বর্তমান যুগে তথ্য প্রযুক্তির ক্ষেত্রে এক অভাবনীয় পরিবর্তন এনে দিয়েছে।"
+    ];
 
-  <footer>
-    <span>Script-aware RAKE · degree/frequency word scoring</span>
-    <span>API: <code>POST /api/extract-keywords</code></span>
-  </footer>
+    let lastResult = null;
 
-</div>
-
-<script>
-  const API_ENDPOINT = '/api/extract-keywords';
-
-  const textInput = document.getElementById('text-input');
-  const extractBtn = document.getElementById('extract-btn');
-  const resultsContainer = document.getElementById('results-container');
-  let lastKeywords = [];
-  let lastSequence = [];
-
-  const SAMPLES = {
-    en: "Automated video dubbing systems combine speech recognition, neural machine translation, and text-to-speech synthesis to make global content accessible across languages.",
-    hi: "यह एक स्वचालित वीडियो डबिंग प्रणाली है जो वाक् पहचान, तंत्रिका मशीन अनुवाद और वाक् संश्लेषण का उपयोग करके मूल अभिनेता की आवाज़ को सुरक्षित रखने का प्रयास करती है।",
-    bn: "এটি একটি স্বয়ংক্রিয় ভিডিও ডাবিং সিস্টেম যা বক্তৃতা স্বীকৃতি, স্নায়বিক মেশিন অনুবাদ এবং বাক্‌ সংশ্লেষণ ব্যবহার করে মূল অভিনেতার কণ্ঠস্বর সংরক্ষণের চেষ্টা করে।",
-    mixed: "ei video ta te amra ekta automated dubbing system use korchi, jekhane speech recognition আর neural machine translation একসাথে kaj kore original actor এর awaaz বজায় রাখার জন্য।",
-  };
-
-  // ---------- Script spectrum meter (live, client-side) ----------
-  function scriptOf(ch){
-    const cp = ch.codePointAt(0);
-    if (cp >= 0x0900 && cp <= 0x097F) return 'hi';
-    if (cp >= 0x0980 && cp <= 0x09FF) return 'bn';
-    if (/[A-Za-z]/.test(ch)) return 'en';
-    return null;
-  }
-
-  function updateSpectrum(){
-    const text = textInput.value;
-    const counts = {en:0, hi:0, bn:0};
-    for (const ch of text){
-      const s = scriptOf(ch);
-      if (s) counts[s]++;
+    function renderIcons() {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     }
-    const total = counts.en + counts.hi + counts.bn;
-    document.getElementById('spectrum-total').textContent =
-      total ? `${total} script characters` : '0 characters';
 
-    ['en','hi','bn'].forEach(k => {
-      const pct = total ? (100 * counts[k] / total) : 0;
-      document.getElementById(`seg-${k}`).style.width = pct + '%';
-      document.getElementById(`pct-${k}`).textContent = Math.round(pct) + '%';
-    });
-  }
-
-  textInput.addEventListener('input', updateSpectrum);
-
-  // ---------- Sample chips ----------
-  document.querySelectorAll('.chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      textInput.value = SAMPLES[btn.dataset.sample];
-      updateSpectrum();
-      textInput.focus();
-    });
-  });
-
-  // ---------- Extraction ----------
-  const LANG_COLOR_VAR = {en:'--en', hi:'--hi', bn:'--bn', mixed:'--mixed'};
-
-  function renderResults(keywords){
-    if (!keywords.length){
-      resultsContainer.innerHTML = '<div class="empty-state">No keywords found — try a longer or more descriptive passage.</div>';
-      return;
+    function loadSample(idx) {
+      document.getElementById("inputText").value = SAMPLES[idx];
+      updateScriptMeter();
     }
-    const rows = keywords.map(kw => {
-      const lang = kw.language || 'en';
-      const colorVar = LANG_COLOR_VAR[lang] || '--en';
-      return `
-        <div class="kw-row lang-${lang}">
-          <div class="kw-main">
-            <div class="kw-phrase">${escapeHtml(kw.word)}</div>
-            <div class="kw-meta">
-              <span class="lang-tag lang-${lang}">${lang}</span>
-            </div>
-          </div>
-          <div class="kw-score">
-            <div class="score-bar-track">
-              <div class="score-bar-fill" style="width:${kw.relative_score}%; background:var(${colorVar})"></div>
-            </div>
-            <span class="score-num">${kw.score}</span>
-          </div>
-        </div>`;
-    }).join('');
-    resultsContainer.innerHTML = `<div class="kw-list">${rows}</div>`;
-  }
 
-  function renderSequence(words){
-    const container = document.getElementById('sequence-container');
-    if (!words.length){
-      container.innerHTML = '<div class="empty-state">No keywords found.</div>';
-      return;
+    function updateScriptMeter() {
+      const text = document.getElementById("inputText").value;
+      const charCount = text.length;
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      document.getElementById("charCount").textContent = `${charCount} characters`;
+      document.getElementById("wordCount").textContent = `${words.length} words`;
+
+      let en = 0, hi = 0, bn = 0;
+      for (const ch of text) {
+        const code = ch.charCodeAt(0);
+        if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) en++;
+        else if (code >= 0x0900 && code <= 0x097F) hi++;
+        else if (code >= 0x0980 && code <= 0x09FF) bn++;
+      }
+      const total = en + hi + bn || 1;
+      const enPct = ((en / total) * 100).toFixed(0);
+      const hiPct = ((hi / total) * 100).toFixed(0);
+      const bnPct = ((bn / total) * 100).toFixed(0);
+
+      document.getElementById("segEn").style.width = `${enPct}%`;
+      document.getElementById("segHi").style.width = `${hiPct}%`;
+      document.getElementById("segBn").style.width = `${bnPct}%`;
+
+      let dominant = "None";
+      if (en >= hi && en >= bn && en > 0) dominant = `English (${enPct}%)`;
+      else if (hi >= en && hi >= bn && hi > 0) dominant = `Hindi (${hiPct}%)`;
+      else if (bn >= en && bn >= hi && bn > 0) dominant = `Bengali (${bnPct}%)`;
+      document.getElementById("dominantScript").textContent = dominant;
     }
-    container.innerHTML = `<p class="kw-sequence">${escapeHtml(words.join(' '))}</p>`;
-  }
 
-  function escapeHtml(str){
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
+    async function extractKeywords() {
+      const text = document.getElementById("inputText").value.trim();
+      const statusMsg = document.getElementById("statusMsg");
+      const extractBtn = document.getElementById("extractBtn");
+      const topN = parseInt(document.getElementById("topNSlider").value, 10);
 
-  async function extract(){
-    const text = textInput.value.trim();
-    if (!text){
-      resultsContainer.innerHTML = '<div class="empty-state">Enter some text first.</div>';
-      return;
+      if (!text) {
+        statusMsg.className = "status-msg error";
+        statusMsg.innerHTML = '<i data-lucide="alert-circle" style="width:14px;height:14px;"></i> Please provide input text.';
+        renderIcons();
+        return;
+      }
+
+      extractBtn.disabled = true;
+      extractBtn.innerHTML = '<span class="spinner"></span> Extracting Salient Keywords...';
+      statusMsg.className = "status-msg";
+      statusMsg.textContent = "Analyzing terminology frequency and relevance...";
+
+      try {
+        const res = await fetch("/api/extract-keywords", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, top_n: topN })
+        });
+
+        if (!res.ok) {
+          let err = "Extraction failed.";
+          try {
+            const j = await res.json();
+            if (j.detail) err = j.detail;
+          } catch (_) {}
+          throw new Error(err);
+        }
+
+        const data = await res.json();
+        lastResult = data;
+        displayKeywords(data);
+
+        statusMsg.className = "status-msg success";
+        statusMsg.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;"></i> Keywords extracted successfully!';
+        renderIcons();
+      } catch (err) {
+        statusMsg.className = "status-msg error";
+        statusMsg.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;"></i> ${err.message}`;
+        renderIcons();
+      } finally {
+        extractBtn.disabled = false;
+        extractBtn.innerHTML = '<i data-lucide="key" style="width:16px;height:16px;"></i> Extract Domain Keywords';
+        renderIcons();
+      }
     }
-    extractBtn.disabled = true;
-    extractBtn.textContent = 'Extracting…';
-    try{
-      const res = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({text, top_n: 15}),
-      });
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const data = await res.json();
-      lastKeywords = data.keywords;
-      lastSequence = data.keywords_in_order;
-      renderResults(data.keywords);
-      renderSequence(data.keywords_in_order);
-    } catch (err){
-      resultsContainer.innerHTML = `<div class="error-state">Couldn't reach the backend — is it running? (${escapeHtml(err.message)})</div>`;
-    } finally {
-      extractBtn.disabled = false;
-      extractBtn.textContent = 'Extract keywords';
+
+    function displayKeywords(data) {
+      // Sequence
+      const seqRow = document.getElementById("sequencePills");
+      seqRow.innerHTML = "";
+      if (data.keywords_in_order && data.keywords_in_order.length > 0) {
+        data.keywords_in_order.forEach(word => {
+          const pill = document.createElement("span");
+          pill.className = "kw-pill";
+          pill.textContent = word;
+          seqRow.appendChild(pill);
+        });
+      } else {
+        seqRow.innerHTML = '<span style="color:var(--text-muted); font-size:13px;">No keywords identified in sequence.</span>';
+      }
+
+      // Ranked Table
+      const tbody = document.getElementById("kwTableBody");
+      tbody.innerHTML = "";
+      if (data.keywords && data.keywords.length > 0) {
+        data.keywords.forEach(item => {
+          const tr = document.createElement("tr");
+          const scorePct = Math.round((item.relative_score || item.score || 0) * 100);
+          const lang = item.language || "en";
+          const langLabel = (data.language_labels && data.language_labels[lang]) ? data.language_labels[lang] : lang.toUpperCase();
+
+          tr.innerHTML = `
+            <td style="font-weight:600; color:var(--text);">${item.word}</td>
+            <td>
+              <span class="kw-score-bar"><span class="kw-score-fill" style="width:${scorePct}%;"></span></span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-muted);">${(item.score || 0).toFixed(2)}</span>
+            </td>
+            <td>
+              <span style="font-size:11px; font-family:'JetBrains Mono',monospace; padding:2px 6px; border-radius:4px; background:var(--surface-alt); border:1px solid var(--border);">
+                ${langLabel}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:20px;">No keywords found.</td></tr>';
+      }
+
+      document.getElementById("copySeqBtn").disabled = !(data.keywords_in_order && data.keywords_in_order.length > 0);
+      document.getElementById("downloadJsonBtn").disabled = !data.keywords || data.keywords.length === 0;
     }
-  }
 
-  extractBtn.addEventListener('click', extract);
-  textInput.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') extract();
-  });
-
-  // ---------- Copy / Download ----------
-  function downloadText(filename, text){
-    const blob = new Blob([text], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  async function copyText(text, btn){
-    try{
-      await navigator.clipboard.writeText(text);
-      const original = btn.textContent;
-      btn.textContent = 'Copied!';
-      setTimeout(() => { btn.textContent = original; }, 1200);
-    } catch(err){
-      alert('Could not copy: ' + err.message);
+    function copySequence() {
+      if (!lastResult || !lastResult.keywords_in_order) return;
+      const text = lastResult.keywords_in_order.join(" ");
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById("copySeqBtn");
+      btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Copied!';
+      renderIcons();
+      setTimeout(() => {
+        btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px;"></i> Copy Keywords';
+        renderIcons();
+      }, 2000);
     }
-  }
 
-  document.getElementById('copy-ranked-btn').addEventListener('click', (e) => {
-    copyText(lastKeywords.map(k => k.word).join('\n'), e.target);
-  });
-  document.getElementById('download-ranked-btn').addEventListener('click', () => {
-    downloadText('keywords-ranked.txt', lastKeywords.map(k => k.word).join('\n'));
-  });
-  document.getElementById('copy-sequence-btn').addEventListener('click', (e) => {
-    copyText(lastSequence.join(' '), e.target);
-  });
-  document.getElementById('download-sequence-btn').addEventListener('click', () => {
-    downloadText('keywords-in-order.txt', lastSequence.join(' '));
-  });
+    function downloadJSON() {
+      if (!lastResult) return;
+      const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "nativox_stage3_keywords.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
 
-  updateSpectrum();
-</script>
-
-
+    renderIcons();
+  </script>
 </body>
 </html>

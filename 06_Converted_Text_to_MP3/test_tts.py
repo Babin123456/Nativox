@@ -10,8 +10,10 @@ import sys
 
 import pytest
 
-# Ensure the backend directory is on the path so 'app' can be imported
-sys.path.insert(0, os.path.dirname(__file__))
+from pathlib import Path
+
+# Ensure the stage directory is on the path so 'app' and 'main' can be imported
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastapi.testclient import TestClient
 
