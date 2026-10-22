@@ -15,7 +15,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.merger import merge_video_audio, probe_media, find_ffmpeg
@@ -40,7 +40,7 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+FRONTEND_DIR = BASE_DIR / "frontend"
 UPLOAD_DIR = BASE_DIR / "storage" / "uploads"
 OUTPUT_DIR = BASE_DIR / "storage" / "outputs"
 
@@ -217,20 +217,23 @@ def probe_endpoint(filename: str):
 
 # ── Static Assets (Favicon) & Service Status ───────────────────────────────
 
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    """Redirect to interactive Swagger UI documentation."""
-    return RedirectResponse(url="/docs")
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Video Merger Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.webp", include_in_schema=False)
 def favicon():
-    fav = STATIC_DIR / "favicon.webp"
+    fav = FRONTEND_DIR / "favicon.webp"
     if fav.exists():
         return FileResponse(str(fav), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")
