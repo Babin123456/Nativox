@@ -1,145 +1,123 @@
-# Nativox automatic pipeline
+# Nativox Automatic Pipeline (`00_Auto_Pip`)
 
-`00_Auto_Pip` runs the complete Nativox video-dubbing workflow from a single
-command. It uses one shared Python virtual environment for all pipeline
-stages.
+`00_Auto_Pip` runs the complete Nativox video-dubbing workflow from a single command. It orchestrates all stages into an end-to-end automated dubbing pipeline:
 
 ```text
-MP4
-  -> MP3
-  -> transcript
-  -> keywords
-  -> constructed sentence
-  -> translated keywords
-  -> Hindi reformed text
-  -> Hindi MP3
-  -> final MP4
+Input Video (.mp4)
+  -> [01] MP3 Audio Extracted
+  -> [02] Speech-to-Text Transcription & VAD
+  -> [03] Salient Keyword Extraction (RAKE)
+  -> [04] Neural Sentence Construction (Flan-T5)
+  -> [05a] Terminology Translation & Phonetic Mapping
+  -> [05b] Hindi Sentence Reformation & 35%-40% Précis
+  -> [06] Hindi Speech Synthesis (Edge Neural TTS)
+  -> [07] Dubbed Audio Video Remuxing
+  -> Output Dubbed Video (final_dubbed_video.mp4)
 ```
 
-## Requirements
+---
 
-- Windows
-- Python 3.11 or newer available through the `py` launcher
-- `ffmpeg` available on `PATH` (required by Stages 01 and 07)
-- A source video file in MP4 format
+## 📋 Requirements
 
-Stage 04 loads a PyTorch model from
-`04_Keyword_to_Sentence_Construction\saved_model`. The first transcription run
-may also take longer while its speech-recognition model is initialized.
+- **Python:** 3.11 (Pinned repository-wide via `.python-version`)
+- **FFmpeg:** Installed and available on system `PATH` (required by Stages 01 and 07)
+- **Input:** Source video file (`.mp4`, `.mov`, `.mkv`, etc.)
 
-## Setup
+---
 
-Run these commands once from this directory. The setup script creates `venv`
-and installs the requirements used by all stages:
+## 🚀 Environment Setup
 
-### PowerShell
+Install all stage dependencies across the repository using the cross-platform setup utility:
 
-```powershell
-Set-Location "D:\path\to\Nativox\00_Auto_Pip"
-& .\setup.bat
+```bash
+cd 00_Auto_Pip
+python setup_env.py
 ```
 
-### Command Prompt
+To create and use a dedicated virtual environment in `00_Auto_Pip/venv`:
 
-```bat
-cd /d "D:\path\to\Nativox\00_Auto_Pip"
-setup.bat
+```bash
+python setup_env.py --create-venv
 ```
 
-The setup script expects the numbered stage folders to be siblings of
-`00_Auto_Pip`. Do not move this folder without moving it with the rest of the
-Nativox project.
+---
 
-## Run the pipeline
+## ⚡ Running the Pipeline
 
-`run_pipeline.bat` starts any missing HTTP services, runs every stage, and
-stops only the services it started:
+Run the orchestrator with your input video. It automatically starts any missing stage services, executes the workflow in order, and stops only the services it started:
 
-```bat
-run_pipeline.bat "C:\path\to\video.mp4"
+```bash
+python orchestrator.py "path/to/video.mp4"
 ```
 
-For example, the repository includes `test.mp4`:
+### Custom Output Directory
 
-```bat
-run_pipeline.bat ".\test.mp4"
+By default, outputs are saved to `jobs/job1`. Specify a custom folder via `--work-dir`:
+
+```bash
+python orchestrator.py "path/to/video.mp4" --work-dir "path/to/output_folder"
 ```
 
-By default, results are written to `jobs\job1`. Pass a second argument to
-choose a different output directory:
+### Using Existing Running Services
 
-```bat
-run_pipeline.bat "C:\path\to\video.mp4" "C:\path\to\output"
+If services are already running manually or on external ports, prevent automatic service management:
+
+```bash
+python orchestrator.py "path/to/video.mp4" --no-auto-start
 ```
 
-The equivalent direct Python command supports disabling automatic service
-startup:
+---
 
-```bat
-venv\Scripts\python.exe orchestrator.py "C:\path\to\video.mp4" --no-auto-start
-venv\Scripts\python.exe orchestrator.py "C:\path\to\video.mp4" --work-dir "C:\path\to\output"
+## 🔍 Service Health & Management
+
+Check the health and reachability of all stage microservices:
+
+```bash
+python orchestrator.py --status
 ```
 
-Use `--no-auto-start` only when the required services are already running.
+Pre-launch all HTTP microservices in the background:
 
-## Manual service control
-
-For development, start all seven HTTP services in separate console windows:
-
-```bat
-start_all.bat
+```bash
+python orchestrator.py --start-services
 ```
 
-Stage 04 is not an HTTP service; it is loaded directly from
-`04_Keyword_to_Sentence_Construction\construct.py`.
+---
 
-Stop the services started by `start_all.bat` with:
+## 🌐 HTTP Microservice Architecture & Ports
 
-```bat
-stop_all.bat
-```
+| Stage | Module Name | Port | Health Endpoint |
+| :---: | :--- | :---: | :--- |
+| **01** | MP4 to MP3 Audio Extractor | `8001` | `/health` |
+| **02** | Speech-to-Text Transcription (Whisper) | `8002` | `/api/languages` |
+| **03** | Salient Keyword Extraction (RAKE) | `8003` | `/api/health` |
+| **04** | Sentence Construction (Flan-T5) | `8004` | `/api/health` *(or in-process)* |
+| **05a** | Keyword Translation & Phonetics | `8011` | `/api/health` |
+| **05b** | Sentence Reformation & Précis | `8012` | `/api/health` |
+| **06** | Converted Text to MP3 (Edge TTS) | `8013` | `/api/health` |
+| **07** | Final Video & Audio Merge | `8014` | `/api/health` |
 
-`stop_all.bat` stops processes listening on the Nativox service ports. When
-using `run_pipeline.bat`, services started by that invocation are stopped
-automatically after the pipeline finishes.
+---
 
-## HTTP service ports
+## 📦 Generated Output Artifacts
 
-| Stage | Purpose | Port |
-| --- | --- | ---: |
-| 01 | MP4 to MP3 | 8001 |
-| 02 | MP3 to text | 8002 |
-| 03 | Text to keywords | 8003 |
-| 05a | Keyword translation | 8011 |
-| 05b | Sentence reformation | 8012 |
-| 06 | Text to MP3 | 8013 |
-| 07 | Merge MP3 with MP4 | 8014 |
+Each pipeline job generates the following structured outputs:
 
-Services bind to `127.0.0.1` and are used by the orchestrator only.
+- `audio.mp3` — Pristine isolated audio from source video.
+- `transcript.txt` — High-accuracy timestamped text transcript.
+- `keywords.json` — Salient domain terminology in spoken sequence.
+- `constructed_sentence.txt` — Reconstructed fluent sentence.
+- `translated_keywords.json` — Target-language translated vocabulary.
+- `reformed_text.json` — Disfluency-stripped Hindi sentence and précis data.
+- `dubbed_text.txt` — Final compressed Hindi script for dubbing.
+- `dubbed_audio.mp3` — Synthesized target-language neural speech.
+- `final_dubbed_video.mp4` — Final video remuxed with dubbed audio.
 
-## Output files
+---
 
-The selected output directory contains the following files when the run
-completes:
+## 🛠️ Troubleshooting
 
-- `audio.mp3` - audio extracted from the source video
-- `transcript.txt` - transcribed source audio
-- `keywords.json` - extracted keywords
-- `constructed_sentence.txt` - sentence generated from the keywords
-- `translated_keywords.json` - translated keyword data
-- `reformed_text.json` - sentence-reformation response
-- `dubbed_text.txt` - final Hindi text used for speech synthesis
-- `dubbed_audio.mp3` - synthesized Hindi audio
-- `final_dubbed_video.mp4` - source video with the dubbed audio
-
-## Troubleshooting
-
-- **Python was not found:** install Python 3.11 or newer and ensure the `py`
-  launcher is available.
-- **Shared virtual environment not found:** run `setup.bat` before running the
-  pipeline.
-- **A service does not become ready:** verify that its port is not occupied,
-  then run `stop_all.bat` and retry.
-- **`ffmpeg` errors:** install FFmpeg and add its `bin` directory to `PATH`.
-- **PyTorch `c10.dll` is blocked:** ask an administrator to approve the
-  Python/PyTorch installation in Windows Application Control.
+- **Python not recognized / wrong version:** Ensure Python 3.11 is active (`python --version`). Avoid Python 3.14+ as it lacks binary wheels for PyTorch and CTranslate2.
+- **Port already in use:** Verify another process is not binding to ports `8001`–`8014` or run `python orchestrator.py --status`.
+- **FFmpeg not found:** Ensure `ffmpeg` is installed and added to `PATH` (`ffmpeg -version`).
+- **Stage 4 PyTorch Security Warning:** If Windows Application Control blocks `c10.dll`, ensure Python is installed in an approved user directory.
