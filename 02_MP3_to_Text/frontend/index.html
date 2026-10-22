@@ -478,7 +478,6 @@
       flex: none;
     }
 
-    /* ── Footer ──────────────────────────────────────────────── */
     footer {
       margin-top: 40px;
       text-align: center;
@@ -486,6 +485,10 @@
       border-top: 1px solid var(--border);
       color: var(--text-muted);
       font-size: 13px;
+      line-height: 1.6;
+    }
+    footer strong {
+      color: var(--text);
     }
   </style>
 </head>
@@ -506,8 +509,8 @@
 
       <!-- Suite Pipeline Flow -->
       <div class="pipeline-flow">
-        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #6366F1;">
-          <i data-lucide="workflow" style="width:14px;height:14px;color:#6366F1;"></i> 0. Auto Pip
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #8B5CF6;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#8B5CF6;"></i> 0. Auto Pip
         </a>
         <span class="flow-arrow">→</span>
         <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: #0EA5E9;">
@@ -522,8 +525,8 @@
           <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
         </a>
         <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #8B5CF6;">
-          <i data-lucide="file-text" style="width:14px;height:14px;color:#8B5CF6;"></i> 4. Sentences
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #38BDF8;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#38BDF8;"></i> 4. Sentences
         </a>
         <span class="flow-arrow">→</span>
         <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: #06B6D4;">
@@ -534,8 +537,8 @@
           <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
         </a>
         <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #EC4899;">
-          <i data-lucide="volume-2" style="width:14px;height:14px;color:#EC4899;"></i> 6. Speech
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #F43F5E;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#F43F5E;"></i> 6. Speech
         </a>
         <span class="flow-arrow">→</span>
         <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
@@ -636,7 +639,10 @@
 
     <!-- Footer -->
     <footer>
-      Nativox Multilingual Dubbing Suite · Stage 2 Transcriber · Powered by faster-whisper & FastAPI
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Mr. Debjit Ghosh</strong>
+      </p>
     </footer>
 
   </div>
