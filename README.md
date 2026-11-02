@@ -26,7 +26,7 @@
 
 **Nativox** is an AI-powered multilingual video dubbing and contextual voice translation system. To maintain maximum modularity, research extensibility, and clarity for academic review and production debugging, the system is organized into decoupled pipeline stages as well as unified end-to-end services.
 
-Each standalone stage can run completely independently as a self-contained microservice (with its own frontend and backend), while also chaining together into the master pipeline.
+Each standalone stage can run completely independently as a self-contained microservice (with its own FastAPI backend, static favicon, and interactive OpenAPI documentation at `/docs`), while also chaining together into the master pipeline.
 
 ---
 
@@ -34,6 +34,7 @@ Each standalone stage can run completely independently as a self-contained micro
 
 | Stage Directory | Module Name | Documentation & Guide | Core Technology | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| [`00_Auto_Pip/`](00_Auto_Pip) | **Automatic Master Dubbing Suite & UI** | [📖 Stage 0 Guide](00_Auto_Pip/README.md) | FastAPI / Orchestrator | Web dashboard on port 8000 uniting all 8 microservices; features acoustic speaker voice gender matching, dynamic pacing, and zero-truncation remuxing. |
 | [`01_MP4_to_MP3/`](01_MP4_to_MP3) | **Audio Extractor & Stem Separator** | [📖 Stage 1 Guide](01_MP4_to_MP3/README.md) | FFmpeg (libmp3lame) | Ingests video (`.mp4`, `.mov`, `.mkv`), isolates audio tracks, and renders side-by-side synchronized preview. |
 | [`02_MP3_to_Text/`](02_MP3_to_Text) | **Speech-To-Text (ASR) Engine** | [📖 Stage 2 Guide](02_MP3_to_Text/README.md) | faster-whisper / Silero VAD | Generates timestamped word-level and sentence-level transcripts with automatic language classification. |
 | [`03_Text_to_Keyword/`](03_Text_to_Keyword) | **Salient Keyword Extractor** | [📖 Stage 3 Guide](03_Text_to_Keyword/README.md) | Multilingual RAKE / Script Tagger | Extracts domain-critical terminology, named entities, and technical keywords from spoken dialogue. |
@@ -117,121 +118,169 @@ pip install -r requirements.txt
 
 ---
 
+### ⚡ Running the Complete Pipeline
+
+For the full end-to-end MP4-to-dubbed-MP4 workflow, use [`00_Auto_Pip/`](00_Auto_Pip). It provides both an **interactive Web UI** and a headless CLI orchestrator:
+
+#### Option A: Interactive Web UI (Port 8000)
+
+```bash
+cd 00_Auto_Pip
+python main.py
+```
+
+*(Or `uvicorn main:app --reload --port 8000`)*
+
+Open your browser to:
+👉 **`http://127.0.0.1:8000`**
+
+Features:
+
+- **Acoustic Speaker Voice Gender Matching:** Analyzes input speaker fundamental pitch ($F_0$ Hz) and automatically selects a matching male (`hi-IN-MadhurNeural`) or female (`hi-IN-SwaraNeural`) neural voice.
+
+- **Zero Truncation Remuxing:** Preserves 100% of the original video duration without cutting video frames.
+- **Side-by-Side Video Player:** Compare original video with dubbed output in real time.
+- **Live Multi-Stage Stepper & Logs:** View status badges for all microservices (`8001`–`8014`) and real-time execution logs.
+
+#### Option B: Headless Command-Line Runner
+
+```bash
+cd 00_Auto_Pip
+python setup_env.py
+python orchestrator.py "path/to/video.mp4"
+```
+
+Results are written to `00_Auto_Pip/jobs/job1` by default. Pass `--work-dir` to choose another output directory:
+
+```bash
+python orchestrator.py "path/to/video.mp4" --work-dir "path/to/output"
+```
+
+To check service health across all microservices:
+
+```bash
+python orchestrator.py --status
+```
+
+See the [automatic pipeline guide](00_Auto_Pip/README.md) for full service management, output files, ports, and troubleshooting.
+
+---
+
 ### 🏃 Running Individual Stages
 
 Select your preferred shell block below, copy it with one click, and paste it directly into your terminal.
 
 #### Stage 1: Audio Extractor & Stem Separator (`01_MP4_to_MP3`)
 
-*Port:* `http://127.0.0.1:8000` &bull; *Documentation:* [Stage 1 Guide](01_MP4_to_MP3/README.md)
+*Port:* `http://127.0.0.1:8001` &bull; *Documentation:* [Stage 1 Guide](01_MP4_to_MP3/README.md)
 
 - **Windows PowerShell:**
 
   ```powershell
-  cd 01_MP4_to_MP3/backend
+  cd 01_MP4_to_MP3
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **Windows Git Bash:**
 
   ```bash
-  cd 01_MP4_to_MP3/backend
+  cd 01_MP4_to_MP3
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 - **macOS / Linux:**
 
   ```bash
-  cd 01_MP4_to_MP3/backend
+  cd 01_MP4_to_MP3
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8000
+  python -m uvicorn main:app --reload --port 8001
   ```
 
 ---
 
 #### Stage 2: Speech-To-Text (ASR) Engine (`02_MP3_to_Text`)
 
-*Port:* `http://127.0.0.1:8001` &bull; *Documentation:* [Stage 2 Guide](02_MP3_to_Text/README.md)
+*Port:* `http://127.0.0.1:8002` &bull; *Documentation:* [Stage 2 Guide](02_MP3_to_Text/README.md)
 
 - **Windows PowerShell:**
 
   ```powershell
-  cd 02_MP3_to_Text/backend
+  cd 02_MP3_to_Text
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **Windows Git Bash:**
 
   ```bash
-  cd 02_MP3_to_Text/backend
+  cd 02_MP3_to_Text
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 - **macOS / Linux:**
 
   ```bash
-  cd 02_MP3_to_Text/backend
+  cd 02_MP3_to_Text
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8001
+  python -m uvicorn main:app --reload --port 8002
   ```
 
 ---
 
 #### Stage 3: Salient Keyword Extractor (`03_Text_to_Keyword`)
 
-*Port:* `http://127.0.0.1:8010` &bull; *Documentation:* [Stage 3 Guide](03_Text_to_Keyword/README.md)
+*Port:* `http://127.0.0.1:8003` &bull; *Documentation:* [Stage 3 Guide](03_Text_to_Keyword/README.md)
 
 - **Windows PowerShell:**
 
   ```powershell
-  cd 03_Text_to_Keyword/backend
+  cd 03_Text_to_Keyword
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **Windows Git Bash:**
 
   ```bash
-  cd 03_Text_to_Keyword/backend
+  cd 03_Text_to_Keyword
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 - **macOS / Linux:**
 
   ```bash
-  cd 03_Text_to_Keyword/backend
+  cd 03_Text_to_Keyword
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8010
+  python -m uvicorn main:app --reload --port 8003
   ```
 
 ---
 
 #### Stage 4: Sentence Construction & Syntax Restoration (`04_Keyword_to_Sentence_Construction`)
 
-*Port:* `http://127.0.0.1:8004` &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
+*Port:* `http://127.0.0.1:8004` (FastAPI Microservice / Interactive Docs at `/docs`) &bull; *Documentation:* [Stage 4 Guide](04_Keyword_to_Sentence_Construction/README.md)
 
 - **Windows PowerShell:**
 
@@ -262,6 +311,8 @@ Select your preferred shell block below, copy it with one click, and paste it di
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8004
   ```
+
+*(Interactive CLI: `cd 04_Keyword_to_Sentence_Construction && python construct.py`)*
 
 ---
 
@@ -272,7 +323,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 05a_Keyword_Translation__Sagnik/backend
+  cd 05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -282,7 +333,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 05a_Keyword_Translation__Sagnik/backend
+  cd 05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -292,7 +343,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 05a_Keyword_Translation__Sagnik/backend
+  cd 05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -308,7 +359,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 05b_Sentence_Reformation__Atanu/backend
+  cd 05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -318,7 +369,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 05b_Sentence_Reformation__Atanu/backend
+  cd 05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -328,7 +379,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 05b_Sentence_Reformation__Atanu/backend
+  cd 05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -344,7 +395,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 06_Converted_Text_to_MP3/backend
+  cd 06_Converted_Text_to_MP3
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -354,7 +405,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 06_Converted_Text_to_MP3/backend
+  cd 06_Converted_Text_to_MP3
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -364,7 +415,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 06_Converted_Text_to_MP3/backend
+  cd 06_Converted_Text_to_MP3
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -380,7 +431,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 07_Merge_MP3_with_MP4/backend
+  cd 07_Merge_MP3_with_MP4
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -390,7 +441,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 07_Merge_MP3_with_MP4/backend
+  cd 07_Merge_MP3_with_MP4
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -400,7 +451,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 07_Merge_MP3_with_MP4/backend
+  cd 07_Merge_MP3_with_MP4
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -441,7 +492,7 @@ For detailed technical designs, architectural blueprints, and stage references:
       <b>Sagnik Bachhar</b>
     </td>
     <td align="center">
-      <b>Dr. Debjit Ghosh</b><br/>
+      <b>Mr. Debjit Ghosh</b><br/>
       <i>Department of Computer Science & Engineering</i>
     </td>
   </tr>
@@ -461,7 +512,7 @@ For detailed technical designs, architectural blueprints, and stage references:
 
 <p align="center">
   <sub>
-    Made with ❤️ by <b>Atanu, Babin, Rohit & Sagnik</b> • Guided by <b>Dr. Debjit Ghosh</b><br/>
+    Made with ❤️ by <b>Atanu, Babin, Rohit & Sagnik</b> • Guided by <b>Mr. Debjit Ghosh</b><br/>
     <b>🎙️ Nativox</b> — Empowering Multilingual Communication &bull; <b>End of Suite Documentation</b>
   </sub>
 </p>

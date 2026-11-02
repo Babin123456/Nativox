@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nativox — Stage 5: Sentence Reformation & Précis</title>
-  <link rel="icon" type="image/webp" href="/static/favicon.webp" />
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,9 +16,9 @@
       --border: #2B384E;
       --text: #F1F5F9;
       --text-muted: #94A3B8;
-      --primary: #38BDF8;
-      --primary-hover: #0284C7;
-      --primary-glow: rgba(56, 189, 248, 0.15);
+      --primary: #F97316;
+      --primary-hover: #EA580C;
+      --primary-glow: rgba(249, 115, 22, 0.2);
       --accent: #E8A33D;
       --accent-glow: rgba(232, 163, 61, 0.15);
       --success: #34D399;
@@ -85,6 +85,51 @@
       line-height: 1.5;
       max-width: 680px;
       margin: 0 auto;
+    }
+
+    /* ── Pipeline Flow Badges ────────────────────────────────── */
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step:hover {
+      border-color: var(--step-color, var(--text));
+      color: var(--step-color, var(--text));
+      transform: translateY(-1px);
+    }
+
+    .flow-step.active {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--step-color, var(--primary));
+      color: var(--step-color, var(--primary));
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.4;
     }
 
     /* Tabs */
@@ -417,35 +462,82 @@
     footer {
       text-align: center;
       margin-top: 40px;
-      font-size: 12.5px;
+      font-size: 13px;
       color: var(--text-muted);
       border-top: 1px solid var(--border);
-      padding-top: 20px;
+      padding-top: 24px;
+      line-height: 1.6;
       width: 100%;
     }
+    footer strong {
+      color: var(--text);
+    }
   </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <div class="badge">Nativox • Stage 5 Engine</div>
+      <div class="badge">
+        <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+        Stage 5(b) — Reformation & Précis
+      </div>
       <h1>Sentence Reformation & Précis</h1>
       <p class="subtitle">
         Transform broken, disfluent speech into natural, meaningful Hindi, and compress full audio transcripts into strict 35%–40% duration-budgeted précis summaries.
       </p>
+
+      <!-- Suite Pipeline Flow -->
+      <div class="pipeline-flow">
+        <a href="http://127.0.0.1:8000" class="flow-step" style="--step-color: #8B5CF6;">
+          <i data-lucide="workflow" style="width:14px;height:14px;color:#8B5CF6;"></i> 0. Auto Pip
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8001" class="flow-step" style="--step-color: #0EA5E9;">
+          <i data-lucide="video" style="width:14px;height:14px;color:#0EA5E9;"></i> 1. MP4→MP3
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: #F59E0B;">
+          <i data-lucide="mic" style="width:14px;height:14px;color:#F59E0B;"></i> 2. MP3→Text
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: #10B981;">
+          <i data-lucide="key" style="width:14px;height:14px;color:#10B981;"></i> 3. Keywords
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8004" class="flow-step" style="--step-color: #38BDF8;">
+          <i data-lucide="file-text" style="width:14px;height:14px;color:#38BDF8;"></i> 4. Sentences
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: #06B6D4;">
+          <i data-lucide="languages" style="width:14px;height:14px;color:#06B6D4;"></i> 5a. Translate
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8012" class="flow-step active" style="--step-color: #F97316;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#F97316;"></i> 5b. Reform
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: #F43F5E;">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:#F43F5E;"></i> 6. Speech
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: #22C55E;">
+          <i data-lucide="film" style="width:14px;height:14px;color:#22C55E;"></i> 7. Final MP4
+        </a>
+      </div>
     </header>
 
     <!-- Tabs Navigation -->
     <div class="tabs-nav">
-      <button class="tab-btn active" id="tabPipeline" onclick="switchTab('pipeline')">
-        ⚡ Unified 2-Step Pipeline
+      <button class="tab-btn active" id="tabPipeline" onclick="switchTab('pipeline')" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="zap" style="width:14px;height:14px;"></i> Unified 2-Step Pipeline
       </button>
-      <button class="tab-btn" id="tabReconstruct" onclick="switchTab('reconstruct')">
-        🛠️ Task 1: Meaningful Sentence
+      <button class="tab-btn" id="tabReconstruct" onclick="switchTab('reconstruct')" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="sliders" style="width:14px;height:14px;"></i> Task 1: Meaningful Sentence
       </button>
-      <button class="tab-btn" id="tabPrecis" onclick="switchTab('precis')">
-        ⏱️ Task 2: 35%–40% Précis
+      <button class="tab-btn" id="tabPrecis" onclick="switchTab('precis')" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="clock" style="width:14px;height:14px;"></i> Task 2: 35%–40% Précis
       </button>
     </div>
 
@@ -477,7 +569,7 @@
       <div id="pipelineOutput" class="output-section">
         <div class="card">
           <div class="result-header" style="margin-bottom: 16px;">
-            <h3 style="font-size: 16px; color: #FFF;">🎯 Pipeline Execution Results</h3>
+            <h3 style="font-size: 16px; color: #FFF; display:flex; align-items:center; gap:8px;"><i data-lucide="target" style="width:16px;height:16px;color:var(--primary);"></i> Pipeline Execution Results</h3>
             <span id="pipelineBudgetBadge" class="budget-badge success">Target Budget: 35% - 40%</span>
           </div>
 
@@ -617,7 +709,7 @@
       <div id="precisOutput" class="output-section">
         <div class="card">
           <div class="result-header" style="margin-bottom: 16px;">
-            <h3 style="font-size: 16px; color: #FFF;">📊 Précis Compression Analysis</h3>
+            <h3 style="font-size: 16px; color: #FFF; display:flex; align-items:center; gap:8px;"><i data-lucide="bar-chart-2" style="width:16px;height:16px;color:var(--primary);"></i> Précis Compression Analysis</h3>
             <span id="precisBadge" class="budget-badge success">Target Budget: 35% - 40%</span>
           </div>
 
@@ -659,7 +751,10 @@
     </div>
 
     <footer>
-      Department of Computer Science & Engineering • Dr. Debjit Ghosh • Nativox AI Dubbing Suite
+      <p>
+        <strong>Nativox</strong> — Modular Real-Time AI Multilingual Dubbing Suite<br>
+        Built by <strong>Atanu, Babin, Rohit & Sagnik</strong> · Guided by <strong>Mr. Debjit Ghosh</strong>
+      </p>
     </footer>
   </div>
 
@@ -766,13 +861,14 @@
         const badge = document.getElementById('pipelineBudgetBadge');
         if (data.is_within_budget) {
           badge.className = 'budget-badge success';
-          badge.innerHTML = '✓ Within 35% – 40% Budget';
+          badge.innerHTML = 'Within 35% – 40% Budget';
         } else {
           badge.className = 'budget-badge warning';
           badge.innerHTML = 'Ratio: ' + data.retention_ratio_pct + '% (Target 35%-40%)';
         }
 
         document.getElementById('pipelineOutput').classList.add('show');
+        if (window.lucide) lucide.createIcons();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -876,13 +972,14 @@
         const badge = document.getElementById('precisBadge');
         if (data.is_within_budget) {
           badge.className = 'budget-badge success';
-          badge.innerHTML = '✓ Within 35% – 40% Budget';
+          badge.innerHTML = 'Within 35% – 40% Budget';
         } else {
           badge.className = 'budget-badge warning';
           badge.innerHTML = 'Ratio: ' + data.retention_ratio_pct + '% (Target 35%-40%)';
         }
 
         document.getElementById('precisOutput').classList.add('show');
+        if (window.lucide) lucide.createIcons();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -907,6 +1004,8 @@
         alert('Copied to clipboard!');
       });
     }
+
+    if (window.lucide) lucide.createIcons();
   </script>
 </body>
 </html>

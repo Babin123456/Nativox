@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import LANG_CODES, LANG_LABELS
@@ -31,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
 
 
 @app.get("/api/health")
@@ -76,13 +76,18 @@ def translate_batch(request: BatchTranslateRequest):
     }
 
 
-# Serve the frontend's static assets (if any grow later: css/js files, etc.)
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# Serve static assets (favicon)
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/")
-def serve_frontend():
-    return FileResponse(FRONTEND_DIR / "index.html")
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Keyword Translation Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -90,5 +95,5 @@ def serve_frontend():
 def favicon():
     favicon_path = FRONTEND_DIR / "favicon.webp"
     if favicon_path.exists():
-        return FileResponse(favicon_path, media_type="image/webp")
+        return FileResponse(str(favicon_path), media_type="image/webp")
     raise HTTPException(status_code=404, detail="Favicon not found")

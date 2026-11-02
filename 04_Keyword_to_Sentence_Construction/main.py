@@ -15,7 +15,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -123,18 +123,19 @@ def construct_sentence(req: ConstructRequest):
     }
 
 
-# ── Frontend Static Files ───────────────────────────────────────────────────
+# ── Static Assets (Favicon) & Service Status ────────────────────────────────
 
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 
-@app.get("/")
-def serve_index():
+@app.get("/", response_class=HTMLResponse)
+def serve_frontend() -> HTMLResponse:
+    """Serve the single-page frontend."""
     index_file = FRONTEND_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(str(index_file))
-    return {"message": "Nativox Stage 4 Backend is Running. Frontend not found."}
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Nativox Stage 4 Online</h1>")
 
 
 @app.get("/favicon.ico", include_in_schema=False)

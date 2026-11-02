@@ -1,13 +1,13 @@
 {
-  "original_input": "A man ves something he has done for the first time .",
-  "original_words": 12,
-  "step1_meaningful_english": "A man ves something he has done for the first time .",
-  "step1_meaningful_hindi": "एक आदमी कुछ ऐसा करता है जो उसने पहली बार किया है।",
+  "original_input": "The captain of the Jets gave the program a top ten finish in the pilot's program. The program was produced by the master of the gun, Pete Mitchell. The pilot gave an excellent performance in every aspect of the program, including the fact that he gave the pilot his master's degree.",
+  "original_words": 51,
+  "step1_meaningful_english": "The captain of the Jets gave the program a top ten finish in the pilot's program. The program was produced by the master of the gun, Pete Mitchell. The pilot gave an excellent performance in every aspect of the program, including the fact that he gave the pilot his master's degree.",
+  "step1_meaningful_hindi": "जेट्स के कप्तान ने पायलट के कार्यक्रम में कार्यक्रम को टॉप टेन फिनिश दिया। कार्यक्रम का निर्माण बंदूक के मास्टर, पीट मिशेल द्वारा किया गया था। पायलट ने कार्यक्रम के हर पहलू में एक उत्कृष्ट प्रदर्शन दिया, जिसमें यह तथ्य भी शामिल था कि उसने पायलट को अपनी मास्टर डिग्री दी थी।",
   "step1_removed_fillers": [],
-  "step2_precise_english": "A man ves something he has done for the first time .",
-  "step2_precise_hindi": "एक आदमी कुछ ऐसा करता है जो उसने पहली बार किया है।",
-  "precise_words": 12,
-  "retention_ratio_pct": 100.0,
+  "step2_precise_english": "The captain of the Jets gave the program a top ten finish in the pilot's program.",
+  "step2_precise_hindi": "जेट्स के कप्तान ने पायलट के कार्यक्रम में कार्यक्रम को टॉप टेन फिनिश दिया।",
+  "precise_words": 17,
+  "retention_ratio_pct": 32.1,
   "is_within_budget": true,
   "notes": "Step 1: Meaning restored from keywords. Step 2: Precise budget applied."
 }
