@@ -334,6 +334,95 @@
       transform: none;
     }
 
+    /* ── Voice & Gender Settings ─────────────────────────────── */
+    .voice-settings-panel {
+      margin-top: 18px;
+      padding: 16px 18px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .voice-settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .gender-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .gender-grid { grid-template-columns: 1fr; }
+    }
+
+    .gender-pill-label {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .gender-pill-label input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .gender-pill-card {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .gender-pill-card:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .gender-pill-label input[type="radio"]:checked + .gender-pill-card {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: var(--primary);
+      color: #EDE9FE;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+    }
+
+    .voice-pill-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .voice-result-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      color: #DDD6FE;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
     /* ── Progress Tracker ────────────────────────────────────── */
     .progress-section {
       margin-top: 24px;
@@ -601,6 +690,54 @@
         </button>
       </div>
 
+      <!-- Voice Gender & Neural Dubbing Settings -->
+      <div class="voice-settings-panel">
+        <div class="voice-settings-header">
+          <span style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="mic-2" style="width:16px;height:16px;color:var(--primary);"></i>
+            Speaker Voice Gender & Dubbing Matching
+          </span>
+          <span style="font-size:12px; color:var(--text-muted); font-weight:500;">
+            Acoustic Pitch ($F_0$) + Manual Override
+          </span>
+        </div>
+
+        <div class="gender-grid">
+          <label class="gender-pill-label">
+            <input type="radio" name="voiceGender" value="auto" checked />
+            <div class="gender-pill-card">
+              <i data-lucide="sparkles" style="width:16px;height:16px;color:var(--accent);"></i>
+              <div>
+                <div>Auto-Detect Voice</div>
+                <div class="voice-pill-sub">Matches speaker pitch ($F_0$)</div>
+              </div>
+            </div>
+          </label>
+
+          <label class="gender-pill-label">
+            <input type="radio" name="voiceGender" value="male" />
+            <div class="gender-pill-card">
+              <i data-lucide="user" style="width:16px;height:16px;color:var(--c-01);"></i>
+              <div>
+                <div>Male Voice</div>
+                <div class="voice-pill-sub">Madhur Neural (hi-IN)</div>
+              </div>
+            </div>
+          </label>
+
+          <label class="gender-pill-label">
+            <input type="radio" name="voiceGender" value="female" />
+            <div class="gender-pill-card">
+              <i data-lucide="user-check" style="width:16px;height:16px;color:var(--c-06);"></i>
+              <div>
+                <div>Female Voice</div>
+                <div class="voice-pill-sub">Swara Neural (hi-IN)</div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
       <button id="runBtn" class="btn-primary" disabled onclick="executeAutomatedPipeline()">
         <i data-lucide="play" style="width:18px;height:18px;"></i>
         Execute Full End-to-End Dubbing Pipeline
@@ -678,6 +815,11 @@
           </div>
           <video id="finalVideoPlayer" controls></video>
           
+          <div id="voiceResultBadge" class="voice-result-chip" style="display:none;">
+            <i data-lucide="mic" style="width:13px;height:13px;color:var(--primary);"></i>
+            <span id="voiceBadgeText">Voice: Detecting...</span>
+          </div>
+
           <div class="download-row">
             <a id="dlFinalVideo" class="btn-dl primary-dl" download>
               <i data-lucide="download" style="width:14px;height:14px;"></i> Download Final MP4
@@ -804,6 +946,9 @@
       const formData = new FormData();
       formData.append('file', selectedFile);
 
+      const selectedGender = document.querySelector('input[name="voiceGender"]:checked')?.value || 'auto';
+      formData.append('voice_gender', selectedGender);
+
       try {
         const res = await fetch('/api/run-pipeline', {
           method: 'POST',
@@ -866,6 +1011,16 @@
           dlFinalVideo.href = `/api/jobs/${currentJobId}/final-video`;
           dlAudio.href = `/api/jobs/${currentJobId}/dubbed-audio`;
           dlTranscript.href = `/api/jobs/${currentJobId}/artifact/transcript.txt`;
+
+          if (job.speaker_gender && job.chosen_voice) {
+            const badgeWrap = document.getElementById('voiceResultBadge');
+            const badgeText = document.getElementById('voiceBadgeText');
+            if (badgeWrap && badgeText) {
+              const pitchStr = job.speaker_pitch_hz ? ` • ${job.speaker_pitch_hz} Hz` : '';
+              badgeText.textContent = `Dubbed Voice: ${job.speaker_gender.toUpperCase()} (${job.chosen_voice}${pitchStr})`;
+              badgeWrap.style.display = 'inline-flex';
+            }
+          }
           renderIcons();
         } else if (job.status === 'error') {
           clearInterval(pollInterval);
