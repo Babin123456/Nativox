@@ -4,7 +4,7 @@ Nativox — Stage 6: Converted Text to MP3 (Hindi Speech Synthesis)
 Takes Hindi text output from Stage 5(b) and synthesizes natural-sounding
 speech as a downloadable MP3 using Microsoft Edge Neural Voices.
 
-Run from inside the backend/ folder:
+Run from inside the 06_Converted_Text_to_MP3/ folder:
     uvicorn main:app --reload --port 8013
 """
 

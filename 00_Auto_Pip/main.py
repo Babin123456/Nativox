@@ -18,7 +18,7 @@ from typing import Dict, Any, Optional
 
 import requests
 import uvicorn
-from fastapi import FastAPI, File, HTTPException, UploadFile, BackgroundTasks
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -120,14 +120,22 @@ def start_missing_services():
 
 def detect_speaker_gender(media_path: Path) -> tuple[str, float]:
     """
-    Analyzes input audio fundamental frequency (pitch / F0) to detect speaker gender.
+    Analyzes input audio using multi-feature acoustic analysis:
+    1. Speech-normalized and noise-reduced audio extraction (suppressing background music/piano).
+    2. Linear Predictive Coding (LPC) formant analysis (F1, F2) reflecting physiological vocal tract length.
+    3. YIN Pitch Tracking with subharmonic octave disambiguation (resolving deep male 2nd harmonic errors).
+    
     Returns (gender, median_pitch_hz), where gender is 'male' or 'female'.
     """
     try:
         import numpy as np
+        from scipy.linalg import toeplitz, solve
+
+        # Extract speech with spectral noise reduction and normalization to suppress background music
         cmd = [
             "ffmpeg", "-y",
             "-i", str(media_path),
+            "-af", "afftdn=nf=-25,highpass=f=70,lowpass=f=3500,speechnorm=e=4:r=0.0001:l=1",
             "-f", "s16le",
             "-ac", "1",
             "-ar", "16000",
@@ -138,50 +146,150 @@ def detect_speaker_gender(media_path: Path) -> tuple[str, float]:
         if res.returncode != 0 or len(res.stdout) < 3200:
             return "male", 125.0
 
-        samples = np.frombuffer(res.stdout, dtype=np.int16).astype(np.float32)
-        sample_rate = 16000
-        frame_len = int(sample_rate * 0.050)
-        hop_len = int(sample_rate * 0.025)
+        samples = np.frombuffer(res.stdout, dtype=np.int16).astype(np.float64)
+        sr = 16000
+
+        # ── 1. LPC Formant Tracking (F1, F2: Vocal Tract Anatomy) ─────────────
+        emphasized = np.append(samples[0], samples[1:] - 0.97 * samples[:-1])
+        frame_len_lpc = int(sr * 0.030)
+        hop_lpc = int(sr * 0.015)
+        f1_list, f2_list = [], []
+
+        for i in range(0, len(emphasized) - frame_len_lpc, hop_lpc):
+            w = emphasized[i : i + frame_len_lpc]
+            if np.mean(w ** 2) < 1e5:
+                continue
+            w = w * np.hamming(len(w))
+            order = 16
+            r = np.correlate(w, w, mode="full")[len(w) - 1 : len(w) + order]
+            if r[0] <= 0:
+                continue
+            try:
+                R = toeplitz(r[:-1])
+                a = solve(R, -r[1:])
+                lpc = np.concatenate(([1], a))
+                roots = np.roots(lpc)
+                roots = [rt for rt in roots if np.imag(rt) > 0.01 and np.abs(rt) > 0.70]
+                angz = np.arctan2(np.imag(roots), np.real(roots))
+                formants = sorted(angz * (sr / (2 * np.pi)))
+                formants = [f for f in formants if 250 <= f <= 3500]
+                if len(formants) >= 2:
+                    f1_list.append(formants[0])
+                    f2_list.append(formants[1])
+            except Exception:
+                continue
+
+        med_f1 = float(np.median(f1_list)) if f1_list else 500.0
+        med_f2 = float(np.median(f2_list)) if f2_list else 1500.0
+
+        # ── 2. YIN Pitch Tracking with Harmonic Octave Disambiguation ───────────
+        frame_len = int(sr * 0.040)
+        hop_len = int(sr * 0.015)
         num_frames = (len(samples) - frame_len) // hop_len
         if num_frames <= 0:
             return "male", 125.0
 
-        min_lag = int(sample_rate / 350)
-        max_lag = int(sample_rate / 75)
+        min_lag = int(sr / 320)  # lag 50 (320 Hz)
+        max_lag = int(sr / 75)   # lag 213 (75 Hz)
 
-        energies = np.array([np.sum(samples[i * hop_len : i * hop_len + frame_len] ** 2) for i in range(num_frames)])
-        threshold = np.percentile(energies, 40)
-        pitches = []
+        energies = np.array([np.mean(samples[i * hop_len : i * hop_len + frame_len] ** 2) for i in range(num_frames)])
+        e_thresh = np.percentile(energies, 30)
+        if e_thresh < 1e5:
+            e_thresh = 1e5
+
+        f0_list = []
 
         for i in range(num_frames):
-            if energies[i] < threshold:
+            if energies[i] < e_thresh:
                 continue
-            frame = samples[i * hop_len : i * hop_len + frame_len]
-            frame = frame - np.mean(frame)
-            corr = np.correlate(frame, frame, mode="full")
-            corr = corr[len(frame) - 1 :]
-            if corr[0] <= 0:
-                continue
-            peak_sub = corr[min_lag:max_lag]
-            if len(peak_sub) == 0:
-                continue
-            peak_idx = np.argmax(peak_sub)
-            if peak_sub[peak_idx] > 0.30 * corr[0]:
-                f0 = sample_rate / (min_lag + peak_idx)
-                if 80 <= f0 <= 320:
-                    pitches.append(f0)
 
-        if not pitches:
+            frame = samples[i * hop_len : i * hop_len + frame_len]
+            zcr = np.mean(np.abs(np.diff(np.sign(frame)))) / 2.0
+            if zcr > 0.32:
+                continue
+
+            w_len = len(frame)
+            d = np.zeros(max_lag + 1)
+            for tau in range(min_lag, max_lag + 1):
+                diff = frame[:w_len - tau] - frame[tau:w_len]
+                d[tau] = np.sum(diff ** 2) / (w_len - tau)
+
+            cmndf = np.zeros(max_lag + 1)
+            cmndf[min_lag] = 1.0
+            running_sum = 0.0
+            for tau in range(1, max_lag + 1):
+                running_sum += d[tau]
+                if running_sum > 0:
+                    cmndf[tau] = (d[tau] * tau) / running_sum
+                else:
+                    cmndf[tau] = 1.0
+
+            minima = []
+            for tau in range(min_lag + 1, max_lag):
+                if cmndf[tau] < cmndf[tau - 1] and cmndf[tau] < cmndf[tau + 1]:
+                    if cmndf[tau] < 0.30:
+                        minima.append((tau, cmndf[tau]))
+
+            if not minima:
+                continue
+
+            chosen_tau = minima[0][0]
+            best_tau, best_val = min(minima, key=lambda x: x[1])
+
+            # Check if an octave subharmonic tau2 ≈ 2 * tau1 exists:
+            # Resolves deep male chest resonance / 2nd harmonic dominance
+            has_subharmonic = False
+            for tau1, val1 in minima:
+                for tau2, val2 in minima:
+                    if tau2 > tau1 and 1.80 <= (tau2 / tau1) <= 2.20:
+                        if (val2 < 0.25 or val2 < val1 + 0.12) and (med_f1 < 540 or med_f2 < 1650):
+                            chosen_tau = tau2
+                            has_subharmonic = True
+                            break
+                if has_subharmonic:
+                    break
+
+            if not has_subharmonic:
+                chosen_tau = best_tau
+
+            f0_list.append(sr / chosen_tau)
+
+        if not f0_list:
             return "male", 125.0
 
-        median_pitch = float(np.median(pitches))
-        gender = "male" if median_pitch < 165 else "female"
-        return gender, round(median_pitch, 1)
+        p_low, p_high = np.percentile(f0_list, 10), np.percentile(f0_list, 90)
+        trimmed = [f for f in f0_list if p_low <= f <= p_high] or f0_list
+        med_f0 = float(np.median(trimmed)) if trimmed else 125.0
+
+        # ── 3. Multi-Feature Acoustic Decision ────────────────────────────────
+        if med_f0 < 145:
+            gender = "male"
+        elif med_f0 >= 170:
+            if med_f1 > 540 and med_f2 > 1650:
+                gender = "female"
+            elif med_f1 < 510 and med_f2 < 1550:
+                # Strong male vocal tract formants override harmonic octave error
+                gender = "male"
+                med_f0 = round(med_f0 / 2.0, 1)
+            else:
+                gender = "female" if (med_f1 + med_f2 / 3.0) > 1050 else "male"
+        else:
+            # Boundary zone (145-170 Hz): disambiguate using formant acoustic space
+            gender = "male" if (med_f1 < 520 or med_f2 < 1600) else "female"
+
+        return gender, round(med_f0, 1)
     except Exception:
         return "male", 125.0
 
 
-def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
+def _run_job_worker(
+    job_id: str,
+    input_video_path: Path,
+    work_dir: Path,
+    voice_gender: str = "auto",
+    custom_voice: Optional[str] = None,
+    target_language: str = "hindi",
+):
     job = job_store[job_id]
     try:
         # Probe video duration using ffprobe
@@ -210,11 +318,24 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
         mp3_path.write_bytes(r.content)
         job["logs"].append(f"Stage 01: Audio saved to audio.mp3 ({len(r.content)} bytes)")
 
-        # Acoustic Speaker Gender & Pitch Detection
+        # Acoustic Speaker Gender & Pitch Detection (YIN algorithm)
         spk_gender, spk_pitch = detect_speaker_gender(mp3_path)
-        job["speaker_gender"] = spk_gender
+        job["detected_speaker_gender"] = spk_gender
         job["speaker_pitch_hz"] = spk_pitch
-        job["logs"].append(f"Stage 01: Speaker voice acoustic profile -> {spk_gender.upper()} voice detected ({spk_pitch:.1f} Hz fundamental pitch)")
+
+        req_gender = (voice_gender or "auto").strip().lower()
+        if req_gender in ("male", "female"):
+            effective_gender = req_gender
+            job["logs"].append(
+                f"Stage 01: Speaker voice acoustic profile -> {spk_gender.upper()} voice detected ({spk_pitch:.1f} Hz). "
+                f"User voice override active -> using {effective_gender.upper()} voice."
+            )
+        else:
+            effective_gender = spk_gender
+            job["logs"].append(
+                f"Stage 01: Speaker voice acoustic profile -> {spk_gender.upper()} voice automatically recognized & matched ({spk_pitch:.1f} Hz fundamental pitch)"
+            )
+        job["speaker_gender"] = effective_gender
 
         # Stage 02
         job["current_step"] = 2
@@ -314,11 +435,19 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
             rate_val = max(-20, min(25, rate_val))
             tts_rate = f"{rate_val:+d}%"
 
-        # Select neural voice matching detected input speaker gender
+        # Select neural voice matching detected/selected input speaker gender
         speaker_gender = job.get("speaker_gender", "male")
-        chosen_voice = "hi-IN-MadhurNeural" if speaker_gender == "male" else "hi-IN-SwaraNeural"
+        target_lang = target_language.strip().lower()
+
+        if custom_voice and custom_voice.strip():
+            chosen_voice = custom_voice.strip()
+        elif "bengali" in target_lang or target_lang == "bn":
+            chosen_voice = "bn-IN-BashkarNeural" if speaker_gender == "male" else "bn-IN-TanishaaNeural"
+        else:
+            chosen_voice = "hi-IN-MadhurNeural" if speaker_gender == "male" else "hi-IN-SwaraNeural"
+
         job["chosen_voice"] = chosen_voice
-        job["logs"].append(f"Stage 06: Generating natural neural {speaker_gender.upper()} Hindi audio via Edge TTS ({chosen_voice}, pacing rate: {tts_rate})...")
+        job["logs"].append(f"Stage 06: Generating natural neural {speaker_gender.upper()} speech via Edge TTS ({chosen_voice}, pacing rate: {tts_rate})...")
         r = orchestrator.call("text_to_mp3", "/api/synthesize", json={"text": final_text, "voice": chosen_voice, "rate": tts_rate})
         res6 = orchestrator.json_result(r, "text_to_mp3")
         audio_url = str(res6.get("audio_url", ""))
@@ -361,8 +490,13 @@ def _run_job_worker(job_id: str, input_video_path: Path, work_dir: Path):
 
 
 @app.post("/api/run-pipeline")
-async def start_pipeline_job(file: UploadFile = File(...)):
-    """Uploads video and initiates asynchronous end-to-end dubbing pipeline."""
+async def start_pipeline_job(
+    file: UploadFile = File(...),
+    voice_gender: str = Form("auto"),
+    voice: Optional[str] = Form(None),
+    target_language: str = Form("hindi"),
+):
+    """Uploads video and initiates asynchronous end-to-end dubbing pipeline with voice gender control."""
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v"}:
         raise HTTPException(status_code=400, detail="Invalid video format. Supported: .mp4, .mov, .mkv, .avi, .webm")
@@ -386,9 +520,16 @@ async def start_pipeline_job(file: UploadFile = File(...)):
         "logs": ["Job created. Video uploaded to disk."],
         "created_at": time.time(),
         "final_video_available": False,
+        "requested_voice_gender": voice_gender,
+        "requested_voice": voice,
+        "target_language": target_language,
     }
 
-    t = threading.Thread(target=_run_job_worker, args=(job_id, input_path, work_dir), daemon=True)
+    t = threading.Thread(
+        target=_run_job_worker,
+        args=(job_id, input_path, work_dir, voice_gender, voice, target_language),
+        daemon=True,
+    )
     t.start()
 
     return {"job_id": job_id, "status": "started"}
