@@ -7,39 +7,49 @@
 ## *Modular Real-Time AI Multilingual Dubbing & Audiovisual Lip-Sync Suite*
 
 <p align="center">
-  <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors"><img src="https://img.shields.io/github/contributors/sagnikkkkkkkk/Nativox?style=for-the-badge&logo=github&color=009688" alt="Contributors" /></a>
-  <a href="https://www.python.org/downloads/release/python-3119/"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" /></a>
-  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
-  <a href="Dubbing/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Decoupled%20%26%20Modular-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white" alt="Modular Architecture" /></a>
-  <a href="Dubbing/LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" /></a>
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/stargazers"><img src="https://img.shields.io/github/stars/sagnikkkkkkkk/Nativox?style=for-the-badge&logo=apachespark&color=F59E0B" alt="GitHub Stars" /></a>
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/network/members"><img src="https://img.shields.io/github/forks/sagnikkkkkkkk/Nativox?style=for-the-badge&logo=git&color=6366F1" alt="GitHub Forks" /></a>
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/issues"><img src="https://img.shields.io/github/issues/sagnikkkkkkkk/Nativox?style=for-the-badge&logo=gitbook&color=EC4899" alt="Open Issues" /></a>
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors"><img src="https://img.shields.io/github/contributors/sagnikkkkkkkk/Nativox?style=for-the-badge&logo=github&color=10B981" alt="Contributors" /></a>
+  <a href="https://www.python.org/downloads/release/python-3119/"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
 </p>
 
 <p align="center">
-  <a href="Dubbing/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
-  &nbsp;
-  <a href="Dubbing/INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions" /></a>
-  &nbsp;
-  <a href="Dubbing/ROADMAP.md"><img src="https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white" alt="Roadmap" /></a>
-  &nbsp;
-  <a href="Dubbing/LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" /></a>
+  <a href="Dubbing/ARCHITECTURE.md"><b>📐 Technical Architecture</b></a> &nbsp;&bull;&nbsp;
+  <a href="Dubbing/INSTRUCTIONS.md"><b>📖 Step-by-Step Instructions</b></a> &nbsp;&bull;&nbsp;
+  <a href="Dubbing/ROADMAP.md"><b>🗺️ Research Roadmap</b></a> &nbsp;&bull;&nbsp;
+  <a href="Lipsync/README.md"><b>👄 Lip-Sync Evaluation</b></a> &nbsp;&bull;&nbsp;
+  <a href="Dubbing/00_Auto_Pip/README.md"><b>⚡ Automated Pipeline</b></a>
 </p>
 
 </div>
 
 ---
 
-## 📖 Executive Summary
+<h2 align="center">📖 Executive Summary</h2>
 
-**Nativox** is an AI-powered multilingual video dubbing and audiovisual synchronization suite. The project converts source video dialogue (such as English) into natural, culturally coherent Indic speech (Hindi and Bengali) with automated pitch/gender matching, speech pacing control, voice cloning, and quantitative lip-sync evaluation.
+<p align="center">
+  <b>Nativox</b> is an advanced AI-powered multilingual video dubbing and audiovisual synchronization suite.<br />
+  It converts spoken source dialogue into natural, culturally fluent Indic speech (<b>Hindi and Bengali</b>)<br />
+  with automated pitch/gender matching, dynamic speech pacing, voice cloning, and quantitative lip-sync evaluation.
+</p>
 
-The repository is structured into two primary operational subsystems:
+<div align="center">
 
-1. **[`Dubbing/`](Dubbing/)**: The end-to-end and modular video dubbing pipeline (Stages `00` through `08`).
-2. **[`Lipsync/`](Lipsync/)**: The computer vision and signal processing evaluation service that quantifies lip movement, aperture dynamics, and temporal synchrony.
+| 🎬 [Dubbing Engine](Dubbing/) | 👄 [Lip-Sync Suite](Lipsync/) |
+| :---: | :---: |
+| Automated & Modular Stages (00 → 08) | Computer Vision, Landmark Aperture & DTW |
+
+</div>
 
 ---
 
-## 🏛️ Top-Level Repository Architecture
+<h2 align="center">🏛️ Top-Level Repository Architecture</h2>
+
+<p align="center">
+  <sub>Decoupled structure separating operational dubbing pipelines from independent computer-vision verification.</sub>
+</p>
 
 ```text
 Nativox/
@@ -71,21 +81,20 @@ Nativox/
 
 ---
 
-## 🚀 Quick Start Guide
+<h2 align="center">🚀 Quick Start Guide</h2>
 
-### System Prerequisites
+<p align="center">
+  <b>System Prerequisites:</b> Python 3.11 (strictly pinned) &bull; FFmpeg on <code>PATH</code> &bull; Git
+</p>
 
-- **Operating System:** Windows, Linux, or macOS
-- **Python:** 3.11 (strictly pinned across all modules)
-- **FFmpeg:** Installed and available on your system `PATH` (required for media demuxing and remuxing)
-
----
-
-### Track A: Run the Master Dubbing Pipeline (`00_Auto_Pip`)
-
-To launch the automated end-to-end web dashboard that handles video upload, transcription, reformation, TTS generation, and final video assembly:
-
-#### Windows (PowerShell) - Dubbing
+<table align="center" width="100%">
+  <tr>
+    <th width="50%" align="center"><h3>⚡ Track A: Master Dubbing Pipeline</h3></th>
+    <th width="50%" align="center"><h3>👄 Track B: Lip-Sync Evaluation Suite</h3></th>
+  </tr>
+  <tr>
+    <td valign="top">
+      <p align="center"><b>Windows (PowerShell)</b></p>
 
 ```powershell
 cd Dubbing\00_Auto_Pip
@@ -94,7 +103,7 @@ python setup_env.py --create-venv
 python main.py
 ```
 
-#### Linux / macOS (Bash) - Dubbing
+  <p align="center"><b>Linux / macOS (Bash)</b></p>
 
 ```bash
 cd Dubbing/00_Auto_Pip
@@ -103,16 +112,12 @@ source venv/bin/activate
 python main.py
 ```
 
-Open your browser to:
-👉 **`http://127.0.0.1:8000`**
-
----
-
-### Track B: Run the Lip-Sync Evaluation Suite (`Lipsync`)
-
-To evaluate the mouth-opening synchronization and cross-correlation between a ground-truth reference video and dubbed outputs:
-
-#### Windows (PowerShell) - Lipsync
+  <p align="center">
+    👉 <b><a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a></b>
+  </p>
+    </td>
+    <td valign="top">
+      <p align="center"><b>Windows (PowerShell)</b></p>
 
 ```powershell
 cd Lipsync\backend
@@ -122,7 +127,7 @@ pip install -r requirements.txt
 uvicorn main:app --port 8001 --reload
 ```
 
-#### Linux / macOS (Bash) - Lipsync
+  <p align="center"><b>Linux / macOS (Bash)</b></p>
 
 ```bash
 cd Lipsync/backend
@@ -132,15 +137,23 @@ pip install -r requirements.txt
 uvicorn main:app --port 8001 --reload
 ```
 
-Open your browser to:
-👉 **`http://127.0.0.1:8001`**
+  <p align="center">
+    👉 <b><a href="http://127.0.0.1:8001">http://127.0.0.1:8001</a></b>
+  </p>
+    </td>
+  </tr>
+</table>
+
+<br />
 
 ---
 
-## 🗂️ Pipeline Breakdown (`Dubbing/`)
+<h2 align="center">🗂️ Pipeline Breakdown (`Dubbing/`)</h2>
+
+<div align="center">
 
 | Stage | Module Name | Core Technology | Port | Purpose |
-| :--- | :--- | :--- | :---: | :--- |
+| :---: | :--- | :--- | :---: | :--- |
 | **00** | **`00_Auto_Pip`** | FastAPI / Orchestrator | `8000` | Automated pipeline orchestrator and unified web UI; coordinates pitch detection, pacing, and assembly. |
 | **01** | **`01_MP4_to_MP3`** | FFmpeg / Audio Demuxer | `8001` | Extracts audio stems and evaluates fundamental frequency ($F_0$) for voice gender identification. |
 | **02** | **`02_MP3_to_Text`** | faster-whisper / Silero VAD | `8002` | Generates timestamped word- and segment-level speech transcripts. |
@@ -152,25 +165,33 @@ Open your browser to:
 | **07** | **`07_Merge_MP3_with_MP4`** | FFmpeg (`-c:v copy`) | `8008` | Losslessly replaces original audio with dubbed target audio into the final MP4 container. |
 | **08** | **`08_Voice_extraction`** | Voice Profiling / Cloning | `8009` | Extracts speaker acoustic profiles for personalized voice conversion and translation. |
 
----
+</div>
 
-## 🔬 Lip-Sync Evaluation (`Lipsync/`)
-
-The **Lipsync** module provides independent quantitative verification of dubbed videos:
-
-- **Facial Landmark Tracking:** Detects upper/lower lip landmarks across all video frames with MediaPipe.
-- **Mouth Aperture Curves:** Computes normalized vertical mouth opening profiles across time.
-- **Signal Metrics:**
-  - **Pearson Correlation ($r$):** Evaluates overall shape and articulation similarity.
-  - **Dynamic Time Warping (DTW):** Measures non-linear temporal alignment.
-  - **Lag Offset ($\tau^*$):** Identifies audio/visual sync delay in milliseconds ($\text{ms}$).
-- **Visual Artifacts:** Automatically renders comparative temporal graphs and side-by-side composite review videos.
+<br />
 
 ---
 
-## 👥 Contributors & Academic Credits
+<h2 align="center">🔬 Lip-Sync Evaluation (`Lipsync/`)</h2>
 
-### Core Contributors
+<p align="center">
+  Independent, non-intrusive quantitative evaluation comparing mouth motions against native speaker ground-truth:
+</p>
+
+<table align="center">
+  <tr>
+    <td align="center"><b>📍 Landmark Extraction</b><br />MediaPipe 468 3D mesh points</td>
+    <td align="center"><b>📈 Aperture Dynamics</b><br />Normalized Mouth Aspect Ratio (MAR)</td>
+    <td align="center"><b>⏱️ Temporal Synchronization</b><br />Dynamic Time Warping (DTW) & Lag (&tau;*)</td>
+  </tr>
+</table>
+
+<br />
+
+---
+
+<h2 align="center">👥 Contributors & Academic Credits</h2>
+
+<h3 align="center">Core Engineering Team</h3>
 
 <p align="center">
   <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors">
@@ -178,10 +199,18 @@ The **Lipsync** module provides independent quantitative verification of dubbed 
   </a>
 </p>
 
-- **Student Contributors:**
-  - [Babin Bid (@Babin123456)](https://github.com/Babin123456)
-  - [Rohit Kumar Adak (@rka2005)](https://github.com/rka2005)
-  - [Sagnik Bachhar (@sagnikkkkkkkk)](https://github.com/sagnikkkkkkkk)
-  - [Atanu Saha (@Atanu2k4)](https://github.com/Atanu2k4)
-- **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
-- **License:** [MIT License](Dubbing/LICENSE.md)
+<p align="center">
+  <a href="https://github.com/Babin123456"><b>Babin Bid</b></a> &bull;
+  <a href="https://github.com/rka2005"><b>Rohit Kumar Adak</b></a> &bull;
+  <a href="https://github.com/sagnikkkkkkkk"><b>Sagnik Bachhar</b></a> &bull;
+  <a href="https://github.com/Atanu2k4"><b>Atanu Saha</b></a>
+</p>
+
+<p align="center">
+  <b>Faculty Guide:</b> Mr. Debjit Ghosh<br />
+  <sub>Department of Computer Science & Engineering</sub>
+</p>
+
+<p align="center">
+  <a href="Dubbing/LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-3B82F6?style=flat-square&logo=open-source-initiative&logoColor=white" alt="License" /></a>
+</p>
