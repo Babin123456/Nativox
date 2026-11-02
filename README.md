@@ -7,17 +7,20 @@
 ## *Modular Real-Time AI Multilingual Dubbing & Audiovisual Lip-Sync Suite*
 
 <p align="center">
-  <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors"><img src="https://img.shields.io/github/contributors/sagnikkkkkkkk/Nativox?color=009688&logo=github&style=for-the-badge" alt="Contributors" /></a>
-  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
-  <img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Architecture-Decoupled%20%26%20Modular-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white" alt="Modular Architecture" />
-  <img src="https://img.shields.io/badge/License-MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" />
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors"><img src="https://img.shields.io/github/contributors/sagnikkkkkkkk/Nativox?style=for-the-badge&logo=github&color=009688" alt="Contributors" /></a>
+  <a href="https://www.python.org/downloads/release/python-3119/"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" /></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="Dubbing/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Decoupled%20%26%20Modular-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white" alt="Modular Architecture" /></a>
+  <a href="Dubbing/LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" /></a>
 </p>
 
 <p align="center">
   <a href="Dubbing/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
+  &nbsp;
   <a href="Dubbing/INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions" /></a>
+  &nbsp;
   <a href="Dubbing/ROADMAP.md"><img src="https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white" alt="Roadmap" /></a>
+  &nbsp;
   <a href="Dubbing/LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" /></a>
 </p>
 
@@ -169,7 +172,7 @@ The **Lipsync** module provides independent quantitative verification of dubbed 
 
 ### Core Contributors
 
-<p align="left">
+<p align="center">
   <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors">
     <img src="https://contrib.rocks/image?repo=sagnikkkkkkkk/Nativox" alt="Contributors" />
   </a>
