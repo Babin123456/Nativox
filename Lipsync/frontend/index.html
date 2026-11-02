@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nativox Lipsync Analyzer</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    body { max-width: 900px; margin: 0 auto; padding: 2rem; background: #101827; color: #e5e7eb; }
+    main { background: #1f2937; padding: 2rem; border-radius: 16px; }
+    label { display: block; margin: 1rem 0 .4rem; font-weight: 600; }
+    input { width: 100%; padding: .6rem; box-sizing: border-box; }
+    button { margin-top: 1.5rem; padding: .75rem 1.2rem; border: 0; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #status { margin-top: 1.5rem; white-space: pre-wrap; }
+    img { max-width: 100%; margin-top: 1rem; border-radius: 8px; }
+    .score { display: inline-block; margin: .5rem .5rem 0 0; padding: .7rem; background: #374151; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Nativox Lipsync Analyzer</h1>
+    <p>Upload the reference, dubbed, and lipsynced videos to compare mouth movement.</p>
+    <form id="form">
+      <label for="real">Real Hindi video</label>
+      <input id="real" type="file" accept="video/*" required>
+      <label for="dubbed">Dubbed video</label>
+      <input id="dubbed" type="file" accept="video/*" required>
+      <label for="lipsync">Dubbed lipsync video</label>
+      <input id="lipsync" type="file" accept="video/*" required>
+      <button id="submit" type="submit">Analyze lipsync</button>
+    </form>
+    <div id="status" role="status"></div>
+    <section id="results"></section>
+  </main>
+  <script>
+    const form = document.querySelector("#form");
+    const button = document.querySelector("#submit");
+    const status = document.querySelector("#status");
+    const results = document.querySelector("#results");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      status.textContent = "Analyzing videos. Face landmark extraction may take a moment...";
+      results.replaceChildren();
+      const data = new FormData();
+      data.append("real_hindi", document.querySelector("#real").files[0]);
+      data.append("dubbed", document.querySelector("#dubbed").files[0]);
+      data.append("dubbed_lipsync", document.querySelector("#lipsync").files[0]);
+      try {
+        const response = await fetch("/api/analyze", { method: "POST", body: data });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Analysis failed.");
+        status.textContent = "Analysis complete.";
+        for (const [name, score] of Object.entries(payload.scores)) {
+          const item = document.createElement("div");
+          item.className = "score";
+          item.textContent = `${name}: ${(score.correlation * 100).toFixed(1)}% correlation`;
+          results.append(item);
+        }
+        const image = document.createElement("img");
+        image.src = payload.plot_url;
+        image.alt = "Mouth opening curves";
+        results.append(image);
+      } catch (error) {
+        status.textContent = `Error: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
