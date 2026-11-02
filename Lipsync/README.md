@@ -1,25 +1,20 @@
-# Nativox Lipsync Analyzer
+# Lipsync: Lip-Sync Evaluation
 
-This module compares mouth-opening movement in three videos:
+Compares mouth movement in a real Hindi recording with dubbed videos, with
+and without Wav2Lip.
 
-- `videos/real_hindi.mp4`: reference performance
-- `videos/dubbed.mp4`: dubbed video before lipsync
-- `videos/dubbed_lipsync.mp4`: dubbed video after lipsync
+## Run
 
-The analyzer uses MediaPipe Face Mesh to measure normalized lip opening per
-frame, aligns curves, calculates correlation, and saves a graph in `output/`.
+Double-click `run.bat`, then open <http://127.0.0.1:8001>.
 
-## Run on Windows
+## How it works
 
-1. Put the three videos in `videos/` (or upload them in the web interface).
-2. Double-click `run.bat`.
-3. Open <http://127.0.0.1:8020>.
+1. Detect a face and measure mouth opening in every frame.
+2. Resample all videos to a common timeline and normalize mouth size.
+3. Find the delay, then compare the mouth curves with correlation and DTW.
+4. Generate a comparison graph and optional FFmpeg side-by-side video.
 
-The first run creates `backend/venv/` and installs the dependencies. The API is
-also available at `/docs`.
+## Requirements
 
-## API
-
-`POST /api/analyze` accepts multipart fields `real_hindi`, `dubbed`, and
-`dubbed_lipsync`. It returns correlation scores, frame counts, and a URL for
-the generated mouth-curve graph.
+Use Python 3.11, FFmpeg on `PATH`, and a clear front-facing face in each
+video. The first run creates `backend/venv` and installs dependencies.
