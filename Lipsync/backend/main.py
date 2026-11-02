@@ -1,104 +1,79 @@
-"""Nativox lipsync analysis service."""
-
-from __future__ import annotations
-
-import uuid
+import shutil
+import subprocess
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.compare import compare_all
-from app.mouth_curve import extract_mouth_curve
-from app.plot import plot_curves
+from app.compare import run_comparison
+from app.plot import make_plot
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR / "frontend"
-VIDEO_DIR = BASE_DIR / "videos"
-OUTPUT_DIR = BASE_DIR / "output"
-UPLOAD_DIR = OUTPUT_DIR / "uploads"
-for directory in (VIDEO_DIR, OUTPUT_DIR, UPLOAD_DIR):
-    directory.mkdir(parents=True, exist_ok=True)
+VIDEOS = BASE_DIR / "videos"
+OUTPUT = BASE_DIR / "output"
+FRONTEND = BASE_DIR / "frontend"
+VIDEOS.mkdir(exist_ok=True)
+OUTPUT.mkdir(exist_ok=True)
 
-app = FastAPI(title="Nativox Lipsync Analyzer", version="1.0.0")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Nativox Lip-Sync Evaluation")
+app.mount("/output", StaticFiles(directory=OUTPUT), name="output")
 
 
-@app.get("/", response_class=HTMLResponse)
-def home() -> FileResponse:
-    return FileResponse(FRONTEND_DIR / "index.html")
+def save_upload(upload: UploadFile, name: str) -> Path:
+    suffix = Path(upload.filename or "").suffix or ".mp4"
+    path = VIDEOS / f"{name}{suffix}"
+    with open(path, "wb") as file:
+        shutil.copyfileobj(upload.file, file)
+    return path
 
 
-@app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "service": "lipsync-analyzer"}
-
-
-@app.post("/api/analyze")
-async def analyze(
-    real_hindi: UploadFile = File(...),
-    dubbed: UploadFile = File(...),
-    dubbed_lipsync: UploadFile = File(...),
-) -> dict[str, object]:
-    """Analyze three videos and save a plot in the output directory."""
-    job_id = uuid.uuid4().hex[:10]
-    uploads: dict[str, Path] = {}
-    files = {
-        "real": real_hindi,
-        "dubbed": dubbed,
-        "dubbed_lipsync": dubbed_lipsync,
-    }
+def make_side_by_side(left: Path, right: Path, out_path: Path) -> bool:
+    command = [
+        "ffmpeg", "-y", "-i", str(left), "-i", str(right),
+        "-filter_complex",
+        "[0:v]scale=640:360[a];[1:v]scale=640:360[b];[a][b]hstack=inputs=2[v]",
+        "-map", "[v]", "-map", "1:a?",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-shortest", str(out_path),
+    ]
     try:
-        for name, upload in files.items():
-            suffix = Path(upload.filename or "").suffix.lower()
-            if suffix not in {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v"}:
-                raise HTTPException(status_code=400, detail=f"Unsupported video format: {suffix or 'unknown'}")
-            path = UPLOAD_DIR / f"{job_id}_{name}{suffix}"
-            path.write_bytes(await upload.read())
-            uploads[name] = path
-
-        curves: dict[str, object] = {}
-        fps: dict[str, float] = {}
-        for name, path in uploads.items():
-            curve, rate = extract_mouth_curve(path)
-            curves[name] = curve
-            fps[name] = rate
-        scores = compare_all(
-            curves["real"],
-            curves["dubbed"],
-            curves["dubbed_lipsync"],
-            fps=fps["real"],
-        )
-        plot_path = plot_curves(curves, OUTPUT_DIR / f"{job_id}_mouth_curves.png", fps)
-        return {
-            "job_id": job_id,
-            "scores": scores,
-            "plot_url": f"/api/output/{plot_path.name}",
-            "frames": {name: int(curve.size) for name, curve in curves.items()},
-        }
-    except HTTPException:
-        raise
-    except (OSError, ValueError, RuntimeError) as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    finally:
-        for path in uploads.values():
-            path.unlink(missing_ok=True)
+        subprocess.run(command, check=True, capture_output=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
 
 
-@app.get("/api/output/{filename}")
-def output_file(filename: str) -> FileResponse:
-    path = OUTPUT_DIR / Path(filename).name
-    if not path.is_file():
-        raise HTTPException(status_code=404, detail="Output file not found.")
-    return FileResponse(path, media_type="image/png")
+@app.get("/")
+def home():
+    return FileResponse(FRONTEND / "index.html")
 
 
-if FRONTEND_DIR.is_dir():
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+@app.post("/api/compare")
+def compare(
+    real: UploadFile = File(...),
+    dubbed: UploadFile = File(...),
+    lipsync: UploadFile | None = File(None),
+):
+    real_path = save_upload(real, "real_hindi")
+    dubbed_path = save_upload(dubbed, "dubbed")
+
+    candidates = {"Dubbed (no lip-sync)": dubbed_path}
+    best_path = dubbed_path
+    if lipsync is not None:
+        lipsync_path = save_upload(lipsync, "dubbed_lipsync")
+        candidates["Dubbed + Wav2Lip"] = lipsync_path
+        best_path = lipsync_path
+
+    try:
+        results, series = run_comparison(real_path, candidates)
+    except (OSError, ValueError, RuntimeError) as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+    make_plot(results, series, OUTPUT / "compare_plot.png")
+    has_video = make_side_by_side(real_path, best_path, OUTPUT / "side_by_side.mp4")
+
+    return {
+        "results": results,
+        "plot": "/output/compare_plot.png",
+        "video": "/output/side_by_side.mp4" if has_video else None,
+    }
