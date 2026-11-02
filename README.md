@@ -2,9 +2,12 @@
 
 <div align="center">
 
-![Nativox Header](https://capsule-render.vercel.app/api?type=waving&color=0:4E65FF,50:92EFFD,100:3E8FC4&height=220&section=header&text=NATIVOX&fontSize=60&fontColor=FFFFFF&fontAlignY=38&desc=Modular%20Real-Time%20AI%20Multilingual%20Dubbing%20%26%20Lip-Sync%20Suite&descFontSize=20&descColor=FFFFFF&descAlignY=62&animation=fadeIn)
+# 🎙️ NATIVOX
+
+## *Modular Real-Time AI Multilingual Dubbing & Audiovisual Lip-Sync Suite*
 
 <p align="center">
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors"><img src="https://img.shields.io/github/contributors/sagnikkkkkkkk/Nativox?color=009688&logo=github&style=for-the-badge" alt="Contributors" /></a>
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
   <img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Architecture-Decoupled%20%26%20Modular-FF6B6B?style=for-the-badge&logo=blueprint&logoColor=white" alt="Modular Architecture" />
@@ -19,7 +22,6 @@
 </p>
 
 </div>
-<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -28,6 +30,7 @@
 **Nativox** is an AI-powered multilingual video dubbing and audiovisual synchronization suite. The project converts source video dialogue (such as English) into natural, culturally coherent Indic speech (Hindi and Bengali) with automated pitch/gender matching, speech pacing control, voice cloning, and quantitative lip-sync evaluation.
 
 The repository is structured into two primary operational subsystems:
+
 1. **[`Dubbing/`](Dubbing/)**: The end-to-end and modular video dubbing pipeline (Stages `00` through `08`).
 2. **[`Lipsync/`](Lipsync/)**: The computer vision and signal processing evaluation service that quantifies lip movement, aperture dynamics, and temporal synchrony.
 
@@ -68,6 +71,7 @@ Nativox/
 ## 🚀 Quick Start Guide
 
 ### System Prerequisites
+
 - **Operating System:** Windows, Linux, or macOS
 - **Python:** 3.11 (strictly pinned across all modules)
 - **FFmpeg:** Installed and available on your system `PATH` (required for media demuxing and remuxing)
@@ -78,7 +82,8 @@ Nativox/
 
 To launch the automated end-to-end web dashboard that handles video upload, transcription, reformation, TTS generation, and final video assembly:
 
-#### Windows (PowerShell):
+#### Windows (PowerShell) - Dubbing
+
 ```powershell
 cd Dubbing\00_Auto_Pip
 python setup_env.py --create-venv
@@ -86,7 +91,8 @@ python setup_env.py --create-venv
 python main.py
 ```
 
-#### Linux / macOS (Bash):
+#### Linux / macOS (Bash) - Dubbing
+
 ```bash
 cd Dubbing/00_Auto_Pip
 python3 setup_env.py --create-venv
@@ -103,7 +109,8 @@ Open your browser to:
 
 To evaluate the mouth-opening synchronization and cross-correlation between a ground-truth reference video and dubbed outputs:
 
-#### Windows (PowerShell):
+#### Windows (PowerShell) - Lipsync
+
 ```powershell
 cd Lipsync\backend
 py -3.11 -m venv venv
@@ -112,7 +119,8 @@ pip install -r requirements.txt
 uvicorn main:app --port 8001 --reload
 ```
 
-#### Linux / macOS (Bash):
+#### Linux / macOS (Bash) - Lipsync
+
 ```bash
 cd Lipsync/backend
 python3.11 -m venv venv
@@ -135,9 +143,9 @@ Open your browser to:
 | **02** | **`02_MP3_to_Text`** | faster-whisper / Silero VAD | `8002` | Generates timestamped word- and segment-level speech transcripts. |
 | **03** | **`03_Text_to_Keyword`** | Multilingual RAKE | `8003` | Extracts technical terminology and salient keywords from speech. |
 | **04** | **`04_Keyword_to_Sentence`** | Google Flan-T5 / Seq2Seq | `8004` | Synthesizes full, grammatically well-formed sentences from keywords. |
-| **05a**| **`05a_Keyword_Translation`** | deep-translator / Indic Trans | `8005` | Direct keyword and term translation *(research module, bypassed in automated pipeline)*. |
-| **05b**| **`05b_Sentence_Reformation`**| Indic Grammar / Précis Engine | `8006` | Restructures English SVO to natural Indic SOV, strips fillers, and enforces speech budget. |
-| **06** | **`06_Converted_Text_to_MP3`**| Microsoft Edge Neural TTS | `8007` | Synthesizes Hindi and Bengali speech with adaptive pitch and speech-rate scaling. |
+| **05a** | **`05a_Keyword_Translation`** | deep-translator / Indic Trans | `8005` | Direct keyword and term translation *(research module, bypassed in automated pipeline)*. |
+| **05b** | **`05b_Sentence_Reformation`** | Indic Grammar / Précis Engine | `8006` | Restructures English SVO to natural Indic SOV, strips fillers, and enforces speech budget. |
+| **06** | **`06_Converted_Text_to_MP3`** | Microsoft Edge Neural TTS | `8007` | Synthesizes Hindi and Bengali speech with adaptive pitch and speech-rate scaling. |
 | **07** | **`07_Merge_MP3_with_MP4`** | FFmpeg (`-c:v copy`) | `8008` | Losslessly replaces original audio with dubbed target audio into the final MP4 container. |
 | **08** | **`08_Voice_extraction`** | Voice Profiling / Cloning | `8009` | Extracts speaker acoustic profiles for personalized voice conversion and translation. |
 
@@ -146,6 +154,7 @@ Open your browser to:
 ## 🔬 Lip-Sync Evaluation (`Lipsync/`)
 
 The **Lipsync** module provides independent quantitative verification of dubbed videos:
+
 - **Facial Landmark Tracking:** Detects upper/lower lip landmarks across all video frames with MediaPipe.
 - **Mouth Aperture Curves:** Computes normalized vertical mouth opening profiles across time.
 - **Signal Metrics:**
@@ -158,7 +167,18 @@ The **Lipsync** module provides independent quantitative verification of dubbed 
 
 ## 👥 Contributors & Academic Credits
 
-- **Student Contributors:** Babin Bid, Atanu Saha, Rohit Kr Adak, Sagnik Bachhar
+### Core Contributors
+
+<p align="left">
+  <a href="https://github.com/sagnikkkkkkkk/Nativox/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=sagnikkkkkkkk/Nativox" alt="Contributors" />
+  </a>
+</p>
+
+- **Student Contributors:**
+  - [Babin Bid (@Babin123456)](https://github.com/Babin123456)
+  - [Rohit Kumar Adak (@rka2005)](https://github.com/rka2005)
+  - [Sagnik Bachhar (@sagnikkkkkkkk)](https://github.com/sagnikkkkkkkk)
+  - [Atanu Saha (@Atanu2k4)](https://github.com/Atanu2k4)
 - **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
 - **License:** [MIT License](Dubbing/LICENSE.md)
-
