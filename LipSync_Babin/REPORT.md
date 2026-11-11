@@ -348,15 +348,13 @@ To validate the Zero-API autonomous dubbing architecture against real-world medi
 
 ### 8.1 Side-by-Side MP4 Video Playback Presentation
 
-Both complete MP4 video streams are hosted directly in the repository with GitHub's full HTML5 media player (video, audio, volume, and timeline scrub bar). Click on either video player thumbnail to play the video instantly on GitHub:
+The two actual MP4 video files from the codebase are embedded directly side by side:
 
 | Original Source Video (English Input) | Rendered Dubbed Video (Hindi + OpenVoice V2 + BGM) |
 | :---: | :---: |
-| [![Play Original English Video](test2_thumbnail.jpg)](https://github.com/Babin123456/Nativox/blob/main/LipSync_Babin/test2.mp4) | [![Play Rendered Hindi Dubbed Video](test2_dubbed_hindi_thumbnail.jpg)](https://github.com/Babin123456/Nativox/blob/main/LipSync_Babin/test2_dubbed_hindi.mp4) |
+| <video src="test2.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #374151;"></video> | <video src="test2_dubbed_hindi.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #6366f1;"></video> |
+| `test2.mp4` | `test2_dubbed_hindi.mp4` |
 | **Duration**: $8.266\text{ s}$ &nbsp;\|&nbsp; **Resolution**: $360 \times 640$ | **Duration**: $8.258\text{ s}$ &nbsp;\|&nbsp; **Resolution**: $360 \times 640$ |
-| [▶ **Play test2.mp4 (GitHub Player)**](https://github.com/Babin123456/Nativox/blob/main/LipSync_Babin/test2.mp4) | [▶ **Play test2_dubbed_hindi.mp4 (GitHub Player)**](https://github.com/Babin123456/Nativox/blob/main/LipSync_Babin/test2_dubbed_hindi.mp4) |
-| [⬇ Download Raw MP4](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2.mp4) | [⬇ Download Raw MP4](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2_dubbed_hindi.mp4) |
-| [📁 Local File](file:///d:/Projects/Nativox/LipSync_Babin/test2.mp4) | [📁 Local File](file:///d:/Projects/Nativox/LipSync_Babin/test2_dubbed_hindi.mp4) |
 
 ---
 
