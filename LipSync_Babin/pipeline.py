@@ -80,14 +80,16 @@ def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: st
         output_path=raw_tts_audio
     )
 
-    # 4b. Speaker Tone, Formant & Pitch Transfer (Matching original speaker's exact voice timbre)
+    # 4b. Speaker Tone, Formant & Pitch Transfer (Matching original speaker's exact voice timbre via OpenVoice V2)
     raw_morphed = cfg.work_dir / f"morphed_speech_raw_{cfg.target_lang}.wav"
     logging.info("Stage 4b: Transferring original speaker vocal tract timbre, formant resonance & pitch...")
+    base_speaker = "hi-IN-MadhurNeural" if cfg.target_lang == "hi" else "bn-IN-BashkarNeural"
     tone_engine = ToneTransferBridge()
     tone_engine.transfer_speaker_voice(
         synthesized_audio=raw_tts_audio,
         reference_speech_audio=speech_reference,
-        output_audio=raw_morphed
+        output_audio=raw_morphed,
+        base_speaker_name=base_speaker
     )
     dubbed_speech = raw_morphed
 

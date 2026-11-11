@@ -19,8 +19,23 @@ import numpy as np
 from typing import Optional
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-OPENVOICE_REPO = os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "OpenVoice")
-CHECKPOINTS_DIR = os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "converter")
+
+# Look for OpenVoice repo and checkpoints locally or in LipSyncLab_v2
+cand_openvoice_repos = [
+    os.getenv("OPENVOICE_REPO"),
+    os.path.join(REPO_ROOT, "models", "openvoice", "OpenVoice"),
+    os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "OpenVoice"),
+    r"C:\Users\babin\Downloads\LipSyncLab_v2\LipSync_Lab\Pipeline2\models\openvoice\OpenVoice"
+]
+OPENVOICE_REPO = next((p for p in cand_openvoice_repos if p and os.path.exists(p)), cand_openvoice_repos[-1])
+
+cand_checkpoints_dirs = [
+    os.getenv("OPENVOICE_CHECKPOINTS"),
+    os.path.join(REPO_ROOT, "models", "openvoice", "checkpoints_v2", "converter"),
+    os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "converter"),
+    r"C:\Users\babin\Downloads\LipSyncLab_v2\LipSync_Lab\Pipeline2\models\openvoice\checkpoints_v2\converter"
+]
+CHECKPOINTS_DIR = next((p for p in cand_checkpoints_dirs if p and os.path.exists(p)), cand_checkpoints_dirs[-1])
 
 if OPENVOICE_REPO not in sys.path:
     sys.path.insert(0, OPENVOICE_REPO)
@@ -129,8 +144,15 @@ class OpenVoiceConverter:
            loads it directly for 100% complete base voice subtraction.
         2. Otherwise, extracts source embedding from base_tts_audio_path.
         """
+        # Check both local and LipSyncLab locations for pre-calibrated base speaker embeddings
+        cand_ses_dirs = [
+            os.path.join(REPO_ROOT, "models", "openvoice", "checkpoints_v2", "base_speakers", "ses"),
+            os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "base_speakers", "ses"),
+            r"C:\Users\babin\Downloads\LipSyncLab_v2\LipSync_Lab\Pipeline2\models\openvoice\checkpoints_v2\base_speakers\ses"
+        ]
+        ses_dir = next((d for d in cand_ses_dirs if os.path.exists(d)), cand_ses_dirs[-1])
+
         if base_speaker_name:
-            ses_dir = os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "base_speakers", "ses")
             pth_path = os.path.join(ses_dir, f"{base_speaker_name}.pth")
             if os.path.exists(pth_path):
                 return torch.load(pth_path, map_location=self.device)
@@ -138,8 +160,8 @@ class OpenVoiceConverter:
         if base_tts_audio_path and os.path.exists(base_tts_audio_path):
             return self._converter.extract_se(base_tts_audio_path)
 
-        # Fallback to default English base embedding if present
-        default_pth = os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "base_speakers", "ses", "hi-IN-MadhurNeural.pth")
+        # Fallback to default base embedding if present
+        default_pth = os.path.join(ses_dir, "hi-IN-MadhurNeural.pth")
         if os.path.exists(default_pth):
             return torch.load(default_pth, map_location=self.device)
 
