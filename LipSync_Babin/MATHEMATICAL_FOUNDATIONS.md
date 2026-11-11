@@ -1,9 +1,9 @@
 <!-- markdownlint-disable -->
 
-# Mathematical Foundations & Implementation Details of Nativox
+# Mathematical Foundations & Implementation Details of the LipSync_Babin Pipeline
 
 > **Creator & Lead Architect**: Babin Bid  
-> This document details the mathematical models, acoustic formulas, geometric equations, and algorithmic implementations underpinning the Nativox Speaker Performance Transfer Engine (SPTE), Neural Lip Generation, and Quality Evaluation systems.
+> This document details the mathematical models, acoustic formulas, geometric equations, and algorithmic implementations underpinning the **LipSync_Babin pipeline** Speaker Performance Transfer Engine (SPTE), Neural Lip Generation, and Quality Evaluation systems.
 
 ---
 
