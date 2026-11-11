@@ -342,8 +342,8 @@ Wav2Lip occasionally struggles with high-frequency tooth and gum textures during
 ## 8. Empirical Performance & Quality Benchmark (Side-by-Side Video Evaluation)
 
 To validate the Zero-API autonomous dubbing architecture against real-world media, an end-to-end benchmark was executed on the standard reference clip:
-- **Input Test Video**: [`LipSync_Babin/testcases/test2.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/testcases/test2.mp4) ([GitHub View](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/testcases/test2.mp4))
-- **Rendered Dubbed Video**: [`LipSync_Babin/testcases/test2_dubbed_hindi.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/testcases/test2_dubbed_hindi.mp4) ([GitHub View](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/testcases/test2_dubbed_hindi.mp4))
+- **Input Test Video**: [`LipSync_Babin/test2.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/test2.mp4) ([GitHub View](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2.mp4))
+- **Rendered Dubbed Video**: [`LipSync_Babin/test2_dubbed_hindi.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/test2_dubbed_hindi.mp4) ([GitHub View](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2_dubbed_hindi.mp4))
 - **Target Language**: Hindi (`hi`) | **Pipeline Mode**: 100% Free / Zero-API (Offline)
 
 ### 8.1 Side-by-Side Video Player Presentation
@@ -352,10 +352,10 @@ The two synchronized video streams are structured side by side for visual and au
 
 | Original Source Video (English Input) | Rendered Dubbed Video (Hindi + OpenVoice V2 + BGM) |
 | :---: | :---: |
-| <video src="testcases/test2.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #374151;"></video> | <video src="testcases/test2_dubbed_hindi.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #6366f1;"></video> |
+| <video src="test2.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #374151;"></video> | <video src="test2_dubbed_hindi.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #6366f1;"></video> |
 | **Duration**: $8.266\text{ s}$ &nbsp;\|&nbsp; **Resolution**: $360 \times 640$ | **Duration**: $8.258\text{ s}$ &nbsp;\|&nbsp; **Resolution**: $360 \times 640$ |
-| [▶ Watch test2.mp4 on GitHub](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/testcases/test2.mp4) | [▶ Watch test2_dubbed_hindi.mp4 on GitHub](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/testcases/test2_dubbed_hindi.mp4) |
-| [📁 Local test2.mp4](file:///d:/Projects/Nativox/LipSync_Babin/testcases/test2.mp4) | [📁 Local test2_dubbed_hindi.mp4](file:///d:/Projects/Nativox/LipSync_Babin/testcases/test2_dubbed_hindi.mp4) |
+| [▶ Watch test2.mp4 on GitHub](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2.mp4) | [▶ Watch test2_dubbed_hindi.mp4 on GitHub](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2_dubbed_hindi.mp4) |
+| [📁 Local test2.mp4](file:///d:/Projects/Nativox/LipSync_Babin/test2.mp4) | [📁 Local test2_dubbed_hindi.mp4](file:///d:/Projects/Nativox/LipSync_Babin/test2_dubbed_hindi.mp4) |
 
 ---
 
