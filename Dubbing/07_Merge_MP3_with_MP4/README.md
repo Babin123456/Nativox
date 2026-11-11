@@ -1,10 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Stage 7: Merge MP3 with MP4
 
 ## Final Dubbed Video Assembly for the Nativox Pipeline
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
   <a href="../06_Converted_Text_to_MP3/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_6:_Speech_TTS-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 6" /></a>
@@ -62,7 +62,7 @@ This stage closes the complete dubbing loop:
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd 07_Merge_MP3_with_MP4
+Dubbing/
 ```
 
 ### 2. Choose Your Setup Track
@@ -84,7 +84,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 - **Windows Git Bash:**
@@ -93,7 +93,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 - **macOS / Linux:**
@@ -102,7 +102,7 @@ Use this track if your default system `python` command is Python 3.11.
   python3 -m venv venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 ---
@@ -117,7 +117,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 - **Windows Git Bash:**
@@ -126,7 +126,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 - **macOS / Linux:**
@@ -135,10 +135,10 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
-The service will start at **`http://127.0.0.1:8014`**. Visit **`http://127.0.0.1:8014/docs`** for interactive Swagger API testing.
+The service will start at **`http://127.0.0.1:8007`**. Visit **`http://127.0.0.1:8007/docs`** for interactive Swagger API testing.
 
 > [!TIP]
 > **Headless Microservice & Swagger Docs:**
@@ -261,7 +261,7 @@ Returns service health status and FFmpeg availability.
 ## 🧪 Running Tests
 
 ```bash
-cd 07_Merge_MP3_with_MP4
+Dubbing/
 python -m pytest test_merge.py -v
 ```
 
@@ -277,8 +277,6 @@ python -m pytest test_merge.py -v
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>

@@ -1,10 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Stage 5(a): Contextual Keyword Translation (Sagnik)
 
 ## Cross-Lingual Terminology Mapping & Phonetic Pronunciation Guide
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
   <a href="../03_Text_to_Keyword/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_3:_Keyword-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 3" /></a>
@@ -51,7 +51,7 @@ The translated vocabulary is provided to **Stage 5(b) (Sentence Reformation & Pr
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd 05a_Keyword_Translation__Sagnik
+Dubbing/
 ```
 
 ### 2. Choose Your Setup Track
@@ -220,8 +220,6 @@ Translates an array of multilingual keywords into the specified target language.
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>

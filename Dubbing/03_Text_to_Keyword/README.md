@@ -1,10 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Stage 3: Salient Keyword Extractor
 
 ## Multilingual RAKE & Cross-Script Salient Terminology Engine
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Nativox Suite" /></a>
   <a href="../02_MP3_to_Text/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Previous Stage" /></a>
@@ -47,7 +47,7 @@ The extracted keyword lexicon is transferred downstream to **Stage 4 (Keyword to
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd 03_Text_to_Keyword
+Dubbing/
 ```
 
 ### 2. Choose Your Setup Track
@@ -216,8 +216,6 @@ Extracts ranked multi-word and single-word keywords from input text.
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>

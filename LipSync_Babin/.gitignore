@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+
+# Workspace and render cache folders ignored
+work/
+outputs/
+
+# Audio/Video binary patterns (preserving testcases)
+*.wav
+*.mp4
+!testcases/*.mp4
+
+# Checkpoints and weights
+*.pt
+*.pth
+*.ckpt

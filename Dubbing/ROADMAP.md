@@ -1,190 +1,181 @@
-# Future Roadmap & Multilingual AI Video Dubbing Evolution
+<!-- markdownlint-disable -->
 
-Multilingual Performance Transfer (English to Hindi/Bengali), Faculty Directives, and Architecture Evolution.
+# 🗺️ Nativox Future Roadmap: Present vs. Future Architecture & Evolution Plan
 
-<!-- markdownlint-disable MD033 -->
+> **Multilingual Performance Transfer (English $\to$ Hindi & Bengali), Faculty Directives, Acoustic Profiling, and Neural Lip-Sync Generation.**
+
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
   <a href="ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-📐_ARCHITECTURE.md-3E8FC4?style=for-the-badge&logo=blueprint&logoColor=white" alt="Architecture" /></a>
   <a href="INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-4FAE7A?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions" /></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
 </p>
-<!-- markdownlint-enable MD033 -->
 
 ---
 
 ## 🎯 Executive Mission & Core Product Principles
 
-### Mission
-Build a **speaker-independent AI video-dubbing system**. At inference time, the user provides **one English source video** and selects **Hindi or Bengali** as the target language. The system produces a natural target-language video in which the original speaker appears to have naturally performed the target-language dialogue.
+### 1. Vision & Goal
+Build a **speaker-independent, photorealistic AI video-dubbing system**. At inference time, the user supplies **one English source video** and selects either **Hindi** or **Bengali** as the target language. The pipeline produces a natural target-language video in which the original speaker appears to have natively performed the target-language dialogue.
 
-The output must deliver:
-1. **Natural Hindi/Bengali Speech & Articulation:** Native pronunciation, fluent prosody, and language-specific mouth articulation conditioned directly on target-language audio.
-2. **Audiovisual Synchronization:** Accurate timing across complete speaking intervals with measurable lip-sync alignment.
+### 2. Core Pillars
+1. **Natural Indic Speech & Articulation:** Native pronunciation, fluent prosody, and language-specific mouth articulation conditioned directly on target-language audio.
+2. **Audiovisual Synchronization:** Accurate timing across complete speaking intervals with verifiable lip-sync alignment ($LSE\text{-}D < 6.8$, $LSE\text{-}C > 6.0$).
 3. **Identity & Expression Preservation:** Plausible lips, teeth, tongue, and jaw without deformation, blur, pasted-mouth appearance, flicker, or identity drift.
-4. **Scene & Visual Continuity:** Zero head-pose discontinuities, preserved emotional expression, and seamless background blending.
-
-This is not merely audio replacement or a superficial lip-animation demo; it is **convincing multilingual performance transfer**.
-
-### Core Engineering Principles
-- **Generalize to Unseen Speakers:** Must generalize across genders, ethnicities, head poses, and accents; never overfit to pilot speakers.
-- **Condition Articulation on Target Audio:** Target mouth motion is conditioned on synthesized Hindi/Bengali acoustics, not copied from English source frames.
-- **Preserve Timestamps via PTS:** Strict adherence to Presentation Timestamps (PTS). Never assume constant frame rates or 1:1 frame count parity across languages.
-- **Decoupled Evaluation from Generation:** Independent audiovisual sync and visual quality evaluation pipelines.
-- **Hardware-Aware Execution:** Local workstation execution for decoding, feature extraction, and lightweight pipelines; NVIDIA Cloud GPU allocation for neural lip-generation/fine-tuning.
-- **Reproducible & Verifiable:** Explicit versioning of checkpoints, configs, seeds, and datasets. Never fabricate metrics.
+4. **Speaker Voice Identity Cloning:** The target speech sounds like the *original speaker speaking Hindi/Bengali*, not a generic stock narrator.
+5. **Scene & Visual Continuity:** Zero head-pose discontinuities, preserved emotional expression, and seamless background blending.
 
 ---
 
-## 🏗️ End-to-End System Architecture
+## 📊 Comprehensive Comparison: Present State vs. Future Architecture
+
+The table below contrasts our current implementation across all modules with the target production architecture planned in this roadmap:
+
+| Pipeline Domain | Present Implementation (v1.0 Baseline) | Future Implementation (Target v2.0 Architecture) | Gap / Engineering Target |
+| :--- | :--- | :--- | :--- |
+| **Pipeline Automation & Orchestration** (`00_Auto_Pip`) | Sequential REST-polling orchestrator across discrete FastAPI ports (`8001`–`8007`). Intermediate outputs written to filesystem JSON/text files (`jobs/job1/`). | Event-driven async DAG orchestrator (Celery/Temporal or async worker queue) with in-memory streaming / Redis state caching, job queues, and real-time progress websockets. | Eliminates file I/O latency between stages, enables parallel batch processing and multi-user queueing. |
+| **Audio Extraction & Ingestion** (`01_MP4_to_MP3`) | Static FFmpeg audio demuxing to MP3 at standard sample rate. Ignores PTS timestamps and audio-video drift offsets. | Lossless PCM/WAV extraction ($16\text{ kHz} / 48\text{ kHz}$) extracting Presentation Timestamps (PTS) for per-frame audiovisual packet alignment. | Prevents gradual macro-drift across long videos ($> 60\text{ seconds}$). |
+| **Speech Recognition & Alignment** (`02_MP3_to_Text`) | Faster-Whisper base model generating text transcript and coarse segment-level start/end timestamps. | WhisperX with phonetic forced alignment (wav2vec 2.0 / CTC alignment) generating word- and phoneme-level timestamps + Voice Activity Detection (VAD). | Provides exact syllable timing essential for phoneme-to-viseme lip-synchronization. |
+| **Content Extraction & Condensation** (`03_Text_to_Keyword`) | YAKE statistical keyword extraction with static n-gram weighting. | Semantic NER (Named Entity Recognition) + KeyBERT / transformer embeddings, preserving vital semantic entities while scoring non-essential speech fillers. | Retains contextual nuances, proper nouns, and technical vocabulary without losing sentence intent. |
+| **Grammar & Sentence Construction** (`04_Keyword_to_Sentence_Construction`) | Fine-tuned Google Flan-T5 base converting fragmented keyword lists into syntactically valid English sentences. | Context-aware LLM / Flan-T5 with multi-speaker dialogue context conditioning and stylistic tone matching. | Eliminates robotic sentence restructuring; respects conversational cadence. |
+| **Target Translation & Reformation** (`05b_Sentence_Reformation__Atanu`) | IndicTrans2 translation paired with mathematical precis budgeting enforcing $35\%-40\%$ compression window ($\lfloor 0.35 W \rfloor \le W_{\text{precis}} \le \lceil 0.40 W \rceil$). | Dynamic acoustic duration budgeting where target word counts are budgeted based on source audio *speaking duration ($t_{\text{speech}}$)* and Indic phoneme rate, rather than static word counts alone. | Completely eliminates acoustic overflow where translated Indic syllables run longer than source visual speech windows. |
+| **Target Speech Synthesis (TTS)** (`06_Converted_Text_to_MP3`) | Microsoft Edge Neural TTS (`hi-IN-SwaraNeural`, `hi-IN-MadhurNeural`, `bn-IN-TanishaaNeural`) and gTTS fallback. Generic voice synthesis. | Zero-shot Voice Cloning (Coqui XTTS v2 / F5-TTS / CosyVoice) conditioned on the speaker's acoustic profile from Stage 08, matching original pitch, timbre, and emotion in Hindi/Bengali. | The video sounds like the *actual speaker* speaking native Hindi or Bengali. |
+| **Acoustic Profiling & Extraction** (`08_Voice_extraction_translation`) | Standalone acoustic analyzer extracting pitch ($F_0$), Praat formants ($F_1-F_3$), jitter, shimmer, HNR, MFCCs, and reference WAV. | Integrated Neural Voice Profile Conditioning feeding speaker embedding vectors directly into Stage 06 TTS and duration-matching filters. | Connects Stage 08 directly into the automated pipeline (`00_Auto_Pip`) for automated zero-shot speaker cloning. |
+| **Video Remuxing & Lip Synchronization** (`07_Merge_MP3_with_MP4`) | FFmpeg stream copy (`-c:v copy`) replacing original audio with synthesized MP3. Visual lips still speak English. | Neural Lip-Generation Subsystem (Wav2Lip++ / MuseTalk / VideoReTalking) modifying mouth and jaw movements to match target Indic phonemes, followed by color-matched blending and frame-rate preservation. | True visual dubbing: the speaker's lips naturally articulate Hindi and Bengali words. |
+| **Multi-Language Delivery** | Single MP4 output with burnt-in single audio track. | Multi-track MP4 / HLS (`master.m3u8`) stream packaging with switchable English, Hindi, and Bengali audio tracks and synchronized subtitle streams. | Production-grade broadcast delivery for streaming platforms and educational portals. |
+| **Quality & Sync Evaluation** | Manual perceptual review and subjective scoring. | Automated objective evaluation harness calculating SyncNet lip-sync confidence ($LSE\text{-}C$), lip-sync error distance ($LSE\text{-}D$), FID (Fréchet Inception Distance), and face identity similarity (FaceNet/ArcFace cosine distance). | Quantitative, publication-grade verification of dubbing realism. |
+
+---
+
+## 🏗️ End-to-End Future System Architecture
 
 ```mermaid
-graph TD
-    SRC["English Source Video (MP4)"] --> PROBE["1. Video & Audio Understanding (PTS, Landmarks, VAD)"]
-    PROBE --> ASR["2. Speech Recognition & Alignment (faster-whisper)"]
-    ASR --> TRANS["3. Meaning-Preserving Translation (English → Hindi/Bengali)"]
-    TRANS --> REFORM["4. Sentence Reformation & Précis Budgeting (Stage 5b)"]
-    REFORM --> TTS["5. Expressive Target TTS (Edge-TTS / Neural TTS)"]
-    TTS --> ALIGN["6. Duration & Segment Alignment Management"]
+flowchart TD
+    %% Source
+    SRC["English Source Video (MP4)"] --> PTS["1. PTS & Audio Extraction (16kHz PCM WAV)"]
     
-    PROBE -.->|Face Tracks & Context| NEURAL["7. Neural Lip Generation Subsystem"]
-    ALIGN -->|Target Hindi/Bengali Audio| NEURAL
+    %% Video Track
+    SRC --> FACE["Face Tracking & 468 Landmark Mesh (MediaPipe)"]
+    FACE --> CROP["Target Mouth Region Extraction & Pose Normalization"]
     
-    NEURAL --> COMP["8. Seamless Face Compositing & Video Assembly"]
-    COMP --> EVAL_SYNC["9. Independent Audiovisual Evaluator"]
-    COMP --> EVAL_VIS["10. Visual Quality & Identity Inspector"]
-    EVAL_SYNC --> OUT["Final Dubbed Multilingual Video (MP4 / HLS)"]
+    %% Audio Track
+    PTS --> VAD["2. VAD & Phonetic Forced Alignment (WhisperX)"]
+    PTS --> PROF["3. Acoustic Voice Profiling (Stage 08: F0, Formants, Speaker Embeddings)"]
+    
+    %% Translation & Language Track
+    VAD --> REFORM["4. Contextual Reformation & Dynamic Duration Budgeting (IndicTrans2 + Syllable Matching)"]
+    REFORM --> CLONE_TTS["5. Zero-Shot Cloned TTS (XTTS v2 / F5-TTS with Speaker Identity from Stage 08)"]
+    PROF -.->|Speaker Conditioning| CLONE_TTS
+    
+    %% Target Audio Output
+    CLONE_TTS --> TGT_AUDIO["Target Hindi/Bengali Speech (Calibrated Duration)"]
+    
+    %% Neural Lip Generation
+    CROP --> NEURAL["6. Neural Lip-Motion Generator (MuseTalk / Wav2Lip++)"]
+    TGT_AUDIO --> NEURAL
+    
+    %% Post Processing & Blending
+    NEURAL --> BLEND["7. Seamless Poisson Blending & Super-Resolution (GFPGAN/CodeFormer)"]
+    FACE -.->|Head Pose & Lighting Context| BLEND
+    BLEND --> REMUX["8. Multi-Track Master Packaging (FFmpeg copy-mode / HLS master.m3u8)"]
+    TGT_AUDIO --> REMUX
+    
+    %% Evaluation
+    REMUX --> EVAL_SYNC["9. SyncNet Evaluation (LSE-C, LSE-D)"]
+    REMUX --> EVAL_VIS["10. Visual Quality & Identity Inspector (SSIM, ArcFace)"]
+    
+    EVAL_SYNC --> OUT["Final Broadcast Dubbed Video (MP4 / HLS)"]
     EVAL_VIS --> OUT
 
-    linkStyle default stroke:#0284C7,stroke-width:2.5px;
-    classDef stageNode fill:#1E293B,stroke:#0284C7,stroke-width:2px,color:#FFFFFF;
-    classDef doneNode fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#FFFFFF;
-    classDef finalNode fill:#1E1B3B,stroke:#A78BFA,stroke-width:2.5px,color:#FFFFFF;
+    %% Styling
+    classDef inputNode fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF;
+    classDef procNode fill:#0F172A,stroke:#0284C7,stroke-width:1.5px,color:#E2E8F0;
+    classDef aiNode fill:#312E81,stroke:#818CF8,stroke-width:2px,color:#FFFFFF;
+    classDef evalNode fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF;
+    classDef outNode fill:#4C1D95,stroke:#C084FC,stroke-width:2.5px,color:#FFFFFF;
 
-    class SRC,PROBE,ASR,TRANS,REFORM,ALIGN,NEURAL,COMP stageNode;
-    class TTS,EVAL_SYNC,EVAL_VIS doneNode;
-    class OUT finalNode;
+    class SRC,PTS inputNode;
+    class FACE,CROP,VAD,REFORM,BLEND,REMUX procNode;
+    class PROF,CLONE_TTS,NEURAL aiNode;
+    class EVAL_SYNC,EVAL_VIS evalNode;
+    class OUT outNode;
 ```
 
 ---
 
-## 📑 Core Faculty Directives & Engineering Milestones
+## 🚀 Future Implementation: Phased Engineering Roadmap
 
-### Directive 1: Sentence Reformation (Contextual Restructuring) — [Completed: Stage 5(b)]
-- **Status:** **Completed** in [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu/README.md)
-- **Delivered Capabilities:**
-  - Automatic filtering of conversational fillers (*um, uh, basically, you know*) and false speech starts.
-  - Reconstructs English SVO (Subject-Verb-Object) into natural Indic SOV (Subject-Object-Verb) grammar.
-  - Inserts Hindi/Bengali case markers, postpositions, and predicate conjugations.
-
----
-
-### Directive 2: Syntax Learning & Ingestion Engine — [Completed: Stage 4]
-- **Status:** **Completed** in [`04_Keyword_to_Sentence_Construction/`](04_Keyword_to_Sentence_Construction/README.md)
-- **Delivered Capabilities:**
-  - PDF/DOCX multi-document text extraction engine.
-  - Self-supervised synthetic corruption engine (`SentenceCorrupter`) simulating fragmented speech.
-  - Seq2Seq fine-tuning framework using Google Flan-T5 with multi-beam search decoding.
+### Phase 1: Zero-Shot Voice Identity Cloning Integration (Q1 2026)
+* **Goal:** Merge Stage 08 acoustic voice profiling directly into the core dubbing pipeline (`00_Auto_Pip` $\to$ `06_Converted_Text_to_MP3`).
+* **Technical Deliverables:**
+  1. Extract a $10-15\text{ second}$ clean reference sample from source video speech segments automatically.
+  2. Integrate an on-premise zero-shot cloning engine (Coqui XTTS v2 or F5-TTS) into Stage 06.
+  3. Condition Hindi synthesis on the original speaker's pitch profile ($F_0$), formant distribution, and speaker embedding vector.
+  4. Train or fine-tune an Indic XTTS/VITS checkpoint supporting Bengali phonetic pronunciation and natural cadence.
 
 ---
 
-### Directive 3: Useful-to-Short Sentence Compression & Duration Budgeting — [Completed & Iterating]
-- **Status:** **Core Engine Completed** in [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu/README.md)
-- **Delivered Capabilities & Refinements:**
-  - Enforces strict 35%–40% word budget window:
-    $$\lfloor 0.35 \times W_{\text{orig}} \rfloor \le W_{\text{precis}} \le \lceil 0.40 \times W_{\text{orig}} \rceil$$
-  - Eliminates acoustic overflow when translated Indic phonemes exceed the original visual speaking window.
-  - Dynamic segment-aware duration matching preserving natural silence and pauses.
+### Phase 2: Dynamic Syllable-Aware Duration Budgeting (Q2 2026)
+* **Goal:** Guarantee $100\%$ temporal match between translated Indic audio and the original speaker's speaking intervals.
+* **Technical Deliverables:**
+  1. **Acoustic Duration Windowing:** Replace word-count budgeting with millisecond-exact duration targets derived from WhisperX start/end timestamps:
+     $$\Delta t_i = t_{\text{end}, i} - t_{\text{start}, i}$$
+  2. **Indic Syllable Density Compensation:** Calculate target language syllable count and dynamically scale speech rate within $[-10\%, +15\%]$:
+     $$\text{Target Rate} = \frac{\text{Syllables}_{\text{Indic}}}{\Delta t_i}$$
+  3. **Closed-Mouth Silence Injection:** Measure Mouth Aspect Ratio ($\text{MAR} < 0.12$) from MediaPipe facial mesh to insert natural room pauses during silent frames, preventing cumulative timeline drift.
 
 ---
 
-### Directive 4: Expressive Multilingual TTS Synthesis — [Completed: Stage 6 / Expanding]
-- **Status:** **Completed for Hindi** in [`06_Converted_Text_to_MP3/`](06_Converted_Text_to_MP3/README.md); **Bengali Support Expanding**
-- **Delivered Capabilities:**
-  - Microsoft Edge Neural TTS integration (`hi-IN-SwaraNeural`, `hi-IN-MadhurNeural`, `bn-IN-TanishaaNeural`, `bn-IN-BashkarNeural`).
-  - Adjustable prosody, pitch, and speech-rate scaling without API costs.
-  - Expansion to voice cloning, pitch preservation, and emotion-conditioned prosody transfer.
+### Phase 3: Neural Lip-Sync Generation Subsystem (Q2–Q3 2026)
+* **Goal:** Morph the speaker's mouth, lips, and lower face to match target Hindi/Bengali speech without visual artifacts.
+* **Technical Deliverables:**
+  1. **Inference Pipeline:** Deploy MuseTalk / Wav2Lip++ neural face generator conditioned on latent audio embeddings (WavLM/HuBERT).
+  2. **Facial Realism Enhancement:** Pass generated lower-face regions through CodeFormer / GFPGAN for crisp teeth, tongue, and lip-boundary resolution.
+  3. **Seamless Compositing:** Implement Poisson blending and Laplacian pyramid blending along masked jawlines to eliminate discoloration, blur borders, and "pasted-mouth" effects.
+  4. **Head Pose Stability:** Ensure zero jittering across frame boundaries ($\text{Pose SSIM} > 0.99$).
 
 ---
 
-### Directive 5: Lossless Video Remuxing & Multi-Track Audio Packaging — [Completed: Stage 7]
-- **Status:** **Completed** in [`07_Merge_MP3_with_MP4/`](07_Merge_MP3_with_MP4/README.md)
-- **Delivered Capabilities:**
-  - FFmpeg copy-mode remux (`-c:v copy`) for byte-level visual preservation.
-  - AAC audio transcoding (`-c:a aac -b:a 192k`) with `-movflags +faststart` for web streaming.
-  - Foundation for HLS/DASH multi-track audio delivery (`master.m3u8`) with decoupled language selection.
+### Phase 4: Independent SyncNet & Visual Quality Benchmark (Q3 2026)
+* **Goal:** Provide automated, reproducible quantitative validation for every dubbed video.
+* **Technical Deliverables:**
+  1. **SyncNet Verification:** Compute Lip Sync Error Distance ($LSE\text{-}D$) and Lip Sync Error Confidence ($LSE\text{-}C$). Target: $LSE\text{-}D \le 6.5$, $LSE\text{-}C \ge 6.2$.
+  2. **Identity Verification:** Compare ArcFace cosine distance between source and dubbed face crops (similarity score $\ge 0.92$).
+  3. **Temporal Smoothness:** Calculate optical flow variance across mouth landmarks to catch frame-to-frame flickering.
 
 ---
 
-## 🔬 Advanced Research Roadmap & Subsystem Specifications
-
-The research subsystem focuses on deep audiovisual synchronization, neural mouth motion generation, and rigorous quantitative evaluation.
-
-### Phase 1: Reference Set Analysis & Multi-Language Calibration (Active)
-- **Controlled Tri-lingual Reference Set:** Inspect `tests/Eng_Test_1.mp4`, `tests/Hin_Test_1.mp4`, and `tests/Ben_Test_1.mp4` featuring the same speaker across all 3 languages.
-- **Per-Frame & PTS Auditing:**
-  - Extract exact presentation timestamps (PTS) for all decoded video frames and audio packets.
-  - Track MediaPipe face mesh, 468 landmarks, mouth aspect ratio (MAR), and jaw dynamics.
-  - Phoneme-level alignment via forced alignment to compare English vs. Hindi vs. Bengali viseme distributions.
-  - **Constraint:** Reference videos are calibration/diagnostic sets, not full general-purpose training datasets. Never force identical duration or perform 1:1 frame-to-frame pixel comparisons across languages.
-
-### Phase 2: Pipeline Synchronization & Timestamp Chaining (Active)
-- **Segment-Wise Timestamp Chaining:** Read Faster-Whisper segment timestamps $(t_{\text{start}, i}, t_{\text{end}, i})$ to process sentence units independently, preventing whole-video information collapse.
-- **Closed-Mouth Pause-Gated Silence Injection:** Detect closed-mouth intervals ($\text{MAR} < 0.12$) to anchor audio pacing and insert natural ambient silences without cumulative drift.
-- **Dynamic Syllable Compensation:** Calculate Indic syllable density and dynamically adapt TTS playback rate within $[-15\%, +25\%]$ to match visual opening windows.
-
-### Phase 3: Neural Lip-Generation Subsystem
-- **Target-Audio Conditioned Generation:** Condition mouth and jaw dynamics on synthesized target-language (Hindi/Bengali) audio features (Mel-spectrograms / HuBERT / WavLM features).
-- **Architecture Exploration:** Benchmark state-of-the-art models (Wav2Lip, VideoReTalking, MuseTalk) behind an isolated adapter/service interface.
-- **Visual Artifact Mitigation:**
-  - Seamless Poisson and multi-band blending to prevent pasted-mouth boundaries.
-  - High-frequency texture and teeth detail restoration via super-resolution or discriminator losses.
-  - Expression and head-pose invariance (background SSIM $> 0.99$).
-
-### Phase 4: Independent Audiovisual & Quality Evaluation
-- **Audiovisual Sync Metric:** Windowed SyncNet evaluation measuring lip-sync confidence ($LSE\text{-}C$) and minimum sync error offset ($LSE\text{-}D, \tau^*$).
-- **Visual Quality Verification:** Automated detection of blur, flicker, temporal discontinuities, and facial identity drift.
-- **Human Verification Loop:** Maintain manual review flags for ambiguous perceptual intervals; never mask localized anomalies within global average scores.
-
-### Phase 5: Scalable Dataset Policy & Cloud GPU Training
-- **Dataset Expansion:** Curate multi-speaker, licensed Hindi and Bengali audiovisual datasets with diverse head poses, lighting, and speaking rates.
-- **Speaker-Disjoint Partitions:** Split datasets strictly by speaker identity to guarantee true out-of-sample generalization.
-- **Hardware Isolation:** Workstation CPU/Iris Xe for lightweight preprocessing and testing; NVIDIA CUDA cloud instances for GPU-accelerated neural training and fine-tuning.
+### Phase 5: Production Deployment & Multi-Track Audio Streaming (Q4 2026)
+* **Goal:** Deliver an enterprise-grade web application with multi-track video streaming.
+* **Technical Deliverables:**
+  1. **HLS Streaming Engine:** Generate HTTP Live Streaming (`.m3u8`) playlists with selectable audio streams (`#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE="hin"`, `LANGUAGE="ben"`, `LANGUAGE="eng"`).
+  2. **Cloud GPU Microservice:** Decouple neural lip-sync generation into an isolated Dockerized worker (NVIDIA Triton / FastAPI on CUDA).
+  3. **Interactive Side-by-Side Review UI:** Web interface showing synchronized side-by-side comparison (English Source vs. Dubbed Target) with waveform overlays and SyncNet score badges.
 
 ---
 
-## 🧪 Pipeline A vs. Pipeline B Experiment Directives
+## 📈 Quantitative Acceptance Targets
 
-To benchmark execution strategies reliably across English, Hindi, and Bengali:
-- **Exclusion Constraint:** Both Pipeline A (`00_Auto_Pip`) and Pipeline B (Individual Stages 01 $\to$ 07) must strictly skip Stage 5(a) (`05a_Keyword_Translation__Sagnik`).
-- **Pipeline A Configuration:** Preserve Stage 00 automated orchestrator; configure it to bypass Stage 5(a) cleanly without manual interventions.
-- **Pipeline B Configuration:** Execute modular stages sequentially in verified dependency order, omitting Stage 5(a).
-- **Comparison Protocol:** Run identical source videos under both pipelines; generate and evaluate Hindi and Bengali streams separately; verify Stage 5(a) is never triggered indirectly.
+To achieve final project sign-off, the future system must meet the following metrics across unseen test speakers:
 
----
-
-## 📅 Roadmap Execution Checklist & Acceptance Criteria
-
-- [x] **Milestone 1: Acoustic Pipeline & Video Assembly** (Stages 01–07 integrated and functional for Hindi).
-- [ ] **Milestone 2: Bengali Expansion** (Full Bengali neural TTS, phonetic dictionaries, and translation validation).
-- [ ] **Milestone 3: Tri-Lingual Reference Benchmark** (Complete PTS and landmark audit across `Eng_Test_1`, `Hin_Test_1`, `Ben_Test_1`).
-- [ ] **Milestone 4: Timestamp Chaining & Pause Injection** (Eliminate macro-drift and video length collapses).
-- [ ] **Milestone 5: Pretrained Lip-Gen Baseline** (Deploy adapter-isolated Wav2Lip/MuseTalk baseline on cloud GPU).
-- [ ] **Milestone 6: Indic Lip-Gen Fine-Tuning** (Train generator on consented Hindi/Bengali speech corpora with speaker-disjoint splits).
-- [ ] **Milestone 7: Decoupled Multi-Track Delivery** (Dynamic HLS streaming with switchable English/Hindi/Bengali audio tracks).
-- [ ] **Milestone 8: Generalization & Quality Sign-Off** (Validated on completely unseen speakers with $LSE\text{-}D < 6.8$, no visual artifacts, and verified sync).
+| Metric | Target Criterion | Evaluation Method |
+| :--- | :--- | :--- |
+| **SyncNet Error Distance ($LSE\text{-}D$)** | $\le 6.50$ | Unsupervised SyncNet offset evaluator |
+| **SyncNet Confidence ($LSE\text{-}C$)** | $\ge 6.00$ | SyncNet feature correlation confidence |
+| **Speaker Identity Similarity** | $\ge 0.90$ | ArcFace facial embedding cosine similarity |
+| **Visual Texture Quality** | $\text{PSNR} \ge 31\text{ dB}$, $\text{SSIM} \ge 0.94$ | Upper-face and non-mouth background preservation |
+| **Timeline Drift Offset** | $< 40\text{ ms}$ over 5 minutes | Audio-visual PTS timestamp delta |
+| **Speech Naturalness (MOS)** | $\ge 4.2 / 5.0$ | Blind Mean Opinion Score on Indic speech & prosody |
 
 ---
 
 ## 👥 Authors & Academic Context
 
-- **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
-- **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
-- **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
+* **Student Contributors:** Atanu Saha, Babin Bid, Rohit Kr Adak, Sagnik Bachhar
+* **Faculty Guide:** Mr. Debjit Ghosh (Department of Computer Science & Engineering)
+* **Project Suite:** Nativox — Modular Real-Time AI Multilingual Dubbing & Neural Lip-Sync Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
 </p>
@@ -192,4 +183,3 @@ To benchmark execution strategies reliably across English, Hindi, and Bengali:
 <p align="center">
   <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Roadmap Specification</b></sub>
 </p>
-<!-- markdownlint-enable MD033 -->

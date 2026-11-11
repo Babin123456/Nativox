@@ -636,16 +636,20 @@
           <i data-lucide="file-text" style="width:14px;height:14px;color:var(--c-04);"></i> 4. Sentences
         </a>
         <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8012" class="flow-step" style="--step-color: var(--c-05b);">
-          <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--c-05b);"></i> 5. Reform
+        <a href="http://127.0.0.1:8005" class="flow-step" style="--step-color: var(--c-05b);">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--c-05b);"></i> 5b. Reform
         </a>
         <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8013" class="flow-step" style="--step-color: var(--c-06);">
+        <a href="http://127.0.0.1:8006" class="flow-step" style="--step-color: var(--c-06);">
           <i data-lucide="volume-2" style="width:14px;height:14px;color:var(--c-06);"></i> 6. Speech
         </a>
         <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8014" class="flow-step" style="--step-color: var(--c-07);">
+        <a href="http://127.0.0.1:8007" class="flow-step" style="--step-color: var(--c-07);">
           <i data-lucide="film" style="width:14px;height:14px;color:var(--c-07);"></i> 7. Final MP4
+        </a>
+        <span class="flow-arrow">→</span>
+        <a href="http://127.0.0.1:8008" class="flow-step" style="--step-color: var(--primary);">
+          <i data-lucide="mic" style="width:14px;height:14px;color:var(--primary);"></i> 8. Voice
         </a>
       </div>
     </header>
@@ -657,9 +661,14 @@
           <i data-lucide="activity" style="width:16px;height:16px;color:var(--primary);"></i>
           Microservice Health Monitor
         </div>
-        <button type="button" class="btn-dl" onclick="refreshServicesStatus()">
-          <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i> Refresh Status
-        </button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-dl primary-dl" id="startServicesBtn" onclick="triggerStartServices()" style="padding:6px 12px; font-size:12px;">
+            <i data-lucide="play" style="width:12px;height:12px;"></i> Start All Stages
+          </button>
+          <button type="button" class="btn-dl" onclick="refreshServicesStatus()" style="padding:6px 12px; font-size:12px;">
+            <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i> Refresh Status
+          </button>
+        </div>
       </div>
       <div class="services-chips" id="servicesChips">
         <span class="service-chip">Checking stage statuses...</span>
@@ -907,6 +916,34 @@
       origVideoPreview.src = URL.createObjectURL(file);
     }
 
+    async function triggerStartServices() {
+      const btn = document.getElementById('startServicesBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Starting Stages...';
+      }
+      try {
+        await fetch('/api/start-services', { method: 'POST' });
+      } catch (e) {
+        console.error('Failed to trigger auto start services:', e);
+      }
+      // Poll a few times as stages come online
+      let attempts = 0;
+      const pollTimer = setInterval(async () => {
+        attempts++;
+        await refreshServicesStatus();
+        if (attempts >= 15) clearInterval(pollTimer);
+      }, 2000);
+
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="play" style="width:12px;height:12px;"></i> Start All Stages';
+          renderIcons();
+        }
+      }, 4000);
+    }
+
     async function refreshServicesStatus() {
       const container = document.getElementById('servicesChips');
       try {
@@ -922,6 +959,7 @@
           sentence_reformation: "05b Reform",
           text_to_mp3: "06 TTS",
           merge_mp3_mp4: "07 Merge",
+          voice_extraction: "08 Voice",
         };
 
         for (const [key, info] of Object.entries(data.stages)) {

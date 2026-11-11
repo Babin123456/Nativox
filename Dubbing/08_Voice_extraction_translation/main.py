@@ -37,16 +37,19 @@ except ImportError:
     sys.exit("Missing dependencies. Run: pip install numpy librosa soundfile scipy")
 
 try:
-    import parselmouth
-    from parselmouth.praat import call
+    import importlib
+    parselmouth = importlib.import_module("parselmouth")
+    call = getattr(importlib.import_module("parselmouth.praat"), "call")
     HAS_PARSELMOUTH = True
-except ImportError:
+except (ImportError, ModuleNotFoundError, Exception):
     HAS_PARSELMOUTH = False
 
 # =========================================================================== #
-# SETTINGS - edit these, then just run:  python main.py
+# SETTINGS - edit these or pass as CLI arguments: python main.py [audio_path] [output_json]
 # =========================================================================== #
-AUDIO_PATH = r"D:/VS Code/Nativox/08_Voice_extraction_translation/test.mp3"   # <-- put your .mp3 / .wav path here
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_CANDIDATE = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "tests", "test2.mp4"))
+AUDIO_PATH = DEFAULT_CANDIDATE if os.path.isfile(DEFAULT_CANDIDATE) else "test.mp3"
 OUTPUT_JSON = "voice_profile.json"       # JSON file that will be created
 USE_EMOTION_MODEL = False                # True = neural emotion model (needs transformers + torch)
 USE_SPEAKER_EMBEDDING = False            # True = speaker embedding (needs resemblyzer)
@@ -286,7 +289,10 @@ def neural_emotion(path):
 # --------------------------------------------------------------------------- #
 def speaker_embedding(path):
     try:
-        from resemblyzer import VoiceEncoder, preprocess_wav
+        import importlib
+        resemblyzer = importlib.import_module("resemblyzer")
+        VoiceEncoder = getattr(resemblyzer, "VoiceEncoder")
+        preprocess_wav = getattr(resemblyzer, "preprocess_wav")
         wav = preprocess_wav(path)
         emb = VoiceEncoder().embed_utterance(wav)
         return {"model": "resemblyzer", "dim": int(emb.size), "vector": emb}
@@ -333,18 +339,21 @@ def build_profile(input_path, ref_path, use_emotion, use_embedding):
 
 
 def main():
-    if not os.path.isfile(AUDIO_PATH):
-        sys.exit(f"Audio file not found: {AUDIO_PATH}\nEdit AUDIO_PATH at the top of main.py.")
+    audio_path = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else AUDIO_PATH
+    output_json = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith("-") else OUTPUT_JSON
 
-    base = os.path.splitext(OUTPUT_JSON)[0]
+    if not os.path.isfile(audio_path):
+        sys.exit(f"Audio file not found: {audio_path}\nEdit AUDIO_PATH at the top of main.py or run: python main.py <path_to_audio_or_video>")
+
+    base = os.path.splitext(output_json)[0]
     ref_path = base + "_reference.wav"
 
-    print(f"Analyzing: {AUDIO_PATH} ...")
-    profile = build_profile(AUDIO_PATH, ref_path, USE_EMOTION_MODEL, USE_SPEAKER_EMBEDDING)
-    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+    print(f"Analyzing: {audio_path} ...")
+    profile = build_profile(audio_path, ref_path, USE_EMOTION_MODEL, USE_SPEAKER_EMBEDDING)
+    with open(output_json, "w", encoding="utf-8") as f:
         json.dump(clean(profile), f, indent=2, ensure_ascii=False)
 
-    print(f"Voice profile saved : {OUTPUT_JSON}")
+    print(f"Voice profile saved : {output_json}")
     print(f"Reference audio     : {ref_path}")
 
 

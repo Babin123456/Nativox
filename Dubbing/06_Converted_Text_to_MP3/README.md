@@ -1,10 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Stage 6: Text → MP3 Speech Synthesis
 
 ## Neural TTS Voice Generation for the Nativox Pipeline
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-%E2%AC%85%EF%B8%8F_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
   <a href="../05b_Sentence_Reformation__Atanu/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_5(b):_Reformation-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Stage 5b" /></a>
@@ -60,7 +60,7 @@ This stage closes the complete dubbing loop:
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd 06_Converted_Text_to_MP3
+Dubbing/
 ```
 
 ### 2. Choose Your Setup Track
@@ -82,7 +82,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 - **Windows Git Bash:**
@@ -91,7 +91,7 @@ Use this track if your default system `python` command is Python 3.11.
   python -m venv venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 - **macOS / Linux:**
@@ -100,7 +100,7 @@ Use this track if your default system `python` command is Python 3.11.
   python3 -m venv venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 ---
@@ -115,7 +115,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 - **Windows Git Bash:**
@@ -124,7 +124,7 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 - **macOS / Linux:**
@@ -133,10 +133,10 @@ Use this track for instant zero-configuration setup — `uv` automatically respe
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
-The service will start at **`http://127.0.0.1:8013`**. Visit **`http://127.0.0.1:8013/docs`** for interactive Swagger API testing.
+The service will start at **`http://127.0.0.1:8006`**. Visit **`http://127.0.0.1:8006/docs`** for interactive Swagger API testing.
 
 > [!TIP]
 > **Headless Microservice & Swagger Docs:**
@@ -273,7 +273,7 @@ Returns service health status.
 ## 🧪 Running Tests
 
 ```bash
-cd 06_Converted_Text_to_MP3
+Dubbing/
 python -m pytest test_tts.py -v
 ```
 
@@ -292,8 +292,6 @@ SKIP_INTEGRATION=1 python -m pytest test_tts.py -v
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>

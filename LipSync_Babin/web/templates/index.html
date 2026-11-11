@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nativox — AI Multilingual Video Dubbing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #090d16;
+            --surface: #111827;
+            --surface-border: #1f2937;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --accent: #10b981;
+            --accent-bg: rgba(16, 185, 129, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 800px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-area {
+            border: 2px dashed #374151;
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(17, 24, 39, 0.6);
+            margin-bottom: 18px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-area p {
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            background: #1f2937;
+            border: 1px solid #374151;
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #d1d5db;
+        }
+
+        .btn-submit {
+            margin-top: auto;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            border: none;
+            padding: 13px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-submit:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .video-box {
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #1f2937;
+            margin-bottom: 14px;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .placeholder-text {
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+
+        .log-box {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #58a6ff;
+            height: 140px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-bg);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Nativox Video Dubber</h1>
+            <p>Multilingual Speaker Performance Transfer & HD Lip Synchronization</p>
+        </header>
+
+        <div class="grid">
+            <!-- INPUT CARD -->
+            <div class="card">
+                <h2><span>📹</span> Input Video & Settings</h2>
+                <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 2rem; margin-bottom: 6px;">📁</div>
+                    <strong id="fileLabel">Choose or Drag & Drop Video (.mp4)</strong>
+                    <p>Supports English speaking clips (1080p, 720p, 30fps)</p>
+                    <input type="file" id="fileInput" accept="video/mp4,video/*">
+                </div>
+
+                <div class="field-group">
+                    <label>Target Language</label>
+                    <select id="targetLang">
+                        <option value="hi" selected>Hindi (हिन्दी)</option>
+                        <option value="bn">Bengali (বাংলা)</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label>Voice Backend</label>
+                    <select id="ttsBackend">
+                        <option value="free" selected>Primary Zero-API Mode (Edge-TTS + Tone Transfer) [100% Free / No Keys]</option>
+                        <option value="sarvam">Sarvam Indic Bulbul [Optional Fallback / API Key]</option>
+                    </select>
+                </div>
+
+                <div class="field-group toggle-group">
+                    <input type="checkbox" id="enhanceFace" checked>
+                    <label for="enhanceFace" style="margin-bottom: 0; cursor: pointer;">
+                        HD Face Restoration & Selective Mouth Compositing (GFPGAN)
+                    </label>
+                </div>
+
+                <button class="btn-submit" id="submitBtn" onclick="startDubbing()">
+                    Dub Video Now
+                </button>
+            </div>
+
+            <!-- OUTPUT CARD -->
+            <div class="card">
+                <h2>
+                    <span>✨</span> Dubbed Output 
+                    <span class="badge" id="statusBadge" style="margin-left: auto;">Ready</span>
+                </h2>
+                <div class="video-box" id="videoContainer">
+                    <span class="placeholder-text" id="videoPlaceholder">Dubbed video will appear here</span>
+                    <video id="outputVideo" controls style="display: none;"></video>
+                </div>
+
+                <div class="field-group">
+                    <label>Live Pipeline Log</label>
+                    <div class="log-box" id="logBox">System idle. Ready to accept video input.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+        const submitBtn = document.getElementById('submitBtn');
+        const logBox = document.getElementById('logBox');
+        const statusBadge = document.getElementById('statusBadge');
+        const outputVideo = document.getElementById('outputVideo');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileLabel.innerText = e.target.files[0].name;
+            }
+        });
+
+        function appendLog(msg) {
+            logBox.innerText += "\n" + msg;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function startDubbing() {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("Please select or drop an MP4 video first!");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const targetLang = document.getElementById('targetLang').value;
+            const ttsBackend = document.getElementById('ttsBackend').value;
+            const enhanceFace = document.getElementById('enhanceFace').checked;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Processing Pipeline...';
+            statusBadge.innerText = 'Processing';
+            statusBadge.style.color = '#fbbf24';
+            statusBadge.style.background = 'rgba(251, 191, 36, 0.1)';
+            
+            outputVideo.style.display = 'none';
+            videoPlaceholder.style.display = 'block';
+            videoPlaceholder.innerText = 'Rendering video in progress...';
+
+            logBox.innerText = `[1/6] Uploading video: ${file.name}...`;
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("lang", targetLang);
+            formData.append("tts", ttsBackend);
+            formData.append("enhance", enhanceFace);
+
+            try {
+                appendLog("[2/6] Transcribing speech via Sarvam Saaras ASR...");
+                appendLog("[3/6] Translating with natural colloquial phrasing...");
+                appendLog("[4/6] Synthesizing speech with acoustic delivery...");
+                appendLog("[5/6] Generating Wav2Lip sync...");
+                if (enhanceFace) {
+                    appendLog("[6/6] Restoring high-definition teeth & selective mouth mask...");
+                }
+
+                const res = await fetch("/api/dub", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Pipeline execution failed");
+                }
+
+                const data = await res.json();
+                appendLog("\nDone! Pipeline finished successfully!");
+                appendLog(`Transcript: "${data.transcript}"`);
+                appendLog(`Dubbed Text: "${data.translated}"`);
+
+                statusBadge.innerText = 'Completed';
+                statusBadge.style.color = '#10b981';
+                statusBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+
+                videoPlaceholder.style.display = 'none';
+                outputVideo.style.display = 'block';
+                outputVideo.src = data.output_url + "?t=" + new Date().getTime();
+                outputVideo.play();
+            } catch (err) {
+                appendLog(`\n[Error] ${err.message}`);
+                statusBadge.innerText = 'Error';
+                statusBadge.style.color = '#ef4444';
+                statusBadge.style.background = 'rgba(239, 68, 68, 0.1)';
+                videoPlaceholder.innerText = 'Failed to render video.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Dub Video Now';
+            }
+        }
+    </script>
+</body>
+</html>

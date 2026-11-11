@@ -567,4 +567,15 @@ def get_job_artifact(job_id: str, name: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    import argparse
+    parser = argparse.ArgumentParser(description="Nativox Stage 00 Orchestrator Web Server")
+    parser.add_argument("--auto-start", action="store_true", help="Automatically trigger background startup of all stage microservices")
+    parser.add_argument("--port", type=int, default=8000, help="Web server port (default 8000)")
+    args = parser.parse_args()
+
+    if args.auto_start or os.environ.get("NATIVOX_AUTO_START_SERVICES") == "1":
+        print("[*] Automatically triggering startup of missing microservices in background...")
+        threading.Thread(target=orchestrator.start_services, args=(ROOT_DIR,), daemon=True).start()
+
+    uvicorn.run("main:app", host="127.0.0.1", port=args.port, reload=False)
+

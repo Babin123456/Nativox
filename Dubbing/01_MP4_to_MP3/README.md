@@ -1,10 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Stage 1: Audio Extractor & Stem Separator
 
 ## High-Fidelity MP4 to MP3 Demuxing & Stem Isolation Service
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Nativox Suite" /></a>
   <a href="../02_MP3_to_Text/README.md"><img src="https://img.shields.io/badge/Next_Stage-Stage_2:_ASR-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Next Stage" /></a>
@@ -12,7 +12,6 @@ Part of the **Nativox** AI Multilingual Dubbing Suite.
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11" /></a>
   <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
 </p>
-<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -55,7 +54,7 @@ The extracted MP3 serves as the clean acoustic input for **Stage 2 (Automatic Sp
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd 01_MP4_to_MP3
+Dubbing/
 ```
 
 ### 2. Choose Your Setup Track
@@ -210,8 +209,6 @@ Streams the extracted MP3 audio file with range requests for seeking.
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
@@ -219,4 +216,3 @@ Streams the extracted MP3 audio file with range requests for seeking.
 <p align="center">
   <sub><b>Nativox</b> &bull; Real-Time AI Multilingual Dubbing Suite &bull; <b>End of Module 1 Documentation</b></sub>
 </p>
-<!-- markdownlint-enable MD033 -->
