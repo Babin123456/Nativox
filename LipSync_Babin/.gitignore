@@ -7,10 +7,12 @@ __pycache__/
 work/
 outputs/
 
-# Audio/Video binary patterns (preserving testcases)
+# Audio/Video binary patterns (preserving comparison videos and testcases)
 *.wav
 *.mp4
 !testcases/*.mp4
+!test2.mp4
+!test2_dubbed_hindi.mp4
 
 # Checkpoints and weights
 *.pt
