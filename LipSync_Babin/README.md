@@ -1,8 +1,8 @@
 <!-- markdownlint-disable -->
 
-# Nativox: Zero-API Multilingual Video Dubbing & Performance Transfer Pipeline
+# Nativox LipSync_Babin Pipeline: Zero-API Multilingual Video Dubbing & Performance Transfer
 
-> **Universal, Free & Autonomous AI Video Dubbing**: Dubs English talking-head videos into natural **Hindi (`hi`)** and **Bengali (`bn`)** with **1:1 Video Duration Synchronization**, **Continuous Background Music (BGM) Preservation**, **Speaker Vocal Timbre/Pitch Cloning**, and **High-Definition Sub-Nasal Lip Sync**—**operating 100% Free with ZERO API Keys required**.  
+> **Universal, Free & Autonomous AI Video Dubbing**: The **LipSync_Babin pipeline** dubs English talking-head videos into natural **Hindi (`hi`)** and **Bengali (`bn`)** with **1:1 Video Duration Synchronization**, **Continuous Background Music (BGM) Preservation**, **Speaker Vocal Timbre/Pitch Cloning**, and **High-Definition Sub-Nasal Lip Sync**—**operating 100% Free with ZERO API Keys required**.  
 > **Creator & Lead Architect**: Babin Bid  
 
 ---
@@ -11,7 +11,7 @@
 
 1. **100% Free / Zero API Key Architecture**:
    - **No subscriptions, credit cards, or external API keys needed**.
-   - Primary pipeline utilizes local OpenAI Whisper for ASR, public Google GTX / Deep-Translator for colloquial Indic translation, Microsoft Edge-TTS for native neural speech synthesis, and local Praat PSOLA / OpenVoice V2 for speaker voice timbre transfer.
+   - The primary LipSync_Babin pipeline utilizes local OpenAI Whisper for ASR, public Google GTX / Deep-Translator for colloquial Indic translation, Microsoft Edge-TTS for native neural speech synthesis, and local Praat PSOLA / OpenVoice V2 for speaker voice timbre transfer.
    - Optional Sarvam AI support is retained as a secondary fallback.
 2. **True Speaker Voice Identity Transfer**:
    - Analyzes the original speaker's fundamental pitch ($F_0$), vocal tract formant resonance ($F_1, F_2, F_3$), and spectral centroid.
@@ -63,11 +63,12 @@ WAV2LIP_CHECKPOINT=/path/to/Wav2Lip/checkpoints/wav2lip_gan.pth
 
 ---
 
-## 💻 Running the Pipeline
+## 💻 Running the LipSync_Babin Pipeline
 
 ### Option A: Interactive Web UI (Recommended)
 1. Launch the web server:
    ```powershell
+   cd LipSync_Babin
    .\.venv\Scripts\python.exe -m uvicorn web.app:app --host 127.0.0.1 --port 7865
    ```
 2. Open your web browser at:
@@ -80,10 +81,13 @@ WAV2LIP_CHECKPOINT=/path/to/Wav2Lip/checkpoints/wav2lip_gan.pth
 ### Option B: Command-Line Interface (CLI)
 
 ```powershell
-# Run 100% Free Zero-API Dubbing (Hindi):
+# Navigate to directory
+cd LipSync_Babin
+
+# Run 100% Free Zero-API LipSync_Babin Pipeline (Hindi):
 .\.venv\Scripts\python.exe pipeline.py --input testcases/test2.mp4 --lang hi --tts free --preserve-bgm --output outputs/test2_Hindi_Dubbed.mp4
 
-# Run 100% Free Zero-API Dubbing (Bengali):
+# Run 100% Free Zero-API LipSync_Babin Pipeline (Bengali):
 .\.venv\Scripts\python.exe pipeline.py --input testcases/test4.mp4 --lang bn --tts free --preserve-bgm --output outputs/test4_Bengali_Dubbed.mp4
 ```
 

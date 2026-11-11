@@ -1,13 +1,13 @@
 <!-- markdownlint-disable -->
 
-# Nativox: System Architecture & Workflow Diagrams
+# Nativox LipSync_Babin Pipeline: System Architecture & Workflow Diagrams
 
 > **Creator & Lead Architect**: Babin Bid  
-> This document details the multi-stage architecture of the **Nativox Zero-API Multilingual Video Dubbing Pipeline** using comprehensive Mermaid flowcharts and sequence diagrams.
+> This document details the multi-stage architecture of the **Nativox LipSync_Babin pipeline** (Zero-API Multilingual Video Dubbing & Performance Transfer) using comprehensive Mermaid flowcharts and sequence diagrams.
 
 ---
 
-## 1. High-Level Pipeline Architecture
+## 1. High-Level LipSync_Babin Pipeline Architecture
 
 ```mermaid
 flowchart TD

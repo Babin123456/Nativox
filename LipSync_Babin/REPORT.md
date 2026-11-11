@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-# Comprehensive Technical & Architectural Report: Nativox Zero-API Multilingual Video Dubbing Pipeline
+# Comprehensive Technical & Architectural Report: Nativox LipSync_Babin Pipeline
 
 > **An Autonomous, Pure-Python, Zero-API Video Dubbing & Performance Transfer Architecture**  
 > **Creator & Lead Architect**: Babin Bid  
@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-The **Nativox Pipeline** is an end-to-end, speaker-independent multilingual video dubbing and performance-transfer system designed in pure Python. The system ingests talking-head video footage in English and produces synchronized Hindi or Bengali video with:
+The **LipSync_Babin pipeline** is an end-to-end, speaker-independent multilingual video dubbing and performance-transfer system designed in pure Python. The system ingests talking-head video footage in English and produces synchronized Hindi or Bengali video with:
 1. **Zero External API Cost**: No reliance on paid proprietary APIs (e.g., ElevenLabs, OpenAI, HeyGen, TruFans, or Sarvam).
 2. **Audio Disentanglement**: Complete separation of speech dialogues from continuous Background Music (BGM), acoustic room tone, and Sound Effects (SFX).
 3. **Decoupled Acoustic Performance Transfer**: Cloning of the original speaker's vocal tract length, pitch dynamics ($F_0$), and resonant formants ($F_1, F_2, F_3$) onto native Indic phonetic articulations.
@@ -23,9 +23,9 @@ The **Nativox Pipeline** is an end-to-end, speaker-independent multilingual vide
 
 ### 1.1 Competitive Benchmark
 
-The commercial AI dubbing space is dominated by proprietary, closed-source SaaS platforms. The table below outlines how Nativox compares against industry solutions like **HeyGen AI**, **TruFans AI**, and **AI Dubbing io**:
+The commercial AI dubbing space is dominated by proprietary, closed-source SaaS platforms. The table below outlines how the LipSync_Babin pipeline compares against industry solutions like **HeyGen AI**, **TruFans AI**, and **AI Dubbing io**:
 
-| Feature / Metric | Commercial Platforms (HeyGen / TruFans / AIDubbing.io) | Nativox Autonomous Pipeline |
+| Feature / Metric | Commercial Platforms (HeyGen / TruFans / AIDubbing.io) | LipSync_Babin Pipeline |
 | :--- | :--- | :--- |
 | **API / Operational Cost** | **High Pay-Per-Minute** ($1.50 – $3.50 per minute of video rendered; requires recurring enterprise subscriptions or credit cards). | **100% Free / Zero API Keys** (Runs locally via open-source neural models and public endpoints). |
 | **Data Privacy & Governance** | **Cloud-Gated**: Source footage and audio are uploaded to external third-party servers, posing security and copyright risks. | **100% On-Premise / Local**: Runs on internal infrastructure; media never leaves the local environment. |
@@ -380,4 +380,4 @@ The table below provides rigorous measurement across all core audio, video, acou
 
 ## 9. Conclusion
 
-The **Nativox Pipeline** demonstrates that enterprise-grade, performance-preserving video dubbing is fully achievable using an **autonomous, pure-Python, zero-API architecture**. By decoupling phonetic synthesis from acoustic performance transfer, isolating background audio via neural stem separation, and enforcing sub-nasal facial invariance, the system delivers high-fidelity dubbing with zero operational API costs.
+The **LipSync_Babin pipeline** demonstrates that enterprise-grade, performance-preserving video dubbing is fully achievable using an **autonomous, pure-Python, zero-API architecture**. By decoupling phonetic synthesis from acoustic performance transfer, isolating background audio via neural stem separation, and enforcing sub-nasal facial invariance, the system delivers high-fidelity dubbing with zero operational API costs.

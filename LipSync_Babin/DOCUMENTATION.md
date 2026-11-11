@@ -1,14 +1,14 @@
 <!-- markdownlint-disable -->
 
-# Nativox: Performance-Preserving Multilingual Video Dubbing Pipeline
+# Nativox LipSync_Babin Pipeline: Performance-Preserving Multilingual Video Dubbing
 ## Comprehensive System Architecture & Engineering Documentation
 
 > **Creator & Lead Architect**: Babin Bid  
-> Nativox is a speaker-independent AI video dubbing pipeline that translates and dubs English talking-head videos into natural Hindi and Bengali. The central innovation is its **Speaker Performance Transfer Engine (SPTE)**: a system that extracts and transfers not just *what* the speaker said, but *how* the speaker delivered it—preserving vocal timbre, pitch dynamics, emotional inflection, facial landmarks, and continuous background music (BGM).
+> The **LipSync_Babin pipeline** is an autonomous, speaker-independent AI video dubbing pipeline that translates and dubs English talking-head videos into natural Hindi and Bengali. The central innovation is its **Speaker Performance Transfer Engine (SPTE)**: a system that extracts and transfers not just *what* the speaker said, but *how* the speaker delivered it—preserving vocal timbre, pitch dynamics, emotional inflection, facial landmarks, and continuous background music (BGM).
 
 ---
 
-## 1. High-Level Architectural Flow
+## 1. High-Level LipSync_Babin Pipeline Architectural Flow
 
 ```mermaid
 flowchart TD
@@ -171,18 +171,21 @@ WAV2LIP_CHECKPOINT=/path/to/Wav2Lip/checkpoints/wav2lip_gan.pth
 
 ### Method B: Command-Line Interface (CLI)
 
-#### 1. Zero-API / 100% Free Mode (No API keys required):
+#### 1. Zero-API / 100% Free LipSync_Babin Pipeline Mode (No API keys required):
 ```powershell
+cd LipSync_Babin
 .\.venv\Scripts\python.exe pipeline.py --input testcases/test2.mp4 --lang hi --tts free --output outputs/test2_Hindi_Free.mp4
 ```
 
 #### 2. Hindi Dubbing with Full BGM Preservation & HD Face Restoration:
 ```powershell
+cd LipSync_Babin
 .\.venv\Scripts\python.exe pipeline.py --input testcases/test2.mp4 --lang hi --output outputs/test2_Hindi_HD.mp4
 ```
 
 #### 3. Bengali Dubbing with Full Preservation:
 ```powershell
+cd LipSync_Babin
 .\.venv\Scripts\python.exe pipeline.py --input tests/Eng_Test_1.mp4 --lang bn --output outputs/Eng_Test_1_Bengali_HD.mp4
 ```
 

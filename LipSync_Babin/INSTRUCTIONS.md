@@ -1,15 +1,15 @@
 <!-- markdownlint-disable -->
 
-# Nativox: System Architecture & Technical Instructions
+# Nativox LipSync_Babin Pipeline: System Architecture & Technical Instructions
 
 > **Creator & Lead Architect**: Babin Bid  
-> This document provides a comprehensive breakdown of the working principles of every file in the codebase, the exact end-to-end stages executed when a video is submitted via the Web UI or CLI, and the technologies utilized at each stage.
+> This document provides a comprehensive breakdown of the working principles of every file in the **LipSync_Babin pipeline**, the exact end-to-end stages executed when a video is submitted via the Web UI or CLI, and the technologies utilized at each stage.
 
 ---
 
-## 1. End-to-End Processing Stages (Input Video $\rightarrow$ Output Dubbed Video)
+## 1. End-to-End LipSync_Babin Pipeline Processing Stages (Input Video $\rightarrow$ Output Dubbed Video)
 
-When a user submits a talking-head video through the Web UI at `http://127.0.0.1:7865`, the system executes the following 7 stages sequentially:
+When a user submits a talking-head video through the Web UI at `http://127.0.0.1:7860` (or `7865`), the LipSync_Babin pipeline executes the following 7 stages sequentially:
 
 ### Stage 1: Audio Extraction & Neural Stem Separation
 - **Technology Required**: `FFmpeg`, `Meta HTDemucs` (`demucs.api` / `htdemucs_ft`), `PyTorch`, `SoundFile`
