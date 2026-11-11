@@ -65,5 +65,15 @@ class EdgeTTSAdapter(TTSProvider):
         voice = lang_voices.get(gender.lower(), lang_voices["male"])
 
         print(f"[EdgeTTS] (Zero-API) Synthesizing text into {target_lang} ({gender}) using voice '{voice}'...")
-        asyncio.run(self._generate_async(text, str(output_path), voice))
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                executor.submit(asyncio.run, self._generate_async(text, str(output_path), voice)).result()
+        else:
+            asyncio.run(self._generate_async(text, str(output_path), voice))
         return str(output_path)

@@ -3,11 +3,15 @@ import shutil
 import sys
 import uuid
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Add parent directory (LipSync_Babin root) to sys.path so config, pipeline, etc. resolve
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
+
+# Load .env from ROOT_DIR
+load_dotenv(ROOT_DIR / ".env")
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
@@ -59,19 +63,24 @@ async def dub_video(
         )
         run_pipeline(cfg, enhance_face=enhance, tts_backend=tts, preserve_bgm=True)
 
-        # Retrieve transcript and translation preview
+        # Retrieve transcript and translation preview from pipeline results
         source_audio = work_dir / f"{input_path.stem}_source.wav"
         if not source_audio.exists():
             source_audio = work_dir / "source.wav"
-        translator = build_translator()
-        transcript = translator.transcribe(source_audio) if source_audio.exists() else "Completed"
-        translated = translator.translate(transcript, target_lang=lang, speaker_gender="Male")
+        transcript = ""
+        translated = ""
+        try:
+            translator = build_translator()
+            transcript = translator.transcribe(source_audio) if source_audio.exists() else "Completed"
+            translated = translator.translate(transcript, target_lang=lang, speaker_gender="Male")
+        except Exception:
+            pass
 
         return {
             "status": "success",
             "output_url": f"/outputs/{output_filename}",
-            "transcript": transcript,
-            "translated": translated
+            "transcript": transcript or "Completed",
+            "translated": translated or "Dubbing complete"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
