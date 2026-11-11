@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Nativox Automatic Pipeline (`00_Auto_Pip`)
 
 `00_Auto_Pip` runs the complete Nativox video-dubbing workflow from a single command. It orchestrates all stages into an end-to-end automated dubbing pipeline:
@@ -31,7 +33,7 @@ Input Video (.mp4)
 Install all stage dependencies across the repository using the cross-platform setup utility:
 
 ```bash
-cd 00_Auto_Pip
+Dubbing/
 python setup_env.py
 ```
 
@@ -45,18 +47,20 @@ python setup_env.py --create-venv
 
 ## 🖥️ Running the Interactive Web UI
 
-`00_Auto_Pip` provides a dedicated web dashboard running on port `8000` that connects all 8 microservices, monitors service health, and manages video dubbing with live progress tracking and side-by-side video playback:
+`00_Auto_Pip` provides a dedicated web dashboard running on port `8000` that connects all microservices, monitors service health, and manages video dubbing with live progress tracking and side-by-side video playback:
 
 ```bash
-cd 00_Auto_Pip
-python main.py
+Dubbing/
+python main.py --auto-start
 ```
 
-*Or using uvicorn with hot-reload:*
+> **Tip:** The `--auto-start` flag causes `main.py` to automatically detect and launch any missing backend microservice stages in the background, eliminating the need to start each stage manually!
+
+*Or running the web server without auto-starting background stages:*
 
 ```bash
-cd 00_Auto_Pip
-uvicorn main:app --reload --port 8000
+Dubbing/
+python main.py
 ```
 
 Open your browser to:
@@ -64,8 +68,7 @@ Open your browser to:
 
 ### Dashboard Features
 
-- **Service Health Monitor:** Live status pings for all 8 backend microservices (`8001`–`8014`).
-
+- **Service Health Monitor:** Live status pings for all backend microservices (`8001`–`8008`).
 - **Drag & Drop Upload:** Accepts any standard video file (`.mp4`, `.mov`, `.mkv`, etc.).
 - **Live Multi-Stage Stepper:** Visual tracking of active stages from demuxing to remuxing.
 - **Real-Time Terminal Output:** Displays pitch analysis, dynamic speech pacing rate, and step logs.

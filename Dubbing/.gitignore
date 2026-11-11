@@ -19,10 +19,18 @@ __pycache__/
 # Storage & Media Cache
 # =============================================================================
 **/storage/
+**/output/
 00_Auto_Pip/jobs/job_*/
 *.mp3
 *.mp4
 *.wav
+08_Voice_extraction_translation/output/
+08_Voice_extraction_translation/storage/
+08_Voice_extraction_translation/*voice_profile*.json
+08_Voice_extraction_translation/*voice_profile*.wav
+08_Voice_extraction_translation/*.json
+08_Voice_extraction_translation/*.wav
+08_Voice_extraction_translation/*.mp3
 
 # =============================================================================
 # Machine Learning Checkpoints & Training Data (Stage 4)
@@ -43,8 +51,3 @@ Thumbs.db
 .vscode/
 .idea/
 *.bat
-
-# =============================================================================
-# Extras
-# =============================================================================
-Babin/

@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD033 MD041 -->
+<!-- markdownlint-disable -->
 
 <div align="center">
 
@@ -18,7 +18,6 @@
 </p>
 
 </div>
-<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -43,6 +42,7 @@ Each standalone stage can run completely independently as a self-contained micro
 | [`05b_Sentence_Reformation__Atanu/`](05b_Sentence_Reformation__Atanu) | **Sentence Reformation & Précis** | [📖 Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md) | Disfluency Cleaner / Précis Budgeting | Reconstructs broken speech into meaningful Hindi and compresses full MP3 paragraphs to 35%–40% précis. |
 | [`06_Converted_Text_to_MP3/`](06_Converted_Text_to_MP3) | **Hindi Text → MP3 Speech Synthesis** | [📖 Stage 6 Guide](06_Converted_Text_to_MP3/README.md) | Edge-TTS Neural Voices | Synthesizes reformed Hindi text into natural-sounding MP3 speech with multi-voice, rate, and pitch control. |
 | [`07_Merge_MP3_with_MP4/`](07_Merge_MP3_with_MP4) | **Final Dubbed Video Assembly** | [📖 Stage 7 Guide](07_Merge_MP3_with_MP4/README.md) | FFmpeg Copy-Mode Remux | Merges the original source video with dubbed target-language audio, replacing English audio completely to produce the final dubbed MP4. |
+| [`08_Voice_extraction_translation/`](08_Voice_extraction_translation) | **Acoustic Profiling & Cloned Translation** | [📖 Stage 8 Guide](08_Voice_extraction_translation/README.md) | Librosa / Praat / Parselmouth | Analyzes speaker fundamental pitch ($F_0$), formants, jitter, shimmer, timbre, and rhythm into JSON voice profiles. |
 
 ---
 
@@ -125,7 +125,7 @@ For the full end-to-end MP4-to-dubbed-MP4 workflow, use [`00_Auto_Pip/`](00_Auto
 #### Option A: Interactive Web UI (Port 8000)
 
 ```bash
-cd 00_Auto_Pip
+cd Dubbing/00_Auto_Pip
 python main.py
 ```
 
@@ -140,12 +140,12 @@ Features:
 
 - **Zero Truncation Remuxing:** Preserves 100% of the original video duration without cutting video frames.
 - **Side-by-Side Video Player:** Compare original video with dubbed output in real time.
-- **Live Multi-Stage Stepper & Logs:** View status badges for all microservices (`8001`–`8014`) and real-time execution logs.
+- **Live Multi-Stage Stepper & Logs:** View status badges for all microservices (`8001`–`8008`) and real-time execution logs.
 
 #### Option B: Headless Command-Line Runner
 
 ```bash
-cd 00_Auto_Pip
+cd Dubbing/00_Auto_Pip
 python setup_env.py
 python orchestrator.py "path/to/video.mp4"
 ```
@@ -177,7 +177,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 01_MP4_to_MP3
+  cd Dubbing/01_MP4_to_MP3
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -187,7 +187,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 01_MP4_to_MP3
+  cd Dubbing/01_MP4_to_MP3
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -197,7 +197,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 01_MP4_to_MP3
+  cd Dubbing/01_MP4_to_MP3
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -213,7 +213,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 02_MP3_to_Text
+  cd Dubbing/02_MP3_to_Text
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -223,7 +223,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 02_MP3_to_Text
+  cd Dubbing/02_MP3_to_Text
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -233,7 +233,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 02_MP3_to_Text
+  cd Dubbing/02_MP3_to_Text
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -249,7 +249,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 03_Text_to_Keyword
+  cd Dubbing/03_Text_to_Keyword
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -259,7 +259,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 03_Text_to_Keyword
+  cd Dubbing/03_Text_to_Keyword
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -269,7 +269,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 03_Text_to_Keyword
+  cd Dubbing/03_Text_to_Keyword
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -285,7 +285,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 04_Keyword_to_Sentence_Construction
+  cd Dubbing/04_Keyword_to_Sentence_Construction
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -295,7 +295,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 04_Keyword_to_Sentence_Construction
+  cd Dubbing/04_Keyword_to_Sentence_Construction
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -305,14 +305,14 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 04_Keyword_to_Sentence_Construction
+  cd Dubbing/04_Keyword_to_Sentence_Construction
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
   python -m uvicorn main:app --reload --port 8004
   ```
 
-*(Interactive CLI: `cd 04_Keyword_to_Sentence_Construction && python construct.py`)*
+*(Interactive CLI: `cd Dubbing/04_Keyword_to_Sentence_Construction && python construct.py`)*
 
 ---
 
@@ -323,7 +323,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows PowerShell:**
 
   ```powershell
-  cd 05a_Keyword_Translation__Sagnik
+  cd Dubbing/05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
@@ -333,7 +333,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **Windows Git Bash:**
 
   ```bash
-  cd 05a_Keyword_Translation__Sagnik
+  cd Dubbing/05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
@@ -343,7 +343,7 @@ Select your preferred shell block below, copy it with one click, and paste it di
 - **macOS / Linux:**
 
   ```bash
-  cd 05a_Keyword_Translation__Sagnik
+  cd Dubbing/05a_Keyword_Translation__Sagnik
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
@@ -354,108 +354,108 @@ Select your preferred shell block below, copy it with one click, and paste it di
 
 #### Stage 5(b): Sentence Reformation & Précis (`05b_Sentence_Reformation__Atanu`)
 
-*Port:* `http://127.0.0.1:8012` &bull; *Documentation:* [Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md)
+*Port:* `http://127.0.0.1:8005` &bull; *Documentation:* [Stage 5(b) Guide](05b_Sentence_Reformation__Atanu/README.md)
 
 - **Windows PowerShell:**
 
   ```powershell
-  cd 05b_Sentence_Reformation__Atanu
+  cd Dubbing/05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8012
+  python -m uvicorn main:app --reload --port 8005
   ```
 
 - **Windows Git Bash:**
 
   ```bash
-  cd 05b_Sentence_Reformation__Atanu
+  cd Dubbing/05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8012
+  python -m uvicorn main:app --reload --port 8005
   ```
 
 - **macOS / Linux:**
 
   ```bash
-  cd 05b_Sentence_Reformation__Atanu
+  cd Dubbing/05b_Sentence_Reformation__Atanu
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8012
+  python -m uvicorn main:app --reload --port 8005
   ```
 
 ---
 
 #### Stage 6: Hindi Text → MP3 Speech Synthesis (`06_Converted_Text_to_MP3`)
 
-*Port:* `http://127.0.0.1:8013` &bull; *Documentation:* [Stage 6 Guide](06_Converted_Text_to_MP3/README.md)
+*Port:* `http://127.0.0.1:8006` &bull; *Documentation:* [Stage 6 Guide](06_Converted_Text_to_MP3/README.md)
 
 - **Windows PowerShell:**
 
   ```powershell
-  cd 06_Converted_Text_to_MP3
+  cd Dubbing/06_Converted_Text_to_MP3
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 - **Windows Git Bash:**
 
   ```bash
-  cd 06_Converted_Text_to_MP3
+  cd Dubbing/06_Converted_Text_to_MP3
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 - **macOS / Linux:**
 
   ```bash
-  cd 06_Converted_Text_to_MP3
+  cd Dubbing/06_Converted_Text_to_MP3
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8013
+  python -m uvicorn main:app --reload --port 8006
   ```
 
 ---
 
 #### Stage 7: Final Dubbed Video Assembly (`07_Merge_MP3_with_MP4`)
 
-*Port:* `http://127.0.0.1:8014` &bull; *Documentation:* [Stage 7 Guide](07_Merge_MP3_with_MP4/README.md)
+*Port:* `http://127.0.0.1:8007` &bull; *Documentation:* [Stage 7 Guide](07_Merge_MP3_with_MP4/README.md)
 
 - **Windows PowerShell:**
 
   ```powershell
-  cd 07_Merge_MP3_with_MP4
+  cd Dubbing/07_Merge_MP3_with_MP4
   uv venv --seed venv
   .\venv\Scripts\Activate.ps1
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 - **Windows Git Bash:**
 
   ```bash
-  cd 07_Merge_MP3_with_MP4
+  cd Dubbing/07_Merge_MP3_with_MP4
   uv venv --seed venv
   source venv/Scripts/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 - **macOS / Linux:**
 
   ```bash
-  cd 07_Merge_MP3_with_MP4
+  cd Dubbing/07_Merge_MP3_with_MP4
   uv venv --seed venv
   source venv/bin/activate
   pip install -r requirements.txt
-  python -m uvicorn main:app --reload --port 8014
+  python -m uvicorn main:app --reload --port 8007
   ```
 
 *(Note: If using standard Python 3.11 instead of `uv`, simply replace `uv venv --seed venv` with `python -m venv venv` or `python3 -m venv venv`)*
@@ -473,8 +473,6 @@ For detailed technical designs, architectural blueprints, and stage references:
 ---
 
 ## 👥 Project Team & Mentorship
-
-<!-- markdownlint-disable MD033 -->
 <div align="center">
 
 ### 🎓 Final Year Major Project — B.Tech Computer Science & Engineering

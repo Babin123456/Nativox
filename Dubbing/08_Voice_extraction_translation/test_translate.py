@@ -41,8 +41,9 @@ import numpy as np
 # Patch torchaudio to use soundfile on Windows (TorchAudio 2.9+ defaults to torchcodec which requires FFmpeg C DLLs)
 def _patch_torchaudio_io():
     try:
-        import torch
-        import torchaudio
+        import importlib
+        torch = importlib.import_module("torch")
+        torchaudio = importlib.import_module("torchaudio")
         import soundfile as sf
 
         def _safe_load(uri, frame_offset=0, num_frames=-1, normalize=True, channels_first=True, **kwargs):
@@ -122,7 +123,9 @@ def _guess_source(text, source):
     if source and source.lower() != "auto":
         return source.lower()
     try:
-        from langdetect import detect
+        import importlib
+        langdetect = importlib.import_module("langdetect")
+        detect = getattr(langdetect, "detect")
         return detect(text).lower()
     except Exception:
         return "en"
@@ -162,8 +165,9 @@ def _mymemory(text, source, target):
 
 def _argos(text, source, target):
     """Offline translator (downloads a small language pack on first use)."""
-    import argostranslate.package as pkg
-    import argostranslate.translate as tr
+    import importlib
+    pkg = importlib.import_module("argostranslate.package")
+    tr = importlib.import_module("argostranslate.translate")
     src = _guess_source(text, source).split("-")[0]
     tgt = target.lower().split("-")[0]
     installed = {l.code for l in tr.get_installed_languages()}
@@ -203,9 +207,11 @@ def translate(text, source, target):
 def synthesize(text, lang, reference_wav, out_wav):
     os.environ.setdefault("COQUI_TOS_AGREED", "1")  # accepts the XTTS licence prompt
     try:
-        import torch
-        from TTS.api import TTS
-    except ImportError as exc:
+        import importlib
+        torch = importlib.import_module("torch")
+        tts_api = importlib.import_module("TTS.api")
+        TTS = getattr(tts_api, "TTS")
+    except (ImportError, ModuleNotFoundError, Exception) as exc:
         sys.exit(f"Failed to load Coqui TTS: {exc}\nEnsure torch, torchcodec, and coqui-tts are installed.")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"

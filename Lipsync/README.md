@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Nativox Lip-Sync Evaluation Suite
 
 A quantitative audiovisual lip-synchronization and mouth motion evaluation tool. It extracts facial landmarks frame-by-frame, generates normalized vertical mouth opening curves (Mouth Aspect Ratio / aperture), aligns timelines, and measures statistical correlation and Dynamic Time Warping (DTW) distance against a ground-truth reference video.

@@ -8,24 +8,26 @@ from urllib.parse import urlparse
 
 import requests
 
-# One port per HTTP stage. Stage 04 is loaded directly from construct.py.
+# One port per HTTP stage. Stage 04 is loaded directly from construct.py or via port 8004.
 STAGES = {
     "mp4_to_mp3": "http://127.0.0.1:8001",
     "mp3_to_text": "http://127.0.0.1:8002",
     "text_to_kw": "http://127.0.0.1:8003",
+    "kw_to_sentence": "http://127.0.0.1:8004",
     "kw_translation": "http://127.0.0.1:8011",
-    "sentence_reformation": "http://127.0.0.1:8012",
-    "text_to_mp3": "http://127.0.0.1:8013",
-    "merge_mp3_mp4": "http://127.0.0.1:8014",
+    "sentence_reformation": "http://127.0.0.1:8005",
+    "text_to_mp3": "http://127.0.0.1:8006",
+    "merge_mp3_mp4": "http://127.0.0.1:8007",
+    "voice_extraction": "http://127.0.0.1:8008",
 }
 
 SERVICE_CONFIG = {
     "mp4_to_mp3": ("01_MP4_to_MP3", 8001, "/health"),
     "mp3_to_text": ("02_MP3_to_Text", 8002, "/api/languages"),
     "text_to_kw": ("03_Text_to_Keyword", 8003, "/api/health"),
-    "sentence_reformation": ("05b_Sentence_Reformation__Atanu", 8012, "/api/health"),
-    "text_to_mp3": ("06_Converted_Text_to_MP3", 8013, "/api/health"),
-    "merge_mp3_mp4": ("07_Merge_MP3_with_MP4", 8014, "/api/health"),
+    "sentence_reformation": ("05b_Sentence_Reformation__Atanu", 8005, "/api/health"),
+    "text_to_mp3": ("06_Converted_Text_to_MP3", 8006, "/api/health"),
+    "merge_mp3_mp4": ("07_Merge_MP3_with_MP4", 8007, "/api/health"),
 }
 STARTUP_TIMEOUT_SECONDS = 120
 

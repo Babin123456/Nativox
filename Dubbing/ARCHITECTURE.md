@@ -1,15 +1,14 @@
+<!-- markdownlint-disable -->
+
 # Nativox Architecture & Modular Pipeline Design
 
 This document details the modular component architecture of **Nativox**, tracking how each standalone stage interfaces with the pipeline to deliver real-time, contextually accurate video dubbing.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/Suite_Readme-📖_README.md-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Suite Readme" /></a>
   <a href="INSTRUCTIONS.md"><img src="https://img.shields.io/badge/Instructions-📖_INSTRUCTIONS.md-3E8FC4?style=for-the-badge&logo=googledocs&logoColor=white" alt="Instructions" /></a>
   <a href="ROADMAP.md"><img src="https://img.shields.io/badge/Roadmap-🔮_ROADMAP.md-9B51E0?style=for-the-badge&logo=compass&logoColor=white" alt="Roadmap" /></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-📜_MIT-gold?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
 </p>
-<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -147,7 +146,7 @@ graph TD
 ### 6. Stage 5(b): `05b_Sentence_Reformation__Atanu/`
 
 - **Responsibility:** Disfluency removal, SOV grammar restoration, and 35%–40% précis compression.
-- **Port:** `http://127.0.0.1:8012`
+- **Port:** `http://127.0.0.1:8005`
 - **Core Operations:**
   - Strips verbal disfluencies (*um, uh, basically, you know*) and restores predicate structure.
   - Enforces the faculty-directed 35%–40% paragraph word budget window:
@@ -157,7 +156,7 @@ graph TD
 ### 7. Stage 6: `06_Converted_Text_to_MP3/`
 
 - **Responsibility:** Convert reformed Hindi text into natural-sounding MP3 speech audio.
-- **Port:** `http://127.0.0.1:8013`
+- **Port:** `http://127.0.0.1:8006`
 - **Core Operations:**
   - Microsoft Edge Neural TTS synthesis via `edge-tts` — zero API keys, zero GPU.
   - Multi-voice selection: female (`hi-IN-SwaraNeural`) and male (`hi-IN-MadhurNeural`) Hindi voices.
@@ -167,13 +166,24 @@ graph TD
 ### 8. Stage 7: `07_Merge_MP3_with_MP4/`
 
 - **Responsibility:** Final dubbed video assembly — merge original video with target-language audio.
-- **Port:** `http://127.0.0.1:8014`
+- **Port:** `http://127.0.0.1:8007`
 - **Core Operations:**
   - FFmpeg copy-mode remux: preserves original video frames byte-for-byte (`-c:v copy`).
   - Completely removes original English audio track (`-map 0:v:0 -map 1:a:0`).
   - Transcodes dubbed MP3 to AAC (`-c:a aac -b:a 192k`) for maximum MP4 container compatibility.
   - FastStart optimization (`-movflags +faststart`) for instant web playback.
   - Full duration preservation: avoids cutting video frames via `-af apad` audio padding and strict `-t <video_duration>` capping, guaranteeing 100% video duration preservation without truncation.
+
+### 9. Stage 8: `08_Voice_extraction_translation/`
+
+- **Responsibility:** Acoustic voice extraction, speaker profiling, and cloned translation conditioning.
+- **Port:** `http://127.0.0.1:8008` (Web Server: `python main.py --server`) / CLI: `python main.py` & `python test_translate.py`
+- **Core Operations:**
+  - Acoustic pitch tracking ($F_0$ mean, median, min, max, std, dynamic range) via Librosa and Praat/Parselmouth algorithms.
+  - Vocal tract resonant formants ($F_1, F_2, F_3$), jitter, shimmer, and Harmonics-to-Noise Ratio (HNR).
+  - 13 Mel-Frequency Cepstral Coefficients (MFCCs), spectral centroid, bandwidth, rolloff, and flatness.
+  - Rhythmic cadence, speaking tempo, and pause-to-speech ratio.
+  - Speaker embedding extraction and emotional tone analysis saved in `voice_profile.json` and `voice_profile_reference.wav`.
 
 ---
 
@@ -189,6 +199,7 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 5. Stage 5(b) removes fillers, restores conversational flow, and formats vernacular Hindi sentences (Stage 5(a) remains as a standalone research module).
 6. **Stage 6 synthesizes natural target-language speech matching the speaker's detected gender (`hi-IN-MadhurNeural` for Male, `hi-IN-SwaraNeural` for Female) and adaptive pacing.**
 7. **Stage 7 merges the original video with the dubbed MP3, guaranteeing 100% video length preservation to produce the final dubbed MP4.**
+8. **Stage 8 (`08_Voice_extraction_translation/`) extracts acoustic voice profiles ($F_0$, formants, MFCCs) and conditions zero-shot cloned voice translation.**
 
 ---
 
@@ -199,8 +210,6 @@ While each stage runs independently for academic evaluation and unit benchmarkin
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="README.md">🏠 Suite Overview</a> &bull; <a href="ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="ROADMAP.md">🗺️ Roadmap</a>
 </p>

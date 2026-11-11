@@ -1,10 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Stage 2: Audio to Text (ASR) Engine
 
 ## Multilingual Automatic Speech Recognition for English, Hindi, & Bengali
 
 Part of the **Nativox** AI Multilingual Dubbing Suite.
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/Nativox_Suite-⬅️_Back_to_Suite-009688?style=for-the-badge&logo=readme&logoColor=white" alt="Nativox Suite" /></a>
   <a href="../01_MP4_to_MP3/README.md"><img src="https://img.shields.io/badge/Prev_Stage-Stage_1:_Extractor-3E8FC4?style=for-the-badge&logo=fastapi&logoColor=white" alt="Previous Stage" /></a>
@@ -47,7 +47,7 @@ The resulting transcript feeds directly into **Stage 3 (Salient Keyword Extracti
 ### 1. Navigate to Stage Directory
 
 ```bash
-cd 02_MP3_to_Text
+Dubbing/
 ```
 
 ### 2. Choose Your Setup Track
@@ -199,8 +199,6 @@ Transcribes uploaded audio files with automatic language identification.
 - **Suite:** Nativox Modular Real-Time AI Multilingual Dubbing Suite
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="../README.md">🏠 Back to Suite Overview</a> &bull; <a href="../ARCHITECTURE.md">🏛️ Architecture</a> &bull; <a href="../INSTRUCTIONS.md">📖 Instructions</a> &bull; <a href="../ROADMAP.md">🗺️ Roadmap</a>
 </p>
