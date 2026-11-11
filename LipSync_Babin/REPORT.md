@@ -346,16 +346,15 @@ To validate the Zero-API autonomous dubbing architecture against real-world medi
 - **Rendered Dubbed Video**: [`LipSync_Babin/test2_dubbed_hindi.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/test2_dubbed_hindi.mp4) ([GitHub View](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2_dubbed_hindi.mp4))
 - **Target Language**: Hindi (`hi`) | **Pipeline Mode**: 100% Free / Zero-API (Offline)
 
-### 8.1 Side-by-Side Video Preview Presentation
+### 8.1 Side-by-Side MP4 Video Playback Presentation
 
-GitHub Markdown renders animated GIFs natively inline without requiring external players, allowing instant visual and lip-sync comparison directly in the repository browser. Direct full-length MP4 downloads and raw stream URLs are provided below each preview.
+The two actual MP4 video files from the codebase are embedded directly side by side:
 
 | Original Source Video (English Input) | Rendered Dubbed Video (Hindi + OpenVoice V2 + BGM) |
 | :---: | :---: |
-| <a href="test2.mp4"><img src="test2_preview.gif" width="300" alt="English Input Video Preview" style="border-radius:8px; border:1px solid #374151;" /></a> | <a href="test2_dubbed_hindi.mp4"><img src="test2_dubbed_hindi_preview.gif" width="300" alt="Hindi Dubbed Video Preview" style="border-radius:8px; border:1px solid #6366f1;" /></a> |
+| <video src="test2.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #374151;"></video> | <video src="test2_dubbed_hindi.mp4" controls width="320" style="max-height:480px; border-radius:8px; border:1px solid #6366f1;"></video> |
+| `test2.mp4` | `test2_dubbed_hindi.mp4` |
 | **Duration**: $8.266\text{ s}$ &nbsp;\|&nbsp; **Resolution**: $360 \times 640$ | **Duration**: $8.258\text{ s}$ &nbsp;\|&nbsp; **Resolution**: $360 \times 640$ |
-| [▶ Watch Full MP4 on GitHub](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2.mp4) | [▶ Watch Full MP4 on GitHub](https://github.com/Babin123456/Nativox/raw/main/LipSync_Babin/test2_dubbed_hindi.mp4) |
-| [📁 Local Video Link](file:///d:/Projects/Nativox/LipSync_Babin/test2.mp4) | [📁 Local Video Link](file:///d:/Projects/Nativox/LipSync_Babin/test2_dubbed_hindi.mp4) |
 
 ---
 
