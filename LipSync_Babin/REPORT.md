@@ -263,6 +263,8 @@ flowchart TD
     Issue --> P2["2. Phase Discontinuity & Spectral Smearing<br/>(PSOLA introduces phase jumps at frame boundaries)"]
     Issue --> P3["3. Reverberation Mismatch<br/>(Dry studio TTS overlaid on reverberant room BGM)"]
     Issue --> P4["4. Formant-Cavity Decoupling<br/>(Vocal tract resonances do not match mouth aspect ratio)"]
+    Issue --> P5["5. Glottal Micro-Dynamics & Jitter/Shimmer Loss<br/>(Synthetic vocal cords lack biological cycle-to-cycle irregularity)"]
+    Issue --> P6["6. Cross-Lingual Phonetic Timbre Transfer Bias<br/>(Base TTS actor articulatory habits leak into Indic vowels)"]
 ```
 
 ### 5.1 Intonation & Dynamic Range Compression
@@ -283,6 +285,17 @@ flowchart TD
 ### 5.4 Formant-Cavity Decoupling
 - In real speech, when a person opens their mouth wide (high Mouth Aspect Ratio), the first formant $F_1$ rises predictably ($F_1 \propto \text{jaw opening}$).
 - If Wav2Lip renders a wide open vowel (e.g., /a/) while the synthetic audio plays a closed vowel (/i/), the listener's brain experiences the **McGurk Effect**, registering visual-auditory dissonance.
+
+### 5.5 Glottal Micro-Dynamics & Cycle-to-Cycle Perturbation (Jitter & Shimmer)
+- Human vocal folds never oscillate at mathematically identical periods. Biological speech exhibits:
+  - **Pitch Jitter**: Local cycle-to-cycle frequency variation ($0.5\% – 1.0\%$).
+  - **Amplitude Shimmer**: Cycle-to-cycle amplitude perturbation ($2.0\% – 4.0\%$).
+  - **Harmonics-to-Noise Ratio (HNR)**: Air turbulence escaping through the glottis creates subtle breathiness ($15 – 22\text{ dB}$).
+- Neural TTS and vocoders synthesize glottal pulses with near-zero jitter and normalized amplitude. The human auditory cortex registers this absence of biological imperfection as artificial, robotic, or "lifeless."
+
+### 5.6 Cross-Lingual Articulatory Habits & Base Voice Leakage
+- When transferring timbre from English to Hindi or Bengali, the base TTS voice actor (e.g., Microsoft `hi-IN-MadhurNeural`) carries fixed phonological habits (dental vs. retroflex tongue positions, nasalization depth, and aspiration timing).
+- Even though OpenVoice V2 shifts the global tone-color vector ($SE$), the underlying tongue placement and co-articulation belong to the native Hindi voice talent, not the original English speaker. Human listeners familiar with the original speaker detect this mismatch in tongue-palate acoustics.
 
 ---
 
