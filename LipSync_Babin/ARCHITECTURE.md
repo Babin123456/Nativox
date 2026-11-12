@@ -49,6 +49,40 @@ flowchart TD
 
 ---
 
+## 2. Multi-Speaker & Multi-Face Handling Architecture (v2.5 Upgrade)
+
+In multi-person footage containing conversational exchanges (such as reference clip `dubbed_ed0be546_hi.mp4`), standard holistic pipelines encounter **single-tone flattening** and **misaligned multi-face lip sync**. The target architecture incorporates decoupled acoustic diarization and visual active speaker detection:
+
+```mermaid
+flowchart TD
+    subgraph MULTI_SPEAKER_DIARIZATION["Phase A: Acoustic Speaker Diarization"]
+        VocalStem["Isolated Vocal Track (source_vocals.wav)"] --> Diarizer["PyAnnote / WhisperX Neural Diarizer"]
+        Diarizer --> SpkClusters["Segment Clusters: Speaker_1 & Speaker_2 Timestamps"]
+        SpkClusters --> SE1["OpenVoice V2 Tone Vector SE_1 (Speaker 1)"]
+        SpkClusters --> SE2["OpenVoice V2 Tone Vector SE_2 (Speaker 2)"]
+    end
+
+    subgraph MULTI_VOICE_SYNTHESIS["Phase B: Targeted Synthesis & Interleaving"]
+        SpkClusters & TranslatedText["Turn-by-Turn Colloquial Indic Translation"] --> SynthRouter{"Route by Speaker ID"}
+        SynthRouter -- Speaker 1 --> TTS1["Edge-TTS Base 1 + OpenVoice Converter (SE_1)"]
+        SynthRouter -- Speaker 2 --> TTS2["Edge-TTS Base 2 + OpenVoice Converter (SE_2)"]
+        TTS1 & TTS2 --> AudioMux["Sequential Speech Concatenator & BGM Mixer"]
+    end
+
+    subgraph ACTIVE_SPEAKER_LIPSYNC["Phase C: Active Speaker Detection & Face Routing"]
+        VideoInput["Input Video Frames"] --> FaceTracker["MediaPipe / ByteTrack Multi-Face Tracker"]
+        FaceTracker --> TalkNet["TalkNet / SyncNet Active Speaker Classifier<br/>(Cross-Correlate Mouth Motion with Audio)"]
+        TalkNet & AudioMux --> ConditionalRouter{"Is Face_k Speaking at Frame_t?"}
+        ConditionalRouter -- Yes --> Wav2LipTarget["Wav2Lip GAN (Targeted to Active Face ROI)"]
+        ConditionalRouter -- No --> BypassUntouched["Pass-Through Untouched Listener Face"]
+        Wav2LipTarget & BypassUntouched --> Restorer["GFPGAN Super-Resolution & Sub-Nasal Alpha Compositor"]
+    end
+
+    AudioMux & Restorer --> MasterMux["FFmpeg CRF 17 Master Render"]
+```
+
+---
+
 ## 2. Complete Sequence Flow Diagram
 
 ```mermaid
