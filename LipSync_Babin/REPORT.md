@@ -303,6 +303,8 @@ flowchart TD
 
 | Drawback / Bottleneck | Technical Root Cause | Zero-Cost / Free Mitigation Strategy |
 | :--- | :--- | :--- |
+| **Leading/Trailing Silence Video Trimming & Fake Lip Sync** | In videos where speech does not start at $t=0.0\text{s}$ or ends before the clip ends (e.g., in `Eng_Test_1.mp4`, the speaker remains silent for the first $1.90\text{s}$), the pipeline synthesizes translated speech starting immediately at $0.0\text{s}$. This forces Wav2Lip to animate moving lips over a closed-mouth static pose, causing jarring "fake lip sync" during the intro and premature silence cutoff at the end. | **1.** Extract **VAD / Whisper word-level speech boundaries** ($t_{\text{start}}, t_{\text{end}}$).<br/>**2.** Insert silence padding $\Delta t_{\text{lead}} = t_{\text{start}}$ into the synthesized speech before Wav2Lip inference.<br/>**3.** Pass `speaking_intervals` to `FaceRestorer`: during non-speaking frames ($t < t_{\text{start}}$ or $t > t_{\text{end}}$), bypass Wav2Lip completely and output the **100% pristine original camera frames**. |
+| **Wav2Lip Low-Resolution Mouth Artifacts ("Pasted Lips")** | Wav2Lip operates on low-resolution $96 \times 96$ mouth crops. When upscaled directly to Full HD ($1920 \times 1080$), subtle boundary blurring, teeth smearing, and jaw warping become visible to human observers. | **1.** Apply dense **MediaPipe sub-nasal dynamic polygonal masking** (points 2, 61, 291, 175) with Gaussian alpha feathering ($\sigma=5$) strictly below the nose.<br/>**2.** Pass crops through **GFPGAN v1.4 / CodeFormer** to restore individual tooth enamel boundaries, mucosal sheen, and vermilion lip texture. |
 | **Multi-Speaker Tone Collapse (Single Voice Detection)** | The pipeline processes `source_vocals.wav` holistically. In dialogues or multi-speaker footage (e.g., `dubbed_ed0be546_hi.mp4`), a single global $F_0$/timbre embedding ($SE$) is extracted and assigned to one generic TTS voice actor, causing all distinct characters/speakers to speak in the exact same voice and pitch. | **1.** Integrate **PyAnnote.audio** / **WhisperX Diarization** to segment dialogues by speaker ID ($S_1, S_2, \dots, S_k$).<br/>**2.** Extract distinct OpenVoice V2 $SE$ vectors per speaker and route segments to matching gender/pitch-specific voice models. |
 | **Multi-Face Viseme Desynchronization (Lip-Sync Drift)** | Wav2Lip operates on the first detected face or largest face bounding box in the frame. When two speakers appear simultaneously, the model applies mouth movements to the dominant face even when the other person (or off-screen person) is speaking, leaving the actual active speaker un-synced. | **1.** Implement **Active Speaker Detection (ASD)** via **SyncNet / TalkNet** (correlating lip mouth-aspect ratio dynamics with active audio energy).<br/>**2.** Conditionally route Wav2Lip bounding-box synthesis strictly to the active face while freezing inactive faces. |
 | **CPU Processing Latency** | GFPGAN super-resolution requires ~4 minutes on CPU for a 10-second video (~250 frames). | **1.** Downsample face detection ROI to $256 \times 256$ before enhancement.<br/>**2.** Use OpenVINO or ONNX Runtime with quantized `INT8` weights to accelerate CPU inference by $3.5\times$. |
@@ -390,9 +392,57 @@ While Meta HTDemucs is highly capable, noisy real-world footage with complex pha
 - **Band-Split RNN (BSRNN)**: Operates by splitting the spectrogram into sub-bands matching human psychoacoustic Bark scales, improving vocal boundary sharpness around drum transients and low-end bass.
 - **Vocal Dereverberation Pre-Pass**: Running open-source **WPE (Weighted Prediction Error)** prior to ASR reduces room echoes, yielding a cleaner acoustic signature for voice cloning.
 
+### 7.3 Speech-Gated Timeline Alignment & Advanced Mouth Refinement (VAD Gating)
+
+As observed in benchmark comparison clip [`dubbed_38e29689_hi.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/web/outputs/dubbed_38e29689_hi.mp4) (source: [`tests/Eng_Test_1.mp4`](file:///d:/Projects/Nativox/tests/Eng_Test_1.mp4)):
+1. **The Silence Offset Problem:** In the source video, the speaker remains completely silent from $t=0.0\text{s}$ to $t=1.90\text{s}$ before uttering "My name is...". Because the dubbing pipeline synthesized Hindi text starting from time $0.0\text{s}$ and stretched it over the global duration ($8.0\text{s}$), Wav2Lip forced moving mouth articulations over the speaker's stationary intro pose, producing jarring visual fake lip-sync.
+2. **The Resolution / Realism Gap:** Wav2Lip synthesizes at $96 \times 96$, which causes teeth to appear like a solid white block and mouth contours to look pasted when superimposed onto 1080p footage.
+
+The diagram below details the speech-gated timeline alignment and multi-stage lip refinement architecture:
+
+```mermaid
+flowchart TD
+    subgraph VAD_TIMELINE["Phase 1: Speech Activity Detection & Timeline Padding"]
+        SourceVocals["Isolated Vocals (source_vocals.wav)"] --> WhisperVAD["Faster-Whisper / Silero-VAD Segmenter"]
+        WhisperVAD --> SpeechBounds["Speech Active Interval: [t_start = 1.90s, t_end = 7.28s]<br/>Leading Silence: 1.90s | Trailing Silence: 0.72s"]
+        
+        TranslatedSpeech["Synthesized Cloned Hindi Speech"] --> SilencePad["Timeline Padding Engine<br/>(Insert 1.90s Leading Silence + 0.72s Trailing Silence)"]
+        SilencePad --> AlignedMasterWav["Padded Speech Audio (Exact 1:1 Speech Interval Lock)"]
+    end
+
+    subgraph CONDITIONAL_LIPSYNC["Phase 2: Speech-Gated Wav2Lip & Boundary Compositing"]
+        InputFrames["Original 1080p Video Frames"] --> FrameClock["Frame Timestamp Calculator (t = frame_idx / FPS)"]
+        FrameClock & SpeechBounds --> Gate{"Is t within [t_start, t_end]?"}
+        
+        Gate -- "NO (Silence / Idle Pose)" --> PristineFrame["Pass-Through 100% Original Camera Frame<br/>(Zero Lip Sync, Zero Blurring, Zero Deformation)"]
+        Gate -- "YES (Active Speech)" --> Wav2LipRun["Execute Wav2Lip GAN (Active Audio Mel-Window)"]
+        
+        Wav2LipRun --> SubNasalMask["MediaPipe 468 3D Mesh Sub-Nasal Mask<br/>(Columella Pt 2, Commissures 61/291, Chin 175)"]
+        SubNasalMask --> GFPGANHQ["GFPGAN v1.4 / CodeFormer Super-Resolution<br/>(Restores Individual Tooth Enamel, Mucosa & Texture)"]
+        GFPGANHQ --> AlphaFeather["Gaussian Alpha Feathering (σ = 5)<br/>(Seamless Laplacian Edge Blending)"]
+        AlphaFeather --> ActiveComposite["Enhanced Active Mouth Crop Composited onto Original Frame"]
+    end
+
+    PristineFrame & ActiveComposite --> LosslessRender["FFmpeg CRF 17 Master Video Render"]
+```
+
+#### Engineering Deliverables for Realistic Lip Refinement:
+1. **Silero VAD / Whisper Speech Boundary Lock:**
+   - Detects the leading silence duration $\Delta t_{\text{lead}} = t_{\text{start}}$ and trailing duration $\Delta t_{\text{trail}} = T_{\text{total}} - t_{\text{end}}$.
+   - Prepends silence to the synthesized speech wav:
+     $$\mathbf{w}_{\text{padded}} = [\mathbf{0}_{\Delta t_{\text{lead}}} \,\|\, \mathbf{w}_{\text{speech}} \,\|\, \mathbf{0}_{\Delta t_{\text{trail}}}]$$
+   - Ensures that visual speech begins at the exact microsecond the original speaker opens their mouth ($t=1.90\text{s}$), completely preventing premature mouth motion.
+2. **Speech-Interval Frame Bypassing:**
+   - Frames in intervals $[0, t_{\text{start}})$ and $(t_{\text{end}}, T]$ bypass Wav2Lip inference entirely. The system writes the pristine original camera frame directly, ensuring zero artifacting, zero fake mouth motion, and zero resolution loss during silent pauses.
+3. **High-Definition Teeth & Mucosal Texture Restoration:**
+   - Restricts GFPGAN super-resolution to the bounding box of the sub-nasal aperture ($256 \times 256$ ROI) rather than downsampling the whole 1080p frame.
+   - Preserves high-frequency spatial gradients in teeth edges via unsharp masking:
+     $$I_{\text{sharp}}(x, y) = I(x, y) + \lambda \cdot (I(x, y) - G_{\sigma} * I(x, y))$$
+     giving teeth realistic separation, specular enamel reflections, and natural gum coloration.
+
 ---
 
-### 7.3 Next-Generation Lip Synchronization
+### 7.4 Next-Generation Lip Synchronization
 Wav2Lip occasionally struggles with high-frequency tooth and gum textures during rapid speech. The pipeline can incorporate:
 - **Latent Diffusion-Based Lip Generation (e.g., LatentSync / Hallo)**:
   Operating in latent space using a frozen Stable Diffusion VAE backbone conditioned on Whisper audio embeddings eliminates blurring at the generative stage, reducing dependence on post-hoc GFPGAN passes.

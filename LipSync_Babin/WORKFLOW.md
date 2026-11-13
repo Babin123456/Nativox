@@ -180,14 +180,17 @@ Below is the exhaustive, step-by-step breakdown of every computational phase fro
 
 ### Stage 5: Neural Lip Synchronization (Wav2Lip GAN)
 
-#### 5.1 Phoneme-Conditioned Lip Generation (`lipsync/wav2lip_engine.py`)
-- **Technologies Used**: `Wav2Lip GAN` (`wav2lip_gan.pth`), `PyTorch`, `OpenCV`, `NumPy`
+#### 5.1 Phoneme-Conditioned Lip Generation & Speech-Interval Gating (`lipsync/wav2lip_engine.py`)
+- **Technologies Used**: `Wav2Lip GAN` (`wav2lip_gan.pth`), `PyTorch`, `OpenCV`, `NumPy`, `Silero VAD / Whisper Speech Timelines`
 - **Execution Flow**:
   1. Decomposes the video into individual image frames ($N = \text{FPS} \times \text{Duration}$).
-  2. Computes 80-band mel-spectrograms from the duration-aligned dubbed audio (`morphed_speech_aligned.wav`).
-  3. For every frame $t$, crops the speaker's lower face and concatenates it with a 5-frame audio mel-window $[t-2, t+2]$.
-  4. The Wav2Lip generator synthesizes target mouth positions (jaw drop, lip opening, visemes) matching the Hindi or Bengali speech.
-  5. Outputs raw synthesized video: `wav2lip_raw_lang.mp4`.
+  2. Measures active speech boundaries ($t_{\text{start}}, t_{\text{end}}$):
+     - In videos where speech does not start immediately at $t=0.0\text{s}$ (e.g., in `Eng_Test_1.mp4`, the speaker remains silent for the first $1.90\text{s}$), the system calculates leading silence duration ($\Delta t_{\text{lead}} = 1.90\text{s}$) and pads the synthesized audio with matching silence.
+     - For all frames before $t_{\text{start}}$ and after $t_{\text{end}}$, the original camera frames are passed through untouched, preventing artificial lip movements when the speaker is not speaking.
+  3. Computes 80-band mel-spectrograms from the duration-aligned dubbed audio (`morphed_speech_aligned.wav`).
+  4. For every frame $t$ within the active speech interval, crops the speaker's lower face and concatenates it with a 5-frame audio mel-window $[t-2, t+2]$.
+  5. The Wav2Lip generator synthesizes target mouth positions (jaw drop, lip opening, visemes) matching the Hindi or Bengali speech.
+  6. Outputs raw synthesized video: `wav2lip_raw_lang.mp4`.
 
 ---
 
