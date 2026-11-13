@@ -263,6 +263,8 @@ flowchart TD
     Issue --> P2["2. Phase Discontinuity & Spectral Smearing<br/>(PSOLA introduces phase jumps at frame boundaries)"]
     Issue --> P3["3. Reverberation Mismatch<br/>(Dry studio TTS overlaid on reverberant room BGM)"]
     Issue --> P4["4. Formant-Cavity Decoupling<br/>(Vocal tract resonances do not match mouth aspect ratio)"]
+    Issue --> P5["5. Glottal Micro-Dynamics & Jitter/Shimmer Loss<br/>(Synthetic vocal cords lack biological cycle-to-cycle irregularity)"]
+    Issue --> P6["6. Cross-Lingual Phonetic Timbre Transfer Bias<br/>(Base TTS actor articulatory habits leak into Indic vowels)"]
 ```
 
 ### 5.1 Intonation & Dynamic Range Compression
@@ -284,12 +286,25 @@ flowchart TD
 - In real speech, when a person opens their mouth wide (high Mouth Aspect Ratio), the first formant $F_1$ rises predictably ($F_1 \propto \text{jaw opening}$).
 - If Wav2Lip renders a wide open vowel (e.g., /a/) while the synthetic audio plays a closed vowel (/i/), the listener's brain experiences the **McGurk Effect**, registering visual-auditory dissonance.
 
+### 5.5 Glottal Micro-Dynamics & Cycle-to-Cycle Perturbation (Jitter & Shimmer)
+- Human vocal folds never oscillate at mathematically identical periods. Biological speech exhibits:
+  - **Pitch Jitter**: Local cycle-to-cycle frequency variation ($0.5\% – 1.0\%$).
+  - **Amplitude Shimmer**: Cycle-to-cycle amplitude perturbation ($2.0\% – 4.0\%$).
+  - **Harmonics-to-Noise Ratio (HNR)**: Air turbulence escaping through the glottis creates subtle breathiness ($15 – 22\text{ dB}$).
+- Neural TTS and vocoders synthesize glottal pulses with near-zero jitter and normalized amplitude. The human auditory cortex registers this absence of biological imperfection as artificial, robotic, or "lifeless."
+
+### 5.6 Cross-Lingual Articulatory Habits & Base Voice Leakage
+- When transferring timbre from English to Hindi or Bengali, the base TTS voice actor (e.g., Microsoft `hi-IN-MadhurNeural`) carries fixed phonological habits (dental vs. retroflex tongue positions, nasalization depth, and aspiration timing).
+- Even though OpenVoice V2 shifts the global tone-color vector ($SE$), the underlying tongue placement and co-articulation belong to the native Hindi voice talent, not the original English speaker. Human listeners familiar with the original speaker detect this mismatch in tongue-palate acoustics.
+
 ---
 
 ## 6. System Limitations & Free / Zero-Cost Fixes
 
 | Drawback / Bottleneck | Technical Root Cause | Zero-Cost / Free Mitigation Strategy |
 | :--- | :--- | :--- |
+| **Multi-Speaker Tone Collapse (Single Voice Detection)** | The pipeline processes `source_vocals.wav` holistically. In dialogues or multi-speaker footage (e.g., `dubbed_ed0be546_hi.mp4`), a single global $F_0$/timbre embedding ($SE$) is extracted and assigned to one generic TTS voice actor, causing all distinct characters/speakers to speak in the exact same voice and pitch. | **1.** Integrate **PyAnnote.audio** / **WhisperX Diarization** to segment dialogues by speaker ID ($S_1, S_2, \dots, S_k$).<br/>**2.** Extract distinct OpenVoice V2 $SE$ vectors per speaker and route segments to matching gender/pitch-specific voice models. |
+| **Multi-Face Viseme Desynchronization (Lip-Sync Drift)** | Wav2Lip operates on the first detected face or largest face bounding box in the frame. When two speakers appear simultaneously, the model applies mouth movements to the dominant face even when the other person (or off-screen person) is speaking, leaving the actual active speaker un-synced. | **1.** Implement **Active Speaker Detection (ASD)** via **SyncNet / TalkNet** (correlating lip mouth-aspect ratio dynamics with active audio energy).<br/>**2.** Conditionally route Wav2Lip bounding-box synthesis strictly to the active face while freezing inactive faces. |
 | **CPU Processing Latency** | GFPGAN super-resolution requires ~4 minutes on CPU for a 10-second video (~250 frames). | **1.** Downsample face detection ROI to $256 \times 256$ before enhancement.<br/>**2.** Use OpenVINO or ONNX Runtime with quantized `INT8` weights to accelerate CPU inference by $3.5\times$. |
 | **Occasional Voice Metallic Artifacts** | PSOLA spectral filtering with aggressive gain thresholds. | Increase Gaussian smoothing window in STFT spectral tilt matching from 31 to 61 bins; clamp maximum formant gain to $\pm 6\text{ dB}$. |
 | **Speech-Rate Acceleration on Long Sentences** | Hindi text expanding $>30\%$ beyond English duration forces `atempo` compression $>1.25\times$. | Pre-compute syllable counts in `SyllableAwareTranslator` and enforce aggressive vernacular pruning (~3.0 syl/s) *before* TTS generation. |
@@ -299,7 +314,56 @@ flowchart TD
 
 ## 7. Future Implementation & Model Optimization Roadmap
 
-### 7.1 Direct Preference Optimization (DPO) & Reinforcement Learning (RL) Fine-Tuning
+### 7.1 Multi-Speaker Diarization & Active Speaker Visual Disentanglement (v2.5 Architecture)
+
+As observed in conversational footage (e.g., reference test clip [`dubbed_ed0be546_hi.mp4`](file:///d:/Projects/Nativox/LipSync_Babin/web/outputs/dubbed_ed0be546_hi.mp4)), conversations with multiple speakers currently encounter **voice flattening** and **misassigned lip-sync**. The architectural roadmap to resolve this requires a decoupled multi-speaker diarization and active speaker detection (ASD) pipeline:
+
+```mermaid
+flowchart TD
+    subgraph DIARIZATION["Acoustic Speaker Diarization"]
+        Vocals["Isolated Vocals (source_vocals.wav)"] --> PyAnnote["PyAnnote / WhisperX Diarization Pipeline"]
+        PyAnnote --> Clusters["Speaker Clusters: Speaker_A (t1, t3) | Speaker_B (t2, t4)"]
+        Clusters --> ExtractSE_A["OpenVoice V2 SE_A Vector (Speaker A Timbre/F0)"]
+        Clusters --> ExtractSE_B["OpenVoice V2 SE_B Vector (Speaker B Timbre/F0)"]
+    end
+
+    subgraph SYLLABLE_ROUTING["Speaker-Aware Translation & Multi-Voice Synthesis"]
+        Clusters & Transcript["Whisper ASR Transcript with Speaker Tags"] --> SyllableNLP["Syllable-Constrained Indic Translation"]
+        SyllableNLP --> RouteA["Synthesize Speaker A Segments (Voice_A + SE_A)"]
+        SyllableNLP --> RouteB["Synthesize Speaker B Segments (Voice_B + SE_B)"]
+        RouteA & RouteB --> InterleavedAudio["Interleaved Dubbed Dialogue Track"]
+    end
+
+    subgraph VISUAL_ASD["Active Speaker Detection & Targeted Lip Synchronization"]
+        InputVideo["Input Video Frames"] --> FaceTracker["MediaPipe / ByteTrack Multi-Face Bounding Box Tracker"]
+        FaceTracker --> TalkNet["TalkNet / SyncNet Active Speaker Detector<br/>(Cross-Correlate Lip Motion with Audio Energy)"]
+        TalkNet & InterleavedAudio --> ActiveFaceRouter{"Is Face_i Actively Speaking at Frame_t?"}
+        ActiveFaceRouter -- Yes --> Wav2LipActive["Wav2Lip GAN (Targeted to Active Face ROI)"]
+        ActiveFaceRouter -- No --> PassThroughOriginal["Pass-Through Untouched Original Face ROI"]
+        Wav2LipActive & PassThroughOriginal --> SelectiveComp["GFPGAN Restoration & Sub-Nasal Alpha Compositing"]
+    end
+
+    InterleavedAudio & SelectiveComp --> LosslessAV["FFmpeg CRF 17 Lossless Final Mux"]
+```
+
+#### Detailed Multi-Speaker Implementation Specifications:
+1. **Acoustic Diarization Stage (`PyAnnote.audio` / `WhisperX`):**
+   - Ingests `source_vocals.wav` and segments speech into non-overlapping temporal intervals:
+     $$\mathcal{S} = \{ (t_{\text{start}}^{(i)}, t_{\text{end}}^{(i)}, \text{spk\_id}^{(i)}) \}_{i=1}^M$$
+   - For each unique speaker $\text{spk\_id} \in \{S_1, S_2, \dots, S_K\}$, extracts a dedicated 256-dimensional OpenVoice V2 speaker embedding vector $\mathbf{e}_k$ from the longest speech turn of that speaker.
+2. **Segmented Multi-Voice Translation & Synthesis:**
+   - Translates dialogue turns individually while maintaining conversational context.
+   - Synthesizes each turn using a gender-matched base voice ($S_1 \to \text{Male Base}$, $S_2 \to \text{Female Base}$ or deep male / light male).
+   - Applies the corresponding tone color converter $SE_k$ per segment and stitches them sequentially into a single synchronized master dialogue track.
+3. **Active Speaker Detection (ASD) for Multi-Face Lip Sync:**
+   - Detects all face bounding boxes $B_1, B_2, \dots, B_N$ in each visual frame using MediaPipe / RetinaFace.
+   - Cross-correlates the optical flow velocity of the lower lip landmarks with the instantaneous audio spectrogram energy $E(t)$.
+   - Computes an active speech confidence score $P_{\text{speaking}}(B_j, t)$.
+   - Conditionally executes Wav2Lip **only** on the bounding box satisfying $P_{\text{speaking}} > 0.65$, leaving all other faces, background characters, and inactive listeners 100% untouched.
+
+---
+
+### 7.2 Direct Preference Optimization (DPO) & Reinforcement Learning (RL) Fine-Tuning
 To advance beyond rule-based PSOLA pitch-matching, the voice conversion stage can incorporate **Reinforcement Learning from Human Feedback (RLHF)** or **Direct Preference Optimization (DPO)** without API costs:
 
 ```mermaid
