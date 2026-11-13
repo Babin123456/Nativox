@@ -14,11 +14,19 @@ class FaceRestorer:
         self.upscale = upscale
         self.lipsync_python = Path("C:/Users/babin/Downloads/LipSyncLab_v2/LipSync_Lab/.venv/Scripts/python.exe")
 
-    def enhance_video(self, generated_video: Path, original_video: Path, output_video: Path, audio_path: Path = None):
+    def enhance_video(
+        self,
+        generated_video: Path,
+        original_video: Path,
+        output_video: Path,
+        audio_path: Path = None,
+        speaking_intervals: list = None
+    ):
         generated_video = Path(generated_video).resolve()
         original_video = Path(original_video).resolve()
         output_video = Path(output_video).resolve()
         audio_cmd = f", audio_path=r'{Path(audio_path).resolve()}'" if audio_path else ""
+        intervals_cmd = f", speaking_intervals={speaking_intervals}" if speaking_intervals else ""
 
         cmd = [
             str(self.lipsync_python),
@@ -41,7 +49,7 @@ try:
         input_video_path=r'{generated_video}',
         output_video_path=r'{output_video}',
         original_source_video_path=r'{original_video}',
-        restore_gfpgan=True{audio_cmd}
+        restore_gfpgan=True{audio_cmd}{intervals_cmd}
     )
     print('HD Face Enhancement complete!')
 except Exception as e:
@@ -52,7 +60,7 @@ except Exception as e:
         input_video_path=r'{generated_video}',
         output_video_path=r'{output_video}',
         original_source_video_path=r'{original_video}',
-        restore_gfpgan=False{audio_cmd}
+        restore_gfpgan=False{audio_cmd}{intervals_cmd}
     )
     print('Selective Compositor fallback complete!')
 """

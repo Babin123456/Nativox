@@ -93,14 +93,19 @@ def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: st
     )
     dubbed_speech = raw_morphed
 
-    # 4c. Duration Alignment (Align speech tempo to exact video timeline)
+    # 4c. Duration & Speech Boundary Alignment (Prevent fake lip sync during leading/trailing pauses)
     final_aligned_speech = cfg.work_dir / f"morphed_speech_{cfg.target_lang}.wav"
-    logging.info("Stage 4c: Aligning speech duration (%.2fs) to video timeline...", target_duration)
+    t_start, t_end = DurationAligner.detect_speech_boundaries(speech_reference)
+    logging.info("Stage 4c: Speech activity detected between %.2fs and %.2fs (Total Video: %.2fs)", t_start, t_end, target_duration)
+    logging.info("Aligning speech duration and padding leading (%.2fs) & trailing silence...", t_start)
     DurationAligner.align_duration_to_video(
         speech_wav=dubbed_speech,
         target_duration_s=target_duration,
-        output_wav=final_aligned_speech
+        output_wav=final_aligned_speech,
+        t_start_s=t_start,
+        t_end_s=t_end
     )
+    speaking_intervals = [(t_start, t_end)] if t_end > t_start else None
 
     # 4d. Master Audio Mixing (Dubbed dialogue + preserved original BGM)
     final_dubbed_audio = final_aligned_speech
@@ -127,7 +132,8 @@ def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: st
             generated_video=raw_dubbed_video,
             original_video=cfg.input_video,
             output_video=cfg.output_video,
-            audio_path=final_dubbed_audio
+            audio_path=final_dubbed_audio,
+            speaking_intervals=speaking_intervals
         )
     else:
         # Merge final audio into raw dubbed video
