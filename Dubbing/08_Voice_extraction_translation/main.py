@@ -4,28 +4,35 @@ main.py - Voice feature extractor / preserver
 
 Extracts the characteristics of a speaker's voice (pitch, timbre, formants,
 loudness, voice quality, rhythm, emotion, speaker embedding) from an audio file
-and stores them in an easy-to-read JSON "voice profile". A cleaned, normalized
-reference WAV is saved next to it so that a voice-cloning / TTS system
-(XTTS, OpenVoice, Tortoise, StyleTTS2, etc.) can use both the audio and the
-features.
+and stores them in an easy-to-read JSON "voice profile".
+
+It also prepares clean reference material for voice cloning (XTTS, OpenVoice...):
+    voice_profile.json              all extracted features
+    voice_profile_reference.wav     best ~30 s of clean speech (silence removed)
+    voice_profile_clips/clip_*.wav  several clean 6-12 s clips (better cloning)
+    voice_profile_energy.png        energy + pitch graph of the original voice
 
 Usage:
-    1. Set AUDIO_PATH at the top of this file (mp3 or wav).
+    1. Set AUDIO_PATH below (mp3 or wav).
     2. Run:  python main.py
 
 Install:
-    pip install numpy librosa soundfile scipy
+    pip install numpy librosa soundfile scipy matplotlib
     pip install praat-parselmouth        # formants, jitter, shimmer, HNR (recommended)
-    pip install resemblyzer              # speaker embedding   (optional, --embedding)
-    pip install transformers torch       # neural emotion model (optional, --emotion)
+    pip install noisereduce              # gentle noise removal for the reference (recommended)
+    pip install resemblyzer              # speaker embedding   (optional)
+    pip install transformers torch       # neural emotion model (optional)
 
+Tip: the cleaner and longer (30-60 s) the source recording, the closer the clone.
 Only use this on voices you own or have explicit consent to clone.
 """
 
+import glob
 import json
 import math
 import os
 import sys
+import tempfile
 from datetime import datetime, timezone
 
 import numpy as np
@@ -33,26 +40,31 @@ import numpy as np
 try:
     import librosa
     import soundfile as sf
+    from scipy import signal
+    from scipy.ndimage import uniform_filter1d
 except ImportError:
-    sys.exit("Missing dependencies. Run: pip install numpy librosa soundfile scipy")
+    sys.exit("Missing dependencies. Run: pip install numpy librosa soundfile scipy matplotlib")
 
 try:
-    import importlib
-    parselmouth = importlib.import_module("parselmouth")
-    call = getattr(importlib.import_module("parselmouth.praat"), "call")
+    import parselmouth
+    from parselmouth.praat import call
     HAS_PARSELMOUTH = True
-except (ImportError, ModuleNotFoundError, Exception):
+except ImportError:
     HAS_PARSELMOUTH = False
 
 # =========================================================================== #
-# SETTINGS - edit these or pass as CLI arguments: python main.py [audio_path] [output_json]
+# SETTINGS - edit these, then just run:  python main.py
 # =========================================================================== #
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CANDIDATE = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "tests", "test2.mp4"))
-AUDIO_PATH = DEFAULT_CANDIDATE if os.path.isfile(DEFAULT_CANDIDATE) else "test.mp3"
+AUDIO_PATH = r"D:/VS Code/Nativox/Dubbing/08_Voice_extraction_translation/test2.mp3"   # <-- your .mp3 / .wav
 OUTPUT_JSON = "voice_profile.json"       # JSON file that will be created
+CLIPS_DIR = "voice_profile_clips"        # folder for the clean reference clips
 USE_EMOTION_MODEL = False                # True = neural emotion model (needs transformers + torch)
 USE_SPEAKER_EMBEDDING = False            # True = speaker embedding (needs resemblyzer)
+USE_DENOISE = True                       # gentle noise reduction (needs noisereduce; skipped if missing)
+
+REF_MAX_SEC = 30        # length of voice_profile_reference.wav
+MAX_REF_CLIPS = 6       # how many clean clips to keep for cloning
+CLIP_TARGET_SEC = 9     # approximate length of each clip
 # =========================================================================== #
 
 SR = 22050  # analysis / reference sample rate
@@ -111,17 +123,130 @@ def downsample(arr, n=100):
     return arr[idx]
 
 
+def active_db_mean(y):
+    """Mean loudness (dB) over the active (speech) frames only, ignoring pauses."""
+    rms = librosa.feature.rms(y=y, frame_length=2048, hop_length=256)[0]
+    db = librosa.amplitude_to_db(rms + 1e-9, ref=1.0)
+    active = db[db > np.percentile(db, 95) - 25]
+    return float(np.mean(active)) if active.size else float(np.mean(db))
+
+
 # --------------------------------------------------------------------------- #
-# loading + preserving reference audio
+# loading + cleaning
 # --------------------------------------------------------------------------- #
+def highpass(y, sr, cutoff=70):
+    """Remove rumble / DC below the voice range."""
+    sos = signal.butter(4, cutoff, btype="highpass", fs=sr, output="sos")
+    return signal.sosfiltfilt(sos, y).astype(np.float32)
+
+
+def denoise(y, sr):
+    try:
+        import noisereduce as nr
+    except ImportError:
+        print("  (tip: pip install noisereduce  -> cleaner reference audio, better cloning)")
+        return y, False
+    out = nr.reduce_noise(y=y, sr=sr, stationary=True, prop_decrease=0.6)
+    return out.astype(np.float32), True
+
+
 def load_audio(path):
     y, sr = librosa.load(path, sr=SR, mono=True)
     if y.size == 0:
         sys.exit("Audio file is empty.")
     y, _ = librosa.effects.trim(y, top_db=35)          # strip leading/trailing silence
+    y = highpass(y, sr)
+    denoised = False
+    if USE_DENOISE:
+        y, denoised = denoise(y, sr)
     peak = np.max(np.abs(y)) or 1.0
     y = (y / peak * 0.95).astype(np.float32)            # peak-normalize
-    return y, sr
+    return y, sr, denoised
+
+
+# --------------------------------------------------------------------------- #
+# clean reference clips for cloning
+# --------------------------------------------------------------------------- #
+def speech_segments(y, sr, top_db=32, merge_gap=0.35, min_len=0.25):
+    iv = librosa.effects.split(y, top_db=top_db, frame_length=2048, hop_length=256)
+    merged = []
+    for s, e in iv:
+        if merged and (s - merged[-1][1]) / sr < merge_gap:
+            merged[-1][1] = int(e)
+        else:
+            merged.append([int(s), int(e)])
+    return [(s, e) for s, e in merged if (e - s) / sr >= min_len]
+
+
+def _fade(y, sr, ms=10):
+    n = int(sr * ms / 1000)
+    if len(y) > 2 * n:
+        ramp = np.linspace(0, 1, n, dtype=np.float32)
+        y = y.copy()
+        y[:n] *= ramp
+        y[-n:] *= ramp[::-1]
+    return y
+
+
+def build_clips(y, sr):
+    """Cut the recording into clean speech-only clips at natural pauses."""
+    pad = int(0.06 * sr)
+    gap = np.zeros(int(0.15 * sr), dtype=np.float32)
+    clips, cur, cur_len = [], [], 0.0
+
+    def flush():
+        pieces = []
+        for p in cur:
+            pieces += [p, gap]
+        return np.concatenate(pieces[:-1])
+
+    for s, e in speech_segments(y, sr):
+        piece = y[max(0, s - pad): min(len(y), e + pad)]
+        cur.append(piece)
+        cur_len += len(piece) / sr
+        if cur_len >= CLIP_TARGET_SEC:
+            clips.append(flush())
+            cur, cur_len = [], 0.0
+    if cur and (cur_len >= 3.0 or not clips):
+        clips.append(flush())
+    return clips or [y]
+
+
+def prepare_reference(y, sr):
+    """Pick the clearest clips; write clips + one combined reference wav."""
+    clips = build_clips(y, sr)
+    scored = sorted(range(len(clips)), key=lambda i: active_db_mean(clips[i]), reverse=True)
+    keep = sorted(scored[:MAX_REF_CLIPS])               # best clips, original order
+    chosen = []
+    for i in keep:
+        c = clips[i]
+        c = _fade((c / (np.max(np.abs(c)) or 1.0) * 0.95).astype(np.float32), sr)
+        chosen.append(c)
+
+    # combined reference (capped length)
+    gap = np.zeros(int(0.25 * sr), dtype=np.float32)
+    ref, total = [], 0.0
+    for c in chosen:
+        if total >= REF_MAX_SEC:
+            break
+        ref += [c, gap]
+        total += len(c) / sr + 0.25
+    reference = np.concatenate(ref[:-1])[: int(REF_MAX_SEC * sr)]
+    return chosen, reference
+
+
+def save_reference_files(chosen, reference, sr, ref_path):
+    os.makedirs(CLIPS_DIR, exist_ok=True)
+    for old in glob.glob(os.path.join(CLIPS_DIR, "clip_*.wav")):
+        os.remove(old)
+    info = []
+    for i, c in enumerate(chosen, 1):
+        p = os.path.join(CLIPS_DIR, f"clip_{i:02d}.wav")
+        sf.write(p, c, sr)
+        info.append({"file": p.replace("\\", "/"), "duration_sec": len(c) / sr,
+                     "speech_loudness_db": active_db_mean(c)})
+    sf.write(ref_path, reference, sr)
+    return info
 
 
 # --------------------------------------------------------------------------- #
@@ -140,7 +265,6 @@ def extract_pitch(y, sr):
     out.update(stats(voiced, "f0_hz_"))
     out["f0_mean_note"] = hz_to_note(float(np.mean(voiced)))
     out["f0_range_semitones"] = float(12 * np.log2(np.percentile(voiced, 95) / np.percentile(voiced, 5)))
-    # intonation: how much the pitch moves between consecutive voiced frames
     semis = 12 * np.log2(voiced / np.median(voiced))
     out["intonation_variability_semitone_std"] = float(np.std(semis))
     out["pitch_slope_hz_per_sec"] = float(
@@ -156,6 +280,7 @@ def extract_energy(y, sr):
     out = {}
     out.update(stats(rms, "rms_"))
     out.update(stats(db, "loudness_db_"))
+    out["speech_loudness_db_mean"] = active_db_mean(y)   # used by test_translate.py
     out["dynamic_range_db"] = float(np.percentile(db, 95) - np.percentile(db, 5))
     out["energy_contour_downsampled"] = downsample(rms).tolist()
     return out, rms
@@ -186,7 +311,6 @@ def extract_timbre(y, sr):
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
     out["chroma_mean"] = np.mean(chroma, axis=1)
 
-    # brightness label
     cent = float(np.mean(librosa.feature.spectral_centroid(y=y, sr=sr)))
     out["brightness_label"] = "dark/warm" if cent < 1500 else "balanced" if cent < 2500 else "bright"
     return out
@@ -222,7 +346,7 @@ def extract_praat(path):
             formants[f"F{i}_hz"] = {"median": np.median(vals), "std": np.std(vals)} if vals.size else None
         out["formants"] = formants
         return out
-    except Exception as exc:  # keep going even if Praat fails on odd audio
+    except Exception as exc:
         return {"available": False, "error": str(exc)}
 
 
@@ -243,9 +367,9 @@ def extract_rhythm(y, sr):
         "pause_max_sec": float(np.max(pauses)) if pauses else 0.0,
         "syllable_like_onsets_per_sec": len(onsets) / speech if speech else None,
     }
-    sr_rate = out["syllable_like_onsets_per_sec"]
-    if sr_rate is not None:
-        out["speaking_pace_label"] = "slow" if sr_rate < 3 else "moderate" if sr_rate < 5.5 else "fast"
+    rate = out["syllable_like_onsets_per_sec"]
+    if rate is not None:
+        out["speaking_pace_label"] = "slow" if rate < 3 else "moderate" if rate < 5.5 else "fast"
     return out
 
 
@@ -256,7 +380,7 @@ def heuristic_emotion(pitch, energy, rhythm):
     """Rough prosody-based arousal estimate (not a trained classifier)."""
     score = 0.0
     n = 0
-    if pitch.get("f0_hz_std") is not None:
+    if pitch.get("intonation_variability_semitone_std") is not None:
         score += min(pitch["intonation_variability_semitone_std"] / 4.0, 1.5); n += 1
     if energy.get("dynamic_range_db") is not None:
         score += min(energy["dynamic_range_db"] / 40.0, 1.5); n += 1
@@ -284,15 +408,9 @@ def neural_emotion(path):
         return {"method": "wav2vec2-base-superb-er", "error": f"unavailable: {exc}"}
 
 
-# --------------------------------------------------------------------------- #
-# speaker embedding
-# --------------------------------------------------------------------------- #
 def speaker_embedding(path):
     try:
-        import importlib
-        resemblyzer = importlib.import_module("resemblyzer")
-        VoiceEncoder = getattr(resemblyzer, "VoiceEncoder")
-        preprocess_wav = getattr(resemblyzer, "preprocess_wav")
+        from resemblyzer import VoiceEncoder, preprocess_wav
         wav = preprocess_wav(path)
         emb = VoiceEncoder().embed_utterance(wav)
         return {"model": "resemblyzer", "dim": int(emb.size), "vector": emb}
@@ -301,17 +419,64 @@ def speaker_embedding(path):
 
 
 # --------------------------------------------------------------------------- #
+# energy graph
+# --------------------------------------------------------------------------- #
+def save_energy_graph(y, sr, f0, path, title):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    hop = 256
+    rms = librosa.feature.rms(y=y, frame_length=2048, hop_length=hop)[0]
+    db = np.maximum(librosa.amplitude_to_db(rms + 1e-9), -80.0)
+    db_s = uniform_filter1d(db, size=7)
+    t = librosa.times_like(rms, sr=sr, hop_length=hop)
+    tw = np.arange(len(y)) / sr
+    speech_db = active_db_mean(y)
+
+    fig, ax = plt.subplots(3, 1, figsize=(13, 9), sharex=True)
+    ax[0].plot(tw, y, lw=0.4, color="#4C72B0")
+    ax[0].set_ylabel("Amplitude")
+    ax[0].set_title(title, fontsize=13, fontweight="bold")
+
+    ax[1].fill_between(t, -80, db_s, color="#C44E52", alpha=0.25)
+    ax[1].plot(t, db, color="#B0B0B0", lw=0.7, label="frame energy")
+    ax[1].plot(t, db_s, color="#C44E52", lw=1.6, label="smoothed energy")
+    ax[1].axhline(speech_db, ls="--", color="black", lw=0.9, label=f"speech mean {speech_db:.1f} dB")
+    ax[1].set_ylabel("Energy (dB)")
+    ax[1].set_ylim(-80, 0)
+    ax[1].legend(loc="lower right", fontsize=8)
+
+    tf = librosa.times_like(f0, sr=sr, hop_length=hop)
+    ax[2].plot(tf, f0, ".", ms=2.5, color="#55A868")
+    ax[2].set_ylabel("Pitch F0 (Hz)")
+    ax[2].set_xlabel("Time (s)")
+
+    for a in ax:
+        a.grid(alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
+
+# --------------------------------------------------------------------------- #
 # main
 # --------------------------------------------------------------------------- #
 def build_profile(input_path, ref_path, use_emotion, use_embedding):
-    y, sr = load_audio(input_path)
-    sf.write(ref_path, y, sr)  # preserved, cleaned reference voice
+    y, sr, denoised = load_audio(input_path)
 
-    pitch, _ = extract_pitch(y, sr)
+    chosen, reference = prepare_reference(y, sr)
+    clip_info = save_reference_files(chosen, reference, sr, ref_path)
+
+    pitch, f0 = extract_pitch(y, sr)
     energy, _ = extract_energy(y, sr)
     timbre = extract_timbre(y, sr)
-    praat = extract_praat(ref_path)
     rhythm = extract_rhythm(y, sr)
+
+    with tempfile.TemporaryDirectory() as td:           # Praat reads from a file
+        tmp = os.path.join(td, "full.wav")
+        sf.write(tmp, y, sr)
+        praat = extract_praat(tmp)
 
     emotion = {"heuristic": heuristic_emotion(pitch, energy, rhythm)}
     if use_emotion:
@@ -326,6 +491,13 @@ def build_profile(input_path, ref_path, use_emotion, use_embedding):
             "extracted_at": datetime.now(timezone.utc).isoformat(),
             "tools": {"librosa": librosa.__version__, "parselmouth": HAS_PARSELMOUTH},
         },
+        "reference_preparation": {
+            "highpass_hz": 70,
+            "denoised": denoised,
+            "reference_duration_sec": len(reference) / sr,
+            "clip_count": len(clip_info),
+            "clips": clip_info,
+        },
         "pitch": pitch,
         "energy_loudness": energy,
         "timbre": timbre,
@@ -335,26 +507,30 @@ def build_profile(input_path, ref_path, use_emotion, use_embedding):
     }
     if use_embedding:
         profile["speaker_embedding"] = speaker_embedding(ref_path)
-    return profile
+    return profile, y, sr, f0
 
 
 def main():
-    audio_path = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else AUDIO_PATH
-    output_json = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith("-") else OUTPUT_JSON
+    if not os.path.isfile(AUDIO_PATH):
+        sys.exit(f"Audio file not found: {AUDIO_PATH}\nEdit AUDIO_PATH at the top of main.py.")
 
-    if not os.path.isfile(audio_path):
-        sys.exit(f"Audio file not found: {audio_path}\nEdit AUDIO_PATH at the top of main.py or run: python main.py <path_to_audio_or_video>")
-
-    base = os.path.splitext(output_json)[0]
+    base = os.path.splitext(OUTPUT_JSON)[0]
     ref_path = base + "_reference.wav"
+    graph_path = base + "_energy.png"
 
-    print(f"Analyzing: {audio_path} ...")
-    profile = build_profile(audio_path, ref_path, USE_EMOTION_MODEL, USE_SPEAKER_EMBEDDING)
-    with open(output_json, "w", encoding="utf-8") as f:
+    print(f"Analyzing: {AUDIO_PATH} ...")
+    profile, y, sr, f0 = build_profile(AUDIO_PATH, ref_path, USE_EMOTION_MODEL, USE_SPEAKER_EMBEDDING)
+
+    save_energy_graph(y, sr, f0, graph_path, f"Original voice - energy & pitch ({os.path.basename(AUDIO_PATH)})")
+    profile["files"] = {"reference_wav": ref_path, "clips_dir": CLIPS_DIR, "energy_graph": graph_path}
+
+    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(clean(profile), f, indent=2, ensure_ascii=False)
 
-    print(f"Voice profile saved : {output_json}")
+    print(f"Voice profile saved : {OUTPUT_JSON}")
     print(f"Reference audio     : {ref_path}")
+    print(f"Reference clips     : {CLIPS_DIR}/ ({profile['reference_preparation']['clip_count']} clips)")
+    print(f"Energy graph        : {graph_path}")
 
 
 if __name__ == "__main__":
