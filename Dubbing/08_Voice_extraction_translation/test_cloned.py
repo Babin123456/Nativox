@@ -87,10 +87,10 @@ from scipy.ndimage import uniform_filter1d
 # SETTINGS - edit these, then run:  python test_cloned.py
 # =========================================================================== #
 
-# The text to speak in the cloned voice (spoken as-is, no translation)
+# The text to speak in the cloned voice (it will be auto-detected)
 INPUT_TEXT = "मेरे लिए सबसे बड़ी खुशी कुछ ऐसा करने का प्रयास करना है जिसके बारे में हर कोई कहता है कि यह नहीं किया जा सकता।"
 
-# "auto" = detect from the text (recommended). Or force: hi, en, es, fr, de, it, pt, pl,
+# "auto" = detect from the text. Or force: hi, en, es, fr, de, it, pt, pl,
 # tr, ru, nl, cs, ar, zh-cn, ja, hu, ko.  (A wrong code makes XTTS sound like a
 # mixture of two languages - e.g. Hindi text with "en".)
 LANGUAGE = "auto"
