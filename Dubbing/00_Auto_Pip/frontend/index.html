@@ -625,7 +625,7 @@
         </a>
         <span class="flow-arrow">→</span>
         <a href="http://127.0.0.1:8002" class="flow-step" style="--step-color: var(--c-02);">
-          <i data-lucide="mic" style="width:14px;height:14px;color:var(--c-02);"></i> 2. MP3→Text
+          <i data-lucide="mic" style="width:14px;height:14px;color:var(--c-02);"></i> 2a. Text ∥ 2b. Voice
         </a>
         <span class="flow-arrow">→</span>
         <a href="http://127.0.0.1:8003" class="flow-step" style="--step-color: var(--c-03);">
@@ -640,16 +640,12 @@
           <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--c-05b);"></i> 5b. Reform
         </a>
         <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8006" class="flow-step" style="--step-color: var(--c-06);">
-          <i data-lucide="volume-2" style="width:14px;height:14px;color:var(--c-06);"></i> 6. Speech
-        </a>
+        <span class="flow-step" style="--step-color: var(--primary);">
+          <i data-lucide="volume-2" style="width:14px;height:14px;color:var(--primary);"></i> 6. Cloned Voice (08)
+        </span>
         <span class="flow-arrow">→</span>
         <a href="http://127.0.0.1:8007" class="flow-step" style="--step-color: var(--c-07);">
           <i data-lucide="film" style="width:14px;height:14px;color:var(--c-07);"></i> 7. Final MP4
-        </a>
-        <span class="flow-arrow">→</span>
-        <a href="http://127.0.0.1:8008" class="flow-step" style="--step-color: var(--primary);">
-          <i data-lucide="mic" style="width:14px;height:14px;color:var(--primary);"></i> 8. Voice
         </a>
       </div>
     </header>
@@ -769,7 +765,7 @@
           </div>
           <div class="step-card" id="step2" style="--card-color: var(--c-02);">
             <i data-lucide="mic" style="width:14px;height:14px;"></i>
-            <span>2. Whisper</span>
+            <span>2a. Text & 2b. Voice</span>
           </div>
           <div class="step-card" id="step3" style="--card-color: var(--c-03);">
             <i data-lucide="key" style="width:14px;height:14px;"></i>
@@ -783,9 +779,9 @@
             <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
             <span>5. Reform</span>
           </div>
-          <div class="step-card" id="step6" style="--card-color: var(--c-06);">
+          <div class="step-card" id="step6" style="--card-color: var(--primary);">
             <i data-lucide="volume-2" style="width:14px;height:14px;"></i>
-            <span>6. Speech</span>
+            <span>6. Cloned Voice</span>
           </div>
           <div class="step-card" id="step7" style="--card-color: var(--c-07);">
             <i data-lucide="film" style="width:14px;height:14px;"></i>
@@ -953,13 +949,11 @@
 
         const names = {
           mp4_to_mp3: "01 MP4→MP3",
-          mp3_to_text: "02 Whisper",
+          mp3_to_text: "02a Whisper",
           text_to_kw: "03 Keywords",
           kw_translation: "05a Translate",
           sentence_reformation: "05b Reform",
-          text_to_mp3: "06 TTS",
           merge_mp3_mp4: "07 Merge",
-          voice_extraction: "08 Voice",
         };
 
         for (const [key, info] of Object.entries(data.stages)) {
