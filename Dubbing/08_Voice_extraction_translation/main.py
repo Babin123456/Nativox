@@ -11,6 +11,13 @@ It also prepares clean reference material for voice cloning (XTTS, OpenVoice...)
     voice_profile_reference.wav     best ~30 s of clean speech (silence removed)
     voice_profile_clips/clip_*.wav  several clean 6-12 s clips (better cloning)
     voice_profile_energy.png        energy + pitch graph of the original voice
+    voice_profile_background.wav    the original BACKGROUND sound (music / noise / ambience),
+                                    kept untouched so test_cloned.py can put it back
+    voice_profile_vocals.wav        the original voice only (used for analysis + cloning clips)
+
+Background preservation: the recording is split with Demucs into voice + background.
+The voice features and cloning clips are taken from the clean voice stem (so the
+background does not pollute the clone), and the background stem is saved as-is.
 
 Usage:
     1. Set AUDIO_PATH below (mp3 or wav).
@@ -19,6 +26,7 @@ Usage:
 Install:
     pip install numpy librosa soundfile scipy matplotlib
     pip install praat-parselmouth        # formants, jitter, shimmer, HNR (recommended)
+    pip install demucs torch torchaudio  # separates voice from background (first run downloads ~80 MB)
     pip install noisereduce              # gentle noise removal for the reference (recommended)
     pip install resemblyzer              # speaker embedding   (optional)
     pip install transformers torch       # neural emotion model (optional)
@@ -61,6 +69,8 @@ CLIPS_DIR = "voice_profile_clips"        # folder for the clean reference clips
 USE_EMOTION_MODEL = False                # True = neural emotion model (needs transformers + torch)
 USE_SPEAKER_EMBEDDING = False            # True = speaker embedding (needs resemblyzer)
 USE_DENOISE = True                       # gentle noise reduction (needs noisereduce; skipped if missing)
+PRESERVE_BACKGROUND = True               # split voice / background (Demucs) and keep the background untouched
+                                         # (or run:  python main.py --no-background)
 
 REF_MAX_SEC = 30        # length of voice_profile_reference.wav
 MAX_REF_CLIPS = 6       # how many clean clips to keep for cloning
@@ -235,13 +245,17 @@ def prepare_reference(y, sr):
     return chosen, reference
 
 
-def save_reference_files(chosen, reference, sr, ref_path):
-    os.makedirs(CLIPS_DIR, exist_ok=True)
-    for old in glob.glob(os.path.join(CLIPS_DIR, "clip_*.wav")):
-        os.remove(old)
+def save_reference_files(chosen, reference, sr, ref_path, clips_dir=None):
+    c_dir = clips_dir or CLIPS_DIR
+    os.makedirs(c_dir, exist_ok=True)
+    for old in glob.glob(os.path.join(c_dir, "clip_*.wav")):
+        try:
+            os.remove(old)
+        except Exception:
+            pass
     info = []
     for i, c in enumerate(chosen, 1):
-        p = os.path.join(CLIPS_DIR, f"clip_{i:02d}.wav")
+        p = os.path.join(c_dir, f"clip_{i:02d}.wav")
         sf.write(p, c, sr)
         info.append({"file": p.replace("\\", "/"), "duration_sec": len(c) / sr,
                      "speech_loudness_db": active_db_mean(c)})
@@ -460,13 +474,104 @@ def save_energy_graph(y, sr, f0, path, title):
 
 
 # --------------------------------------------------------------------------- #
+# background preservation (Demucs source separation)
+# --------------------------------------------------------------------------- #
+BG_SR = 44100  # background / voice stems are stored at this rate (Demucs native), lossless float WAV
+
+
+def _source_signature(path):
+    st = os.stat(path)
+    return {"source": os.path.abspath(path), "size": st.st_size, "mtime": st.st_mtime}
+
+
+def separate_stems(path, bg_path, vocals_path):
+    """Split the recording into background + voice with Demucs (cached on disk).
+
+    The cache is keyed on the source file (path, size, modified time), so a different
+    input never reuses old stems. Returns info about the stems for the voice profile.
+    """
+    sidecar = bg_path + ".json"
+    sig = _source_signature(path)
+    cached = False
+    if os.path.isfile(bg_path) and os.path.isfile(vocals_path) and os.path.isfile(sidecar):
+        try:
+            with open(sidecar, "r", encoding="utf-8") as f:
+                cached = json.load(f) == sig
+        except Exception:
+            cached = False
+
+    if cached:
+        print("  Using cached voice / background stems.")
+    else:
+        try:
+            import torch
+            from demucs.pretrained import get_model
+            from demucs.apply import apply_model
+        except ImportError as exc:
+            sys.exit(f"Background preservation needs Demucs: {exc}\n"
+                     "Run: pip install demucs torch torchaudio\n"
+                     "(or run without it:  python main.py --no-background)")
+
+        print("  Separating voice and background with Demucs (first run downloads ~80 MB) ...")
+        orig_load = torch.load          # Demucs checkpoints need weights_only=False on torch >= 2.6
+        torch.load = lambda *a, **k: orig_load(*a, **{**k, "weights_only": k.get("weights_only", False)})
+        try:
+            model = get_model("htdemucs")
+        finally:
+            torch.load = orig_load
+        model.eval()
+        m_sr = int(model.samplerate)
+
+        y, _ = librosa.load(path, sr=m_sr, mono=False)
+        y = np.stack([y, y]) if y.ndim == 1 else (np.repeat(y, 2, 0) if y.shape[0] == 1 else y[:2])
+        wav = torch.from_numpy(np.ascontiguousarray(y)).float()
+        std = float(wav.mean(0).std()) or 1.0
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        with torch.no_grad():
+            src = apply_model(model, (wav / std)[None], device=device,
+                              split=True, overlap=0.25, progress=True)[0] * std
+        names = list(model.sources)
+        v = names.index("vocals")
+        vocals = src[v]
+        background = sum(src[i] for i in range(len(names)) if i != v)   # drums + bass + other
+        del model
+        if device == "cuda":
+            torch.cuda.empty_cache()
+
+        for p, arr in ((bg_path, background), (vocals_path, vocals)):
+            a = arr.cpu().numpy().astype(np.float32)                    # (2, T)
+            if m_sr != BG_SR:
+                a = librosa.resample(a, orig_sr=m_sr, target_sr=BG_SR)
+            sf.write(p, a.T, BG_SR, subtype="FLOAT")                    # lossless
+        with open(sidecar, "w", encoding="utf-8") as f:
+            json.dump(sig, f)
+
+    vo, _ = sf.read(vocals_path, dtype="float32", always_2d=True)
+    voice_db = active_db_mean(librosa.resample(vo.mean(axis=1), orig_sr=BG_SR, target_sr=SR))
+    return {
+        "enabled": True,
+        "separation_model": "htdemucs",
+        "original_audio": os.path.abspath(path),
+        "background_wav": bg_path.replace("\\", "/"),
+        "vocals_wav": vocals_path.replace("\\", "/"),
+        "sample_rate": BG_SR,
+        "duration_sec": sf.info(bg_path).frames / BG_SR,
+        # loudness of the voice inside the original recording (unnormalised) - lets
+        # test_cloned.py keep the same voice-to-background balance
+        "voice_level_db_in_original": voice_db,
+    }
+
+
+# --------------------------------------------------------------------------- #
 # main
 # --------------------------------------------------------------------------- #
-def build_profile(input_path, ref_path, use_emotion, use_embedding):
+def build_profile(input_path, ref_path, use_emotion=False, use_embedding=False, clips_dir=None,
+                  source_name=None, background=None):
     y, sr, denoised = load_audio(input_path)
 
     chosen, reference = prepare_reference(y, sr)
-    clip_info = save_reference_files(chosen, reference, sr, ref_path)
+    clip_info = save_reference_files(chosen, reference, sr, ref_path, clips_dir=clips_dir)
 
     pitch, f0 = extract_pitch(y, sr)
     energy, _ = extract_energy(y, sr)
@@ -482,9 +587,10 @@ def build_profile(input_path, ref_path, use_emotion, use_embedding):
     if use_emotion:
         emotion["neural"] = neural_emotion(ref_path)
 
+    c_dir = clips_dir or CLIPS_DIR
     profile = {
         "metadata": {
-            "source_file": os.path.basename(input_path),
+            "source_file": source_name or os.path.basename(input_path),
             "reference_audio": os.path.basename(ref_path),
             "sample_rate": sr,
             "duration_sec": len(y) / sr,
@@ -505,32 +611,65 @@ def build_profile(input_path, ref_path, use_emotion, use_embedding):
         "rhythm_and_pace": rhythm,
         "emotion_and_tone": emotion,
     }
+    profile["background"] = background or {"enabled": False}
     if use_embedding:
         profile["speaker_embedding"] = speaker_embedding(ref_path)
     return profile, y, sr, f0
 
 
 def main():
-    if not os.path.isfile(AUDIO_PATH):
-        sys.exit(f"Audio file not found: {AUDIO_PATH}\nEdit AUDIO_PATH at the top of main.py.")
+    import argparse
+    parser = argparse.ArgumentParser(description="Voice feature extractor / preserver")
+    parser.add_argument("audio_path", nargs="?", default=AUDIO_PATH, help="Path to input audio file")
+    parser.add_argument("--output-json", default=OUTPUT_JSON, help="Path for output voice_profile.json")
+    parser.add_argument("--clips-dir", default=CLIPS_DIR, help="Folder for clean reference clips")
+    parser.add_argument("--no-background", action="store_true",
+                        help="Skip voice/background separation (background will not be preserved)")
+    args = parser.parse_args()
 
-    base = os.path.splitext(OUTPUT_JSON)[0]
+    audio_path = args.audio_path
+    output_json = args.output_json
+    clips_dir = args.clips_dir
+
+    if not os.path.isfile(audio_path):
+        sys.exit(f"Audio file not found: {audio_path}\nEdit AUDIO_PATH at the top of main.py or provide path via argument.")
+
+    base = os.path.splitext(output_json)[0]
     ref_path = base + "_reference.wav"
     graph_path = base + "_energy.png"
+    bg_path = base + "_background.wav"
+    vocals_path = base + "_vocals.wav"
 
-    print(f"Analyzing: {AUDIO_PATH} ...")
-    profile, y, sr, f0 = build_profile(AUDIO_PATH, ref_path, USE_EMOTION_MODEL, USE_SPEAKER_EMBEDDING)
+    analysis_path, background = audio_path, None
+    if PRESERVE_BACKGROUND and not args.no_background:
+        print(f"Separating voice and background: {audio_path} ...")
+        background = separate_stems(audio_path, bg_path, vocals_path)
+        analysis_path = vocals_path          # analyse + build cloning clips from the clean voice only
 
-    save_energy_graph(y, sr, f0, graph_path, f"Original voice - energy & pitch ({os.path.basename(AUDIO_PATH)})")
-    profile["files"] = {"reference_wav": ref_path, "clips_dir": CLIPS_DIR, "energy_graph": graph_path}
+    print(f"Analyzing: {analysis_path} ...")
+    profile, y, sr, f0 = build_profile(analysis_path, ref_path, USE_EMOTION_MODEL, USE_SPEAKER_EMBEDDING,
+                                       clips_dir=clips_dir, source_name=os.path.basename(audio_path),
+                                       background=background)
 
-    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+    try:
+        save_energy_graph(y, sr, f0, graph_path, f"Original voice - energy & pitch ({os.path.basename(audio_path)})")
+    except Exception as exc:
+        print(f"  (energy graph skipped: {exc})")
+    profile["files"] = {"reference_wav": ref_path, "clips_dir": clips_dir, "energy_graph": graph_path}
+    if background:
+        profile["files"]["background_wav"] = bg_path
+        profile["files"]["vocals_wav"] = vocals_path
+
+    with open(output_json, "w", encoding="utf-8") as f:
         json.dump(clean(profile), f, indent=2, ensure_ascii=False)
 
-    print(f"Voice profile saved : {OUTPUT_JSON}")
+    print(f"Voice profile saved : {output_json}")
     print(f"Reference audio     : {ref_path}")
-    print(f"Reference clips     : {CLIPS_DIR}/ ({profile['reference_preparation']['clip_count']} clips)")
+    print(f"Reference clips     : {clips_dir}/ ({profile['reference_preparation']['clip_count']} clips)")
     print(f"Energy graph        : {graph_path}")
+    if background:
+        print(f"Background (kept)   : {bg_path}")
+        print(f"Voice only          : {vocals_path}")
 
 
 if __name__ == "__main__":

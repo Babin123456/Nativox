@@ -5,6 +5,7 @@ FastAPI web application for Nativox Stage 00 — Automatic Pipeline Orchestrator
 Runs on http://127.0.0.1:8000.
 """
 
+import concurrent.futures
 import json
 import os
 import shutil
@@ -337,20 +338,51 @@ def _run_job_worker(
             )
         job["speaker_gender"] = effective_gender
 
-        # Stage 02
+        # Stage 02: Parallel execution of Stage 2a (Transcription) & Stage 2b (Voice Extraction via main.py)
         job["current_step"] = 2
-        job["step_name"] = "Transcribing Speech (Stage 02 Whisper)"
+        job["step_name"] = "Parallel: Transcription (2a) & Voice Profiling (2b)"
         job["progress"] = 25
-        job["logs"].append("Stage 02: Transcribing speech with faster-whisper neural model...")
-        with mp3_path.open("rb") as f:
-            r = orchestrator.call("mp3_to_text", "/api/transcribe", files={"file": ("audio.mp3", f)}, data={"language": "auto"})
-        res2 = orchestrator.json_result(r, "mp3_to_text")
-        text = str(res2.get("text", "")).strip()
-        lang_label = str(res2.get("language_label", "Auto"))
-        (work_dir / "transcript.txt").write_text(text, encoding="utf-8")
-        job["transcript"] = text
-        job["detected_language"] = lang_label
-        job["logs"].append(f"Stage 02: Transcription completed ({lang_label}, {len(text.split())} words)")
+        job["logs"].append("Stage 02: Launching Stage 2a (Whisper) & Stage 2b (Stage 08 Voice Extraction) in parallel...")
+
+        stage08_dir = ROOT_DIR / "08_Voice_extraction_translation"
+        profile_json = work_dir / "voice_profile.json"
+        clips_dir = work_dir / "voice_profile_clips"
+        ref_wav = work_dir / "voice_profile_reference.wav"
+
+        def _task_2a():
+            job["logs"].append("Stage 2a: Transcribing speech with faster-whisper neural model...")
+            with mp3_path.open("rb") as f:
+                r = orchestrator.call("mp3_to_text", "/api/transcribe", files={"file": ("audio.mp3", f)}, data={"language": "auto"})
+            res2 = orchestrator.json_result(r, "mp3_to_text")
+            t_text = str(res2.get("text", "")).strip()
+            l_label = str(res2.get("language_label", "Auto"))
+            (work_dir / "transcript.txt").write_text(t_text, encoding="utf-8")
+            job["transcript"] = t_text
+            job["detected_language"] = l_label
+            job["logs"].append(f"Stage 2a: Transcription completed ({l_label}, {len(t_text.split())} words)")
+            return t_text, l_label
+
+        def _task_2b():
+            job["logs"].append("Stage 2b: Extracting speaker acoustic profile & clean reference clips (main.py)...")
+            cmd_2b = [
+                sys.executable,
+                str(stage08_dir / "main.py"),
+                str(mp3_path),
+                "--output-json", str(profile_json),
+                "--clips-dir", str(clips_dir),
+            ]
+            res_2b = subprocess.run(cmd_2b, cwd=str(stage08_dir), capture_output=True, text=True, encoding="utf-8")
+            if res_2b.returncode != 0:
+                err = res_2b.stderr or res_2b.stdout
+                raise RuntimeError(f"Stage 2b Voice Extraction failed: {err[-400:]}")
+            job["logs"].append("Stage 2b: Voice profile and reference clips extracted successfully")
+            return profile_json
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            fut_2a = executor.submit(_task_2a)
+            fut_2b = executor.submit(_task_2b)
+            text, lang_label = fut_2a.result()
+            fut_2b.result()
 
         # Stage 03
         job["current_step"] = 3
@@ -419,55 +451,51 @@ def _run_job_worker(
         job["dubbed_text"] = final_text
         job["logs"].append(f"Stage 05b: Prepared {len(final_text.split())} words for speech synthesis: '{final_text[:60]}...'")
 
-        # Stage 06
+        # Stage 06: Cloned Voice Synthesis via Stage 08 (test_cloned.py)
         job["current_step"] = 6
-        job["step_name"] = "Neural Speech Synthesis (Stage 06 TTS)"
+        job["step_name"] = "Author Voice Cloning (Stage 08 test_cloned.py)"
         job["progress"] = 85
+        job["logs"].append("Stage 06: Synthesizing speech with author's cloned voice (Stage 08 test_cloned.py)...")
 
-        # Calculate dynamic pacing rate to match ~85%-92% of original video duration
-        tts_rate = "+0%"
-        word_count = len(final_text.split())
-        if video_duration > 8 and word_count > 0:
-            est_dur = word_count / 2.25  # ~2.25 words per second in Hindi TTS
-            target_speech_dur = min(video_duration * 0.88, video_duration - 1.2)
-            speed_factor = est_dur / target_speech_dur
-            rate_val = int((speed_factor - 1.0) * 100)
-            rate_val = max(-20, min(25, rate_val))
-            tts_rate = f"{rate_val:+d}%"
-
-        # Select neural voice matching detected/selected input speaker gender
-        speaker_gender = job.get("speaker_gender", "male")
-        target_lang = target_language.strip().lower()
-
-        if custom_voice and custom_voice.strip():
-            chosen_voice = custom_voice.strip()
-        elif "bengali" in target_lang or target_lang == "bn":
-            chosen_voice = "bn-IN-BashkarNeural" if speaker_gender == "male" else "bn-IN-TanishaaNeural"
-        else:
-            chosen_voice = "hi-IN-MadhurNeural" if speaker_gender == "male" else "hi-IN-SwaraNeural"
-
-        job["chosen_voice"] = chosen_voice
-        job["logs"].append(f"Stage 06: Generating natural neural {speaker_gender.upper()} speech via Edge TTS ({chosen_voice}, pacing rate: {tts_rate})...")
-        r = orchestrator.call("text_to_mp3", "/api/synthesize", json={"text": final_text, "voice": chosen_voice, "rate": tts_rate})
-        res6 = orchestrator.json_result(r, "text_to_mp3")
-        audio_url = str(res6.get("audio_url", ""))
-        audio_subpath = audio_url[audio_url.find("/api/audio/"):] if "/api/audio/" in audio_url else audio_url
         dubbed_mp3_path = work_dir / "dubbed_audio.mp3"
-        dubbed_mp3_path.write_bytes(orchestrator.download("text_to_mp3", audio_subpath).content)
-        job["logs"].append("Stage 06: Synthesized neural audio track saved")
+        cloned_wav_path = work_dir / "dubbed_audio.wav"
+        dubbed_text_file = work_dir / "dubbed_text.txt"
+
+        cmd_clone = [
+            sys.executable,
+            str(stage08_dir / "test_cloned.py"),
+            "--text-file", str(dubbed_text_file),
+            "--profile", str(profile_json),
+            "--reference", str(ref_wav),
+            "--clips-dir", str(clips_dir),
+            "--output-mp3", str(dubbed_mp3_path),
+            "--output-wav", str(cloned_wav_path),
+        ]
+        job["logs"].append("Stage 06: Executing test_cloned.py with XTTS v2, duration alignment & timbre EQ...")
+        res_clone = subprocess.run(cmd_clone, cwd=str(stage08_dir), capture_output=True, text=True, encoding="utf-8")
+        if res_clone.returncode != 0:
+            err = res_clone.stderr or res_clone.stdout
+            raise RuntimeError(f"Stage 06 Voice Cloning failed: {err[-400:]}")
+
+        if not dubbed_mp3_path.is_file() and cloned_wav_path.is_file():
+            dubbed_mp3_path = cloned_wav_path
+
+        job["chosen_voice"] = "Author's Cloned Voice (XTTS v2)"
+        job["logs"].append("Stage 06: Author cloned audio synthesized and saved")
 
         # Stage 07
         job["current_step"] = 7
         job["step_name"] = "Final Video & Audio Remuxing (Stage 07)"
         job["progress"] = 95
         job["logs"].append("Stage 07: Remuxing source video with dubbed audio track...")
+        audio_mime = "audio/mpeg" if dubbed_mp3_path.suffix == ".mp3" else "audio/wav"
         with input_video_path.open("rb") as vf, dubbed_mp3_path.open("rb") as af:
             r = orchestrator.call(
                 "merge_mp3_mp4",
                 "/api/merge",
                 files={
                     "video": (input_video_path.name, vf, "video/mp4"),
-                    "audio": ("dubbed_audio.mp3", af, "audio/mpeg"),
+                    "audio": (dubbed_mp3_path.name, af, audio_mime),
                 },
             )
         res7 = orchestrator.json_result(r, "merge_mp3_mp4")
@@ -481,7 +509,7 @@ def _run_job_worker(
         job["progress"] = 100
         job["status"] = "completed"
         job["final_video_available"] = True
-        job["logs"].append("[DONE] Pipeline execution completed successfully!")
+        job["logs"].append("[DONE] Pipeline execution completed successfully with Author's Cloned Voice!")
 
     except (Exception, SystemExit) as exc:
         job["status"] = "error"

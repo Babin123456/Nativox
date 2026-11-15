@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import os
 import subprocess
@@ -9,6 +10,7 @@ from urllib.parse import urlparse
 import requests
 
 # One port per HTTP stage. Stage 04 is loaded directly from construct.py or via port 8004.
+# Stage 2b (main.py) and Stage 6 (test_cloned.py) are executed in Stage 08 directly.
 STAGES = {
     "mp4_to_mp3": "http://127.0.0.1:8001",
     "mp3_to_text": "http://127.0.0.1:8002",
@@ -16,7 +18,6 @@ STAGES = {
     "kw_to_sentence": "http://127.0.0.1:8004",
     "kw_translation": "http://127.0.0.1:8011",
     "sentence_reformation": "http://127.0.0.1:8005",
-    "text_to_mp3": "http://127.0.0.1:8006",
     "merge_mp3_mp4": "http://127.0.0.1:8007",
     "voice_extraction": "http://127.0.0.1:8008",
 }
@@ -26,7 +27,6 @@ SERVICE_CONFIG = {
     "mp3_to_text": ("02_MP3_to_Text", 8002, "/api/languages"),
     "text_to_kw": ("03_Text_to_Keyword", 8003, "/api/health"),
     "sentence_reformation": ("05b_Sentence_Reformation__Atanu", 8005, "/api/health"),
-    "text_to_mp3": ("06_Converted_Text_to_MP3", 8006, "/api/health"),
     "merge_mp3_mp4": ("07_Merge_MP3_with_MP4", 8007, "/api/health"),
 }
 STARTUP_TIMEOUT_SECONDS = 120
@@ -190,22 +190,47 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     mp3_path.write_bytes(r.content)
     print(f"     saved {mp3_path}")
 
-    # Stage 02: audio -> text.
-    print("[02] Transcribing (first run can be slow)...")
-    with mp3_path.open("rb") as f:
-        r = call("mp3_to_text", "/api/transcribe",
-                 files={"file": ("audio.mp3", f)},
-                 data={"language": "auto"})
-    result = json_result(r, "mp3_to_text")
-    try:
-        text = str(result["text"])
-        language_label = str(result["language_label"])
-    except (KeyError, TypeError) as exc:
-        raise SystemExit(
-            f"Stage 'mp3_to_text' returned an invalid response: {r.text[:300]}"
-        ) from exc
-    (work / "transcript.txt").write_text(text, encoding="utf-8")
-    print(f"     language: {language_label}, {len(text.split())} words")
+    # Stage 02: Parallel execution of Stage 2a (Transcription) and Stage 2b (Voice Extraction via main.py)
+    print("[02] Running Stage 2a (Transcription) and Stage 2b (Voice Extraction) in parallel...")
+    stage08_dir = root / "08_Voice_extraction_translation"
+    profile_json = work / "voice_profile.json"
+    clips_dir = work / "voice_profile_clips"
+    ref_wav = work / "voice_profile_reference.wav"
+
+    def _run_stage_2a():
+        print("  [02a] Transcribing speech with Whisper...")
+        with mp3_path.open("rb") as f:
+            r = call("mp3_to_text", "/api/transcribe",
+                     files={"file": ("audio.mp3", f)},
+                     data={"language": "auto"})
+        res = json_result(r, "mp3_to_text")
+        trans_text = str(res["text"]).strip()
+        lang_lbl = str(res.get("language_label", "Auto"))
+        (work / "transcript.txt").write_text(trans_text, encoding="utf-8")
+        print(f"  [02a] Transcription completed ({lang_lbl}, {len(trans_text.split())} words)")
+        return trans_text, lang_lbl
+
+    def _run_stage_2b():
+        print("  [02b] Extracting speaker voice acoustic profile & reference clips (main.py)...")
+        cmd_2b = [
+            sys.executable,
+            str(stage08_dir / "main.py"),
+            str(mp3_path),
+            "--output-json", str(profile_json),
+            "--clips-dir", str(clips_dir),
+        ]
+        res = subprocess.run(cmd_2b, cwd=str(stage08_dir), capture_output=True, text=True, encoding="utf-8")
+        if res.returncode != 0:
+            err = res.stderr or res.stdout
+            raise SystemExit(f"Stage 2b (Voice Extraction main.py) failed: {err[-500:]}")
+        print(f"  [02b] Voice profile & clips generated successfully -> {profile_json}")
+        return profile_json
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        fut_2a = executor.submit(_run_stage_2a)
+        fut_2b = executor.submit(_run_stage_2b)
+        text, language_label = fut_2a.result()
+        fut_2b.result()
 
     # Stage 03: text -> keywords (Intelligent Auto-Extraction).
     print("[03] Extracting salient keywords (auto-adaptive)...")
@@ -276,36 +301,41 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     (work / "dubbed_text.txt").write_text(final_text, encoding="utf-8")
     print(f"     saved {work / 'dubbed_text.txt'}")
 
-    # Stage 06: Hindi text -> dubbed MP3.
-    print("[06] Synthesizing Hindi speech...")
-    r = call(
-        "text_to_mp3",
-        "/api/synthesize",
-        json={"text": final_text, "voice": "hi-IN-SwaraNeural"},
-    )
-    result = json_result(r, "text_to_mp3")
-    try:
-        audio_url = str(result["audio_url"])
-        audio_path = urlparse(audio_url).path
-    except (KeyError, TypeError) as exc:
-        raise SystemExit(
-            f"Stage 'text_to_mp3' returned an invalid response: {r.text[:300]}"
-        ) from exc
-    if not audio_path.startswith("/api/audio/"):
-        raise SystemExit(f"Stage 'text_to_mp3' returned an unsafe audio URL: {audio_url}")
+    # Stage 06: Cloned Voice Synthesis via Stage 08 (test_cloned.py) replacing text_to_mp3
+    print("[06] Synthesizing cloned speech in author's voice (Stage 08 test_cloned.py)...")
     dubbed_mp3_path = work / "dubbed_audio.mp3"
-    dubbed_mp3_path.write_bytes(download("text_to_mp3", audio_path).content)
-    print(f"     saved {dubbed_mp3_path}")
+    cloned_wav_path = work / "dubbed_audio.wav"
+    dubbed_text_file = work / "dubbed_text.txt"
+
+    cmd_clone = [
+        sys.executable,
+        str(stage08_dir / "test_cloned.py"),
+        "--text-file", str(dubbed_text_file),
+        "--profile", str(profile_json),
+        "--reference", str(ref_wav),
+        "--clips-dir", str(clips_dir),
+        "--output-mp3", str(dubbed_mp3_path),
+        "--output-wav", str(cloned_wav_path),
+    ]
+    res_clone = subprocess.run(cmd_clone, cwd=str(stage08_dir), capture_output=True, text=True, encoding="utf-8")
+    if res_clone.returncode != 0:
+        err = res_clone.stderr or res_clone.stdout
+        raise SystemExit(f"Stage 06 (Voice Cloning test_cloned.py) failed: {err[-500:]}")
+
+    if not dubbed_mp3_path.is_file() and cloned_wav_path.is_file():
+        dubbed_mp3_path = cloned_wav_path
+    print(f"     saved cloned audio {dubbed_mp3_path}")
 
     # Stage 07: original MP4 + dubbed MP3 -> final MP4.
     print("[07] Merging dubbed audio with the original video...")
+    audio_mime = "audio/mpeg" if dubbed_mp3_path.suffix == ".mp3" else "audio/wav"
     with input_path.open("rb") as video_file, dubbed_mp3_path.open("rb") as audio_file:
         r = call(
             "merge_mp3_mp4",
             "/api/merge",
             files={
                 "video": (input_path.name, video_file, "video/mp4"),
-                "audio": ("dubbed_audio.mp3", audio_file, "audio/mpeg"),
+                "audio": (dubbed_mp3_path.name, audio_file, audio_mime),
             },
         )
     result = json_result(r, "merge_mp3_mp4")

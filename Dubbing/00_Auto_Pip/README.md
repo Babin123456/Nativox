@@ -6,12 +6,14 @@
 
 ```text
 Input Video (.mp4)
-  -> [01] MP3 Audio Extracted & Speaker Pitch Analyzed
-  -> [02] Speech-to-Text Transcription & VAD (Whisper)
+  -> [01] MP3 Audio Extracted
+  -> [02] Parallel Execution:
+         * [2a] Speech-to-Text Transcription & VAD (Whisper)
+         * [2b] Speaker Voice Extraction & Profiling (Stage 08 main.py)
   -> [03] Salient Keyword Extraction (RAKE)
   -> [04] Neural Sentence Construction (Flan-T5)
   -> [05b] Hindi Sentence Reformation & Vernacular Translation
-  -> [06] Neural Speech Synthesis (Edge Neural TTS, Voice Gender Matched)
+  -> [06] Author Voice Cloning & Synthesis (Stage 08 test_cloned.py, XTTS v2)
   -> [07] Dubbed Audio Video Remuxing (Zero Truncation)
   -> Output Dubbed Video (final_dubbed_video.mp4)
 ```
