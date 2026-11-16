@@ -2,11 +2,14 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from utils.env_utils import get_python_executable
 
 class Wav2LipEngine:
     def __init__(self, repo=None, checkpoint=None):
-        self.repo = Path(repo or os.getenv("WAV2LIP_REPO"))
-        self.checkpoint = Path(checkpoint or os.getenv("WAV2LIP_CHECKPOINT"))
+        raw_repo = repo or os.getenv("WAV2LIP_REPO")
+        raw_checkpoint = checkpoint or os.getenv("WAV2LIP_CHECKPOINT")
+        self.repo = Path(raw_repo) if raw_repo else None
+        self.checkpoint = Path(raw_checkpoint) if raw_checkpoint else None
 
     def generate(self, video_segment: Path, dubbed_audio: Path, output_video: Path, resize_factor: int = 2):
         if not self.repo or not self.checkpoint:
@@ -22,9 +25,8 @@ class Wav2LipEngine:
 
         output_video.parent.mkdir(parents=True, exist_ok=True)
         
-        # Prefer the virtualenv python where torch is installed (e.g. LipSyncLab_v2 or local)
-        lipsync_python = Path("C:/Users/babin/Downloads/LipSyncLab_v2/LipSync_Lab/.venv/Scripts/python.exe")
-        py_exe = str(lipsync_python) if lipsync_python.exists() else sys.executable
+        # Discover python executable dynamically across any device/OS
+        py_exe = get_python_executable()
 
         inference_script = self.repo / "inference.py"
         cmd = [

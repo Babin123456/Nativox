@@ -1,6 +1,8 @@
 import os
 import subprocess
+import sys
 from pathlib import Path
+from utils.env_utils import get_python_executable
 
 class FaceRestorer:
     """
@@ -12,7 +14,6 @@ class FaceRestorer:
     """
     def __init__(self, upscale: int = 1):
         self.upscale = upscale
-        self.lipsync_python = Path("C:/Users/babin/Downloads/LipSyncLab_v2/LipSync_Lab/.venv/Scripts/python.exe")
 
     def enhance_video(
         self,
@@ -25,25 +26,48 @@ class FaceRestorer:
         generated_video = Path(generated_video).resolve()
         original_video = Path(original_video).resolve()
         output_video = Path(output_video).resolve()
+        py_exe = get_python_executable()
+
         audio_cmd = f", audio_path=r'{Path(audio_path).resolve()}'" if audio_path else ""
         intervals_cmd = f", speaking_intervals={speaking_intervals}" if speaking_intervals else ""
 
+        root_dir = Path(__file__).resolve().parent.parent
+        custom_pipeline_dir = os.getenv("PIPELINE2_DIR", "")
+
         cmd = [
-            str(self.lipsync_python),
+            py_exe,
             "-c",
             f"""
 import sys, os, gc
 from pathlib import Path
 from types import ModuleType
-import torchvision.transforms.functional as F
-m = ModuleType('torchvision.transforms.functional_tensor')
-m.rgb_to_grayscale = F.rgb_to_grayscale
-sys.modules['torchvision.transforms.functional_tensor'] = m
 
-sys.path.insert(0, r'C:\\Users\\babin\\Downloads\\LipSyncLab_v2\\LipSync_Lab')
-from Pipeline2.face_enhancer import FaceEnhancer
+root_dir = Path(r'{root_dir}')
+pipeline2_dir = Path(r'{custom_pipeline_dir}') if r'{custom_pipeline_dir}' else None
+
+cand_dirs = [
+    pipeline2_dir,
+    root_dir,
+    root_dir / "Pipeline2"
+]
+for d in filter(None, cand_dirs):
+    if d.exists() and str(d) not in sys.path:
+        sys.path.insert(0, str(d))
 
 try:
+    import torchvision.transforms.functional as F
+    m = ModuleType('torchvision.transforms.functional_tensor')
+    m.rgb_to_grayscale = F.rgb_to_grayscale
+    sys.modules['torchvision.transforms.functional_tensor'] = m
+except Exception:
+    pass
+
+try:
+    try:
+        from Pipeline2.face_enhancer import FaceEnhancer
+    except ImportError:
+        from face_enhancer import FaceEnhancer
+
     enhancer = FaceEnhancer(upscale={self.upscale})
     enhancer.enhance_video(
         input_video_path=r'{generated_video}',
@@ -53,21 +77,30 @@ try:
     )
     print('HD Face Enhancement complete!')
 except Exception as e:
-    print(f'GFPGAN warning ({{e}}), falling back to Selective Compositor...')
+    print(f'GFPGAN warning ({{e}}), attempting Selective Compositor fallback...')
     gc.collect()
-    enhancer = FaceEnhancer(upscale={self.upscale})
-    enhancer.enhance_video(
-        input_video_path=r'{generated_video}',
-        output_video_path=r'{output_video}',
-        original_source_video_path=r'{original_video}',
-        restore_gfpgan=False{audio_cmd}{intervals_cmd}
-    )
-    print('Selective Compositor fallback complete!')
+    try:
+        try:
+            from Pipeline2.face_enhancer import FaceEnhancer
+        except ImportError:
+            from face_enhancer import FaceEnhancer
+        enhancer = FaceEnhancer(upscale={self.upscale})
+        enhancer.enhance_video(
+            input_video_path=r'{generated_video}',
+            output_video_path=r'{output_video}',
+            original_source_video_path=r'{original_video}',
+            restore_gfpgan=False{audio_cmd}{intervals_cmd}
+        )
+        print('Selective Compositor fallback complete!')
+    except Exception as e2:
+        print(f'Face enhancer unavailable ({{e2}}). Using generated video directly.')
+        import shutil
+        shutil.copyfile(r'{generated_video}', r'{output_video}')
 """
         ]
 
         res = subprocess.run(cmd, capture_output=True, text=True)
-        # Even if temp cleanup threw a Windows file lock notice, check if final output_video exists
+        # Check if final output_video exists and is non-empty
         if not output_video.exists() or output_video.stat().st_size == 0:
             if res.returncode != 0:
                 raise RuntimeError(f"Face enhancement failed:\n{res.stderr}\n{res.stdout}")
