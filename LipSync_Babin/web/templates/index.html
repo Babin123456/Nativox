@@ -272,8 +272,7 @@
                 <div class="field-group">
                     <label>Voice Backend</label>
                     <select id="ttsBackend">
-                        <option value="free" selected>Primary Zero-API Mode (Edge-TTS + Tone Transfer) [100% Free / No Keys]</option>
-                        <option value="sarvam">Sarvam Indic Bulbul [Optional Fallback / API Key]</option>
+                        <option value="free" selected>Zero-API Mode (Edge-TTS + Tone Transfer) [100% Free / No Keys]</option>
                     </select>
                 </div>
 
@@ -358,16 +357,9 @@
             formData.append("enhance", enhanceFace);
 
             try {
-                const isZeroApi = (ttsBackend === 'free' || ttsBackend === 'edgetts');
-                if (isZeroApi) {
-                    appendLog("[2/6] Transcribing speech via Local Whisper ASR (Zero-API)...");
-                    appendLog("[3/6] Translating with natural colloquial phrasing (Zero-API)...");
-                    appendLog("[4/6] Synthesizing speech with Microsoft Edge Neural Voices + Praat Tone Transfer...");
-                } else {
-                    appendLog("[2/6] Transcribing speech via Sarvam Saaras ASR...");
-                    appendLog("[3/6] Translating with natural colloquial phrasing...");
-                    appendLog("[4/6] Synthesizing speech with acoustic delivery...");
-                }
+                appendLog("[2/6] Transcribing speech via Local Whisper ASR (Zero-API)...");
+                appendLog("[3/6] Translating with natural colloquial phrasing (Zero-API)...");
+                appendLog("[4/6] Synthesizing speech with Microsoft Edge Neural Voices + Praat Tone Transfer...");
                 appendLog("[5/6] Generating Wav2Lip sync...");
                 if (enhanceFace) {
                     appendLog("[6/6] Restoring high-definition teeth & selective mouth mask...");

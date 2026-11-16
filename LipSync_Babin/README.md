@@ -58,19 +58,8 @@ pip install -r requirements.txt
 python setup_models.py
 ```
 
-### 3. Configuration (`.env`)
-Running `python setup_models.py` automatically initializes the local `.env` configuration file for 100% Free / Zero-API operation without requiring any manual editing:
-```ini
-NATIVOX_DEVICE=cpu
-NATIVOX_TTS=free
-
-# Optional Sarvam API key (leave blank to run 100% free with Zero API Keys)
-SARVAM_API_KEY=
-
-# Wav2Lip relative paths (configured automatically by setup_models.py)
-WAV2LIP_REPO=models/wav2lip
-WAV2LIP_CHECKPOINT=models/wav2lip/checkpoints/wav2lip_gan.pth
-```
+### 3. Zero-API Operation (No `.env` or API Keys Required)
+The pipeline is designed to run 100% locally and completely free without any API keys or configuration files. All model checkpoints, speech engines, and Praat voice cloners automatically discover their dependencies out of the box.
 
 ---
 
@@ -118,11 +107,11 @@ cd LipSync_Babin
 
 ```
 LipSync_Babin/
-├── .env.example               # Universal environment template
 ├── ARCHITECTURE.md            # Mermaid system diagrams & architectural workflows
 ├── INSTRUCTIONS.md            # Comprehensive module-by-module working principles
 ├── README.md                  # Project overview & running syntax
-├── config.py                  # Pydantic configuration schemas
+├── setup_models.py            # Automated neural models and weights downloader
+├── config.py                  # Pipeline configuration schemas
 ├── pipeline.py                # Master CLI orchestration pipeline
 ├── requirements.txt           # Python package dependencies
 │

@@ -3,15 +3,11 @@ import shutil
 import sys
 import uuid
 from pathlib import Path
-from dotenv import load_dotenv
 
 # Add parent directory (LipSync_Babin root) to sys.path so config, pipeline, etc. resolve
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
-
-# Load .env from ROOT_DIR
-load_dotenv(ROOT_DIR / ".env")
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse

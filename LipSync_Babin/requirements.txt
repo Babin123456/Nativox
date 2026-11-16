@@ -28,8 +28,8 @@ praat-parselmouth>=0.4.3
 # Audio Demixing & Source Separation (Continuous BGM & Clean Vocals)
 demucs>=4.0.1
 
-# Face Landmark Detection & Facial Mesh
-mediapipe>=0.10.9
+# Face Landmark Detection & Facial Mesh (0.10.x contains mp.solutions.face_mesh)
+mediapipe>=0.10.9,<0.10.30
 
 # Face Restoration & Lip Detail Enhancement (GFPGAN)
 gfpgan>=1.3.8

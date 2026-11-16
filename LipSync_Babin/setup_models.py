@@ -85,38 +85,15 @@ def ensure_wav2lip_repo():
     except Exception as e:
         print(f"[Warning] Failed to git clone Wav2Lip automatically ({e}). Please clone manually into {wav2lip_dir}.")
 
-def setup_env_file():
-    env_file = ROOT_DIR / ".env"
-    env_example = ROOT_DIR / ".env.example"
-    if not env_file.exists():
-        if env_example.exists():
-            shutil.copyfile(str(env_example), str(env_file))
-            print("[OK] Created .env from .env.example")
-        else:
-            default_content = (
-                "NATIVOX_DEVICE=cpu\n"
-                "NATIVOX_TTS=free\n"
-                "SARVAM_API_KEY=\n"
-                "WAV2LIP_REPO=models/wav2lip\n"
-                "WAV2LIP_CHECKPOINT=models/wav2lip/checkpoints/wav2lip_gan.pth\n"
-            )
-            env_file.write_text(default_content, encoding="utf-8")
-            print("[OK] Created default .env")
-    else:
-        print("[OK] Existing .env file found.")
-
 def main():
     print("==================================================================")
     print("   Nativox LipSync_Babin — Automated Model & Setup Installer      ")
     print("==================================================================")
-    
-    # 1. Setup default .env
-    setup_env_file()
 
-    # 2. Ensure Wav2Lip repo
+    # 1. Ensure Wav2Lip repo
     ensure_wav2lip_repo()
 
-    # 3. Download model weights
+    # 2. Download model weights
     for key, info in MODELS.items():
         download_file(info["url"], info["dest"], info["description"])
 
