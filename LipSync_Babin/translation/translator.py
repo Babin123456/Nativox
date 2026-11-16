@@ -5,13 +5,10 @@ import urllib.request
 import urllib.parse
 import requests
 from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class Translator:
     def __init__(self):
-        self.api_key = os.getenv("SARVAM_API_KEY")
+        self.api_key = os.getenv("SARVAM_API_KEY", "")
         self.headers = {"api-subscription-key": self.api_key} if self.api_key else {}
 
     def transcribe(self, audio_path: Path, start_time: float = None, end_time: float = None) -> str:

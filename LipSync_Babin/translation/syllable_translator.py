@@ -1,9 +1,6 @@
 import os
 import requests
 from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class SyllableAwareTranslator:
     """
@@ -11,7 +8,7 @@ class SyllableAwareTranslator:
     a strict syllable and duration budget so speech rate remains completely natural (1.0x).
     """
     def __init__(self):
-        self.api_key = os.getenv("SARVAM_API_KEY")
+        self.api_key = os.getenv("SARVAM_API_KEY", "")
         self.headers = {"api-subscription-key": self.api_key, "Content-Type": "application/json"} if self.api_key else {}
 
     def translate_constrained(self, text: str, target_lang: str, target_seconds: float) -> str:

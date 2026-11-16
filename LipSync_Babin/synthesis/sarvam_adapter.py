@@ -2,14 +2,11 @@ import os
 import base64
 import requests
 from pathlib import Path
-from dotenv import load_dotenv
 from .tts_provider import TTSProvider
-
-load_dotenv()
 
 class SarvamAdapter(TTSProvider):
     def __init__(self, device="cpu"):
-        self.api_key = os.getenv("SARVAM_API_KEY")
+        self.api_key = os.getenv("SARVAM_API_KEY", "")
         if not self.api_key:
             raise RuntimeError("Set SARVAM_API_KEY before using this adapter.")
         self.device = device
