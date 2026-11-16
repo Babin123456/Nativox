@@ -64,7 +64,7 @@ except Exception:
 
 try:
     try:
-        from Pipeline2.face_enhancer import FaceEnhancer
+        from lipsync.face_enhancer import FaceEnhancer
     except ImportError:
         from face_enhancer import FaceEnhancer
 
@@ -81,7 +81,7 @@ except Exception as e:
     gc.collect()
     try:
         try:
-            from Pipeline2.face_enhancer import FaceEnhancer
+            from lipsync.face_enhancer import FaceEnhancer
         except ImportError:
             from face_enhancer import FaceEnhancer
         enhancer = FaceEnhancer(upscale={self.upscale})

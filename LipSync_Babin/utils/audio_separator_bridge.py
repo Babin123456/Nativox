@@ -44,7 +44,7 @@ for d in filter(None, cand_dirs):
 # Strategy 1: Dedicated AudioStemSeparator class if present
 try:
     try:
-        from Pipeline2.audio_separator import AudioStemSeparator
+        from utils.audio_separator import AudioStemSeparator
     except ImportError:
         from audio_separator import AudioStemSeparator
     sep = AudioStemSeparator()
