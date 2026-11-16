@@ -54,7 +54,7 @@ class ProsodyMatcher:
         max_iterations: int = 3,
         energy_threshold: float = 0.15,
         pitch_threshold: float = 0.20,
-        output_dir: str = "Pipeline2/outputs/spm",
+        output_dir: str = "work/spm",
         sr: int = 16_000,
     ):
         self.max_iterations = max_iterations

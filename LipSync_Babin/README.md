@@ -29,36 +29,47 @@
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start Guide (Universal Local Setup)
 
 ### 1. Prerequisites
-- Windows 10/11 or Linux
-- Python 3.10 / 3.11
-- FFmpeg installed and available on system `PATH`
+- **OS**: Windows 10/11, Ubuntu/Debian Linux, or macOS
+- **Python**: Python 3.10 or 3.11 installed
+- **FFmpeg**: Installed and available on system `PATH` (`ffmpeg -version`)
+- **Git**: Installed on system `PATH`
 
-### 2. Environment Setup
-```powershell
-# 1. Clone / Navigate to repository
-cd LipSync_Babin
+### 2. One-Time Environment Setup
+Open PowerShell (Windows) or Terminal (Linux/macOS) in the `LipSync_Babin` project directory:
 
-# 2. Create and activate virtual environment
-py -3.11 -m venv .venv
+```bash
+# 1. Create a dedicated virtual environment
+python -m venv .venv
+
+# 2. Activate the virtual environment
+# On Windows (PowerShell):
 .\.venv\Scripts\Activate.ps1
+# On Linux / macOS:
+# source .venv/bin/activate
 
-# 3. Install dependencies
+# 3. Upgrade pip and install all required dependencies
+pip install --upgrade pip
 pip install -r requirements.txt
-pip install edge-tts deep-translator
+
+# 4. Automatically download and verify all neural model checkpoints
+python setup_models.py
 ```
 
 ### 3. Configuration (`.env`)
-By default, Nativox runs in **Zero-API Mode** with no keys needed:
+Running `python setup_models.py` automatically initializes the local `.env` configuration file for 100% Free / Zero-API operation without requiring any manual editing:
 ```ini
 NATIVOX_DEVICE=cpu
 NATIVOX_TTS=free
+
 # Optional Sarvam API key (leave blank to run 100% free with Zero API Keys)
 SARVAM_API_KEY=
-WAV2LIP_REPO=/path/to/Wav2Lip
-WAV2LIP_CHECKPOINT=/path/to/Wav2Lip/checkpoints/wav2lip_gan.pth
+
+# Wav2Lip relative paths (configured automatically by setup_models.py)
+WAV2LIP_REPO=models/wav2lip
+WAV2LIP_CHECKPOINT=models/wav2lip/checkpoints/wav2lip_gan.pth
 ```
 
 ---

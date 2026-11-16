@@ -1,10 +1,37 @@
-numpy>=1.24
-soundfile>=0.12
-librosa>=0.10
-opencv-python>=4.8
-python-dotenv>=1.0
-pydantic>=2.5
-typer>=0.12
-rich>=13.7
-pytest>=8.0
-# Optional: torch, torchaudio, transformers, speechbrain, demucs, mediapipe
+# Core Pipeline & Scientific Computing
+numpy>=1.24,<2.0
+scipy>=1.10.0
+soundfile>=0.12.1
+librosa>=0.10.1
+opencv-python>=4.8.0
+torchvision>=0.15.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+typer>=0.12.0
+rich>=13.7.0
+pytest>=8.0.0
+
+# Web Application & API
+fastapi>=0.110.0
+uvicorn>=0.28.0
+python-multipart>=0.0.9
+
+# Zero-API Translation & Speech Recognition (ASR)
+deep-translator>=1.11.4
+faster-whisper>=1.0.0
+requests>=2.31.0
+
+# Speech Synthesis (TTS) & Praat Prosody / Formant Shifting
+edge-tts>=7.0.0
+praat-parselmouth>=0.4.3
+
+# Audio Demixing & Source Separation (Continuous BGM & Clean Vocals)
+demucs>=4.0.1
+
+# Face Landmark Detection & Facial Mesh
+mediapipe>=0.10.9
+
+# Face Restoration & Lip Detail Enhancement (GFPGAN)
+gfpgan>=1.3.8
+facexlib>=0.3.0
+basicsr>=1.4.2

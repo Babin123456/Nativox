@@ -61,10 +61,10 @@ class Translator:
         except Exception:
             pass
 
-        # 3. Fallback to bridge python subprocess (system Python 3.11 with openai-whisper/faster-whisper)
+        # 3. Fallback to bridge python subprocess (discovered dynamically across devices)
+        from utils.env_utils import get_python_executable
         candidates = [
-            os.getenv("LIPSYNC_PYTHON"),
-            r"C:\Users\babin\AppData\Local\Programs\Python\Python311\python.exe",
+            get_python_executable(),
             sys.executable,
             "python"
         ]

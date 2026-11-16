@@ -20,24 +20,25 @@ from typing import Optional
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# Look for OpenVoice repo and checkpoints locally or in LipSyncLab_v2
+# Look for OpenVoice repo and checkpoints locally or via environment variables
+custom_pipeline = os.getenv("PIPELINE2_DIR")
 cand_openvoice_repos = [
     os.getenv("OPENVOICE_REPO"),
     os.path.join(REPO_ROOT, "models", "openvoice", "OpenVoice"),
     os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "OpenVoice"),
-    r"C:\Users\babin\Downloads\LipSyncLab_v2\LipSync_Lab\Pipeline2\models\openvoice\OpenVoice"
+    os.path.join(custom_pipeline, "models", "openvoice", "OpenVoice") if custom_pipeline else None
 ]
-OPENVOICE_REPO = next((p for p in cand_openvoice_repos if p and os.path.exists(p)), cand_openvoice_repos[-1])
+OPENVOICE_REPO = next((p for p in filter(None, cand_openvoice_repos) if os.path.exists(p)), None)
 
 cand_checkpoints_dirs = [
     os.getenv("OPENVOICE_CHECKPOINTS"),
     os.path.join(REPO_ROOT, "models", "openvoice", "checkpoints_v2", "converter"),
     os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "converter"),
-    r"C:\Users\babin\Downloads\LipSyncLab_v2\LipSync_Lab\Pipeline2\models\openvoice\checkpoints_v2\converter"
+    os.path.join(custom_pipeline, "models", "openvoice", "checkpoints_v2", "converter") if custom_pipeline else None
 ]
-CHECKPOINTS_DIR = next((p for p in cand_checkpoints_dirs if p and os.path.exists(p)), cand_checkpoints_dirs[-1])
+CHECKPOINTS_DIR = next((p for p in filter(None, cand_checkpoints_dirs) if os.path.exists(p)), None)
 
-if OPENVOICE_REPO not in sys.path:
+if OPENVOICE_REPO and OPENVOICE_REPO not in sys.path:
     sys.path.insert(0, OPENVOICE_REPO)
 
 
@@ -144,15 +145,16 @@ class OpenVoiceConverter:
            loads it directly for 100% complete base voice subtraction.
         2. Otherwise, extracts source embedding from base_tts_audio_path.
         """
-        # Check both local and LipSyncLab locations for pre-calibrated base speaker embeddings
+        # Check configured, local and Pipeline2 locations for pre-calibrated base speaker embeddings
         cand_ses_dirs = [
+            os.getenv("OPENVOICE_BASE_SPEAKERS_DIR"),
             os.path.join(REPO_ROOT, "models", "openvoice", "checkpoints_v2", "base_speakers", "ses"),
             os.path.join(REPO_ROOT, "Pipeline2", "models", "openvoice", "checkpoints_v2", "base_speakers", "ses"),
-            r"C:\Users\babin\Downloads\LipSyncLab_v2\LipSync_Lab\Pipeline2\models\openvoice\checkpoints_v2\base_speakers\ses"
+            os.path.join(custom_pipeline, "models", "openvoice", "checkpoints_v2", "base_speakers", "ses") if custom_pipeline else None
         ]
-        ses_dir = next((d for d in cand_ses_dirs if os.path.exists(d)), cand_ses_dirs[-1])
+        ses_dir = next((d for d in filter(None, cand_ses_dirs) if os.path.exists(d)), None)
 
-        if base_speaker_name:
+        if ses_dir and base_speaker_name:
             pth_path = os.path.join(ses_dir, f"{base_speaker_name}.pth")
             if os.path.exists(pth_path):
                 return torch.load(pth_path, map_location=self.device)
@@ -161,9 +163,10 @@ class OpenVoiceConverter:
             return self._converter.extract_se(base_tts_audio_path)
 
         # Fallback to default base embedding if present
-        default_pth = os.path.join(ses_dir, "hi-IN-MadhurNeural.pth")
-        if os.path.exists(default_pth):
-            return torch.load(default_pth, map_location=self.device)
+        if ses_dir:
+            default_pth = os.path.join(ses_dir, "hi-IN-MadhurNeural.pth")
+            if os.path.exists(default_pth):
+                return torch.load(default_pth, map_location=self.device)
 
         raise RuntimeError("No base speaker embedding could be resolved for OpenVoice.")
 

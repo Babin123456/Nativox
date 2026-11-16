@@ -3,9 +3,10 @@ __pycache__/
 .pytest_cache/
 .env
 
-# Workspace and render cache folders ignored
+# Workspace, models and render cache folders ignored
 work/
 outputs/
+models/
 
 # Audio/Video binary patterns (preserving comparison videos and testcases)
 *.wav
