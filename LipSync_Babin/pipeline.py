@@ -16,7 +16,7 @@ from speech_analysis.transfer_engine import PerformanceTransferEngine
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: str = "sarvam", preserve_bgm: bool = True):
+def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: str = "free", preserve_bgm: bool = True):
     if not cfg.input_video.exists():
         raise FileNotFoundError(f"Input video not found: {cfg.input_video}")
         
@@ -45,8 +45,8 @@ def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: st
         logging.info("Separated Vocal Track: %s", vocals_audio)
         logging.info("Preserved BGM Track: %s", bgm_audio)
 
-    # 2. Transcription (Speech-to-Text on isolated speech)
-    logging.info("Stage 2: Transcribing isolated speech via Sarvam Saaras API...")
+    # 2. Local Transcription (Speech-to-Text on isolated speech via local Faster-Whisper)
+    logging.info("Stage 2: Transcribing isolated speech via Local Faster-Whisper (Zero-API)...")
     from translation.translator import build_translator
     translator = build_translator()
     transcript = translator.transcribe(speech_reference)
@@ -65,13 +65,9 @@ def run_pipeline(cfg: PipelineConfig, enhance_face: bool = True, tts_backend: st
 
     # 4. Voice Synthesis & Speaker Performance Voice Transfer
     dubbed_speech = cfg.work_dir / f"cloned_speech_{cfg.target_lang}.wav"
-    logging.info("Stage 4: Synthesizing voice via %s...", tts_backend.upper())
+    logging.info("Stage 4: Synthesizing voice via %s (Zero-API)...", tts_backend.upper())
     raw_tts_audio = cfg.work_dir / f"raw_tts_{cfg.target_lang}.wav"
-    if tts_backend == "sarvam" and os.getenv("SARVAM_API_KEY"):
-        tts = SarvamAdapter()
-    else:
-        # Default Primary Zero-API EdgeTTS (100% Free / Zero API Keys)
-        tts = EdgeTTSAdapter()
+    tts = EdgeTTSAdapter()
         
     tts.synthesize(
         text=translated_text,

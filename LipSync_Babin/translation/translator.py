@@ -12,23 +12,7 @@ class Translator:
         self.headers = {"api-subscription-key": self.api_key} if self.api_key else {}
 
     def transcribe(self, audio_path: Path, start_time: float = None, end_time: float = None) -> str:
-        """Transcribe speech to text using Sarvam Saaras API if available, or fall back to zero-key Whisper."""
-        if self.api_key:
-            url = "https://api.sarvam.ai/speech-to-text"
-            try:
-                with open(audio_path, "rb") as f:
-                    files = {"file": (Path(audio_path).name, f, "audio/wav")}
-                    data = {"model": "saaras:v3"}
-                    res = requests.post(url, headers=self.headers, files=files, data=data)
-                    
-                if res.status_code == 200:
-                    result = res.json()
-                    return result.get("transcript", "").strip()
-                print(f"[Warning] Sarvam STT failed with {res.status_code}, falling back to zero-API Whisper...")
-            except Exception as e:
-                print(f"[Warning] Sarvam STT error ({e}), falling back to zero-API Whisper...")
-
-        # Zero-API local fallback
+        """Transcribe speech to text using 100% local zero-API Whisper."""
         return self._transcribe_zero_api(audio_path)
 
     def _transcribe_zero_api(self, audio_path: Path) -> str:
@@ -86,36 +70,7 @@ except Exception:
         return ""
 
     def translate(self, text: str, target_lang: str, source_lang: str = "en-IN", speaker_gender: str = "Male") -> str:
-        """Translate text using Sarvam Translate API if available, else zero-API GTX/deep-translator."""
-        if self.api_key:
-            url = "https://api.sarvam.ai/translate"
-            lang_map = {
-                "hi": "hi-IN",
-                "bn": "bn-IN",
-                "en": "en-IN"
-            }
-            target_code = lang_map.get(target_lang, f"{target_lang}-IN")
-            
-            payload = {
-                "input": text,
-                "source_language_code": source_lang,
-                "target_language_code": target_code,
-                "speaker_gender": speaker_gender,
-                "mode": "classic-colloquial"
-            }
-            try:
-                res = requests.post(
-                    url,
-                    json=payload,
-                    headers={**self.headers, "Content-Type": "application/json"}
-                )
-                if res.status_code == 200:
-                    result = res.json()
-                    return result.get("translated_text", "").strip()
-                print(f"[Warning] Sarvam Translation returned {res.status_code}, falling back to zero-API translation...")
-            except Exception as e:
-                print(f"[Warning] Sarvam Translation error ({e}), falling back to zero-API translation...")
-
+        """Translate text using 100% zero-API GTX / deep-translator."""
         return self._translate_zero_api(text, target_lang)
 
     def _translate_zero_api(self, text: str, target_lang: str) -> str:
