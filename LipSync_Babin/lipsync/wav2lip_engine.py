@@ -6,8 +6,13 @@ from utils.env_utils import get_python_executable
 
 class Wav2LipEngine:
     def __init__(self, repo=None, checkpoint=None):
-        raw_repo = repo or os.getenv("WAV2LIP_REPO")
-        raw_checkpoint = checkpoint or os.getenv("WAV2LIP_CHECKPOINT")
+        root_dir = Path(__file__).resolve().parent.parent
+        default_repo = root_dir / "models" / "wav2lip"
+        default_ckpt = root_dir / "models" / "wav2lip" / "checkpoints" / "wav2lip_gan.pth"
+
+        raw_repo = repo or os.getenv("WAV2LIP_REPO") or (str(default_repo) if default_repo.exists() else None)
+        raw_checkpoint = checkpoint or os.getenv("WAV2LIP_CHECKPOINT") or (str(default_ckpt) if default_ckpt.exists() else None)
+
         self.repo = Path(raw_repo) if raw_repo else None
         self.checkpoint = Path(raw_checkpoint) if raw_checkpoint else None
 

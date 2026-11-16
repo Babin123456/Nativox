@@ -12,4 +12,4 @@ class PipelineConfig:
     work_dir: Path = Path("work")
     dry_run: bool = False
     device: str = os.getenv("NATIVOX_DEVICE", "cpu")
-    tts_provider: str = os.getenv("NATIVOX_TTS", "omnivoice")
+    tts_provider: str = os.getenv("NATIVOX_TTS", "free")
