@@ -29,6 +29,11 @@ MODELS = {
         "dest": ROOT_DIR / "gfpgan" / "weights" / "detection_Resnet50_Final.pth",
         "description": "FaceXLib ResNet50 Face Detector"
     },
+    "s3fd_detector": {
+        "url": "https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316842.pth",
+        "dest": ROOT_DIR / "models" / "wav2lip" / "face_detection" / "detection" / "sfd" / "s3fd.pth",
+        "description": "S3FD Face Detection Model for Wav2Lip"
+    },
     "parsing_parsenet": {
         "url": "https://github.com/xinntao/facexlib/releases/download/v0.2.2/parsing_parsenet.pth",
         "dest": ROOT_DIR / "gfpgan" / "weights" / "parsing_parsenet.pth",

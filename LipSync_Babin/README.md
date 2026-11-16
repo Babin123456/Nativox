@@ -29,41 +29,37 @@
 
 ---
 
-## 🚀 Quick Start Guide (Any Device / Clean Clone)
+## 🚀 Quick Start Guide (Universal Local Setup)
 
 ### 1. Prerequisites
 - **OS**: Windows 10/11, Ubuntu/Debian Linux, or macOS
 - **Python**: Python 3.10 or 3.11 installed
 - **FFmpeg**: Installed and available on system `PATH` (`ffmpeg -version`)
-- **Git**: Installed for repository cloning
+- **Git**: Installed on system `PATH`
 
 ### 2. One-Time Environment Setup
-Run these commands in PowerShell (Windows) or Terminal (Linux/macOS):
+Open PowerShell (Windows) or Terminal (Linux/macOS) in the `LipSync_Babin` project directory:
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/Babin123456/Nativox.git
-cd Nativox/LipSync_Babin
-
-# 2. Create virtual environment
+# 1. Create a dedicated virtual environment
 python -m venv .venv
 
-# 3. Activate virtual environment
-# Windows PowerShell:
+# 2. Activate the virtual environment
+# On Windows (PowerShell):
 .\.venv\Scripts\Activate.ps1
-# Linux / macOS:
+# On Linux / macOS:
 # source .venv/bin/activate
 
-# 4. Install all dependencies
+# 3. Upgrade pip and install all required dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 5. Automatically download model checkpoints (Wav2Lip GAN, GFPGAN v1.4, weights)
+# 4. Automatically download and verify all neural model checkpoints
 python setup_models.py
 ```
 
 ### 3. Configuration (`.env`)
-By default, running `python setup_models.py` creates a clean `.env` file configured for 100% Free / Zero-API operation:
+Running `python setup_models.py` automatically initializes the local `.env` configuration file for 100% Free / Zero-API operation without requiring any manual editing:
 ```ini
 NATIVOX_DEVICE=cpu
 NATIVOX_TTS=free
