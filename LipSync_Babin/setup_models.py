@@ -82,6 +82,15 @@ def ensure_wav2lip_repo():
     try:
         subprocess.run(cmd, check=True)
         print("[Done] Wav2Lip repo cloned successfully.")
+        # Patch librosa 0.10+ compatibility in Wav2Lip audio.py
+        audio_py = wav2lip_dir / "audio.py"
+        if audio_py.exists():
+            content = audio_py.read_text(encoding="utf-8")
+            old_str = "return librosa.filters.mel(hp.sample_rate, hp.n_fft, n_mels=hp.num_mels,\n                               fmin=hp.fmin, fmax=hp.fmax)"
+            new_str = "return librosa.filters.mel(sr=hp.sample_rate, n_fft=hp.n_fft, n_mels=hp.num_mels,\n                               fmin=hp.fmin, fmax=hp.fmax)"
+            if old_str in content:
+                content = content.replace(old_str, new_str)
+                audio_py.write_text(content, encoding="utf-8")
     except Exception as e:
         print(f"[Warning] Failed to git clone Wav2Lip automatically ({e}). Please clone manually into {wav2lip_dir}.")
 
