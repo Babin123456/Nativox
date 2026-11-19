@@ -264,11 +264,15 @@ def highpass(y, sr, cutoff=60):
 
 
 def tidy_chunk(w, sr=SYNTH_SR):
-    """Trim silence/noise XTTS leaves around a sentence and fade edges."""
+    """Trim silence/noise XTTS leaves around a sentence and fade edges, preserving speech tail."""
     w = np.asarray(w, dtype=np.float32).squeeze()
     if w.size == 0:
         return w
-    w, _ = librosa.effects.trim(w, top_db=35)
+    # Use conservative 48 dB threshold to avoid clipping soft ending consonants
+    w, _ = librosa.effects.trim(w, top_db=48)
+    # Add 120ms safety padding at the tail so the final word isn't abruptly cut
+    tail_pad = int(sr * 0.12)
+    w = np.pad(w, (0, tail_pad))
     n = int(sr * 0.012)
     if w.size > 2 * n:
         ramp = np.linspace(0, 1, n, dtype=np.float32)
@@ -350,10 +354,11 @@ def _wrap(s, max_len):
     return out
 
 
-def split_text(text, lang, max_len=200):
-    """Sentence-wise chunks; every sentence ends with proper punctuation."""
+def split_text(text, lang, max_len=95):
+    """Sentence-wise chunks; splits clauses naturally so XTTS never cuts off trailing words."""
     end_mark = "।" if lang == "hi" else "。" if lang in ("ja", "zh-cn") else "."
     chunks = []
+    # Also split on natural conjunctions / pauses like 'जिसके', 'कि', commas, etc.
     for p in re.split(r"(?<=[.!?।。！？])\s+", text.strip()):
         p = p.strip()
         if not p:
@@ -362,14 +367,22 @@ def split_text(text, lang, max_len=200):
             pieces = [(p, SENTENCE_PAUSE_SEC)]
         else:
             pieces, cur = [], ""
-            for pc in re.split(r"(?<=[,;:，、])\s+", p):
+            # Split by comma or subordinating conjunctions if clause is long
+            split_regex = r"(?<=[,;:，、])\s+|(?<=\s)(?=जिसके|ताकि|क्योंकि|लेकिन|किन्तु|परन्तु|परंतु|कि\s)" if lang == "hi" else r"(?<=[,;:，、])\s+"
+            for pc in re.split(split_regex, p):
+                if not pc:
+                    continue
                 if len(cur) + len(pc) + 1 > max_len and cur:
                     pieces.append((cur, COMMA_PAUSE_SEC))
                     cur = pc
                 else:
                     cur = f"{cur} {pc}".strip()
-            pieces += [(w, COMMA_PAUSE_SEC) for w in _wrap(cur, max_len)]
-            pieces[-1] = (pieces[-1][0], SENTENCE_PAUSE_SEC)
+            if cur:
+                pieces += [(w, COMMA_PAUSE_SEC) for w in _wrap(cur, max_len)]
+            if pieces:
+                pieces[-1] = (pieces[-1][0], SENTENCE_PAUSE_SEC)
+        if not pieces:
+            continue
         # a missing full stop makes XTTS ramble / add extra sound at the end
         txt, pause = pieces[-1]
         if not re.search(r"[.!?।。！？]$", txt):
