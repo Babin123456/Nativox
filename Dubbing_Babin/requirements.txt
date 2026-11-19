@@ -13,4 +13,3 @@ numpy
 fastapi
 uvicorn
 python-multipart
-
