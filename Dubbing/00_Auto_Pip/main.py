@@ -469,6 +469,7 @@ def _run_job_worker(
 
         dubbed_mp3_path = work_dir / "dubbed_audio.mp3"
         cloned_wav_path = work_dir / "dubbed_audio.wav"
+        cloned_voice_only_path = work_dir / "cloned_voice_only.wav"
         dubbed_text_file = work_dir / "dubbed_text.txt"
 
         cmd_clone = [
@@ -478,6 +479,7 @@ def _run_job_worker(
             "--profile", str(profile_json),
             "--reference", str(ref_wav),
             "--clips-dir", str(clips_dir),
+            "--voice-only-wav", str(cloned_voice_only_path),
             "--output-mp3", str(dubbed_mp3_path),
             "--output-wav", str(cloned_wav_path),
         ]
