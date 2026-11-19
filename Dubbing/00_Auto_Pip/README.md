@@ -32,36 +32,42 @@ Input Video (.mp4)
 
 ## 🚀 Environment Setup
 
-Install all stage dependencies across the repository using the cross-platform setup utility:
+All commands are run directly from inside `Dubbing/00_Auto_Pip/`:
 
 ```bash
-Dubbing/
-python setup_env.py
+cd Dubbing/00_Auto_Pip
 ```
 
-To create and use a dedicated virtual environment in `00_Auto_Pip/venv`:
+Install all stage dependencies across the repository using the setup utility:
 
 ```bash
+# Using active Python environment
+python setup_env.py
+
+# Or create and install into dedicated 00_Auto_Pip/venv
 python setup_env.py --create-venv
 ```
+
+Activate the virtual environment when needed:
+- **Windows:** `.\venv\Scripts\activate`
+- **Linux / macOS:** `source venv/bin/activate`
 
 ---
 
 ## 🖥️ Running the Interactive Web UI
 
-`00_Auto_Pip` provides a dedicated web dashboard running on port `8000` that connects all microservices, monitors service health, and manages video dubbing with live progress tracking and side-by-side video playback:
+From `Dubbing/00_Auto_Pip/`:
 
 ```bash
-Dubbing/
+# Start Web UI and auto-launch all background microservices
 python main.py --auto-start
 ```
 
 > **Tip:** The `--auto-start` flag causes `main.py` to automatically detect and launch any missing backend microservice stages in the background, eliminating the need to start each stage manually!
 
-*Or running the web server without auto-starting background stages:*
+*Or run the web server without auto-starting background stages:*
 
 ```bash
-Dubbing/
 python main.py
 ```
 
@@ -152,9 +158,11 @@ python orchestrator.py --start-services
 | **03** | Salient Keyword Extraction (RAKE) | `8003` | `/api/health` |
 | **04** | Sentence Construction (Flan-T5) | `8004` | `/api/health` *(or in-process)* |
 | **05a** | Keyword Translation & Phonetics | `8011` | `/api/health` |
-| **05b** | Sentence Reformation & Précis | `8012` | `/api/health` |
-| **06** | Converted Text to MP3 (Edge TTS) | `8013` | `/api/health` |
-| **07** | Final Video & Audio Merge | `8014` | `/api/health` |
+| **05b** | Sentence Reformation & Précis | `8005` | `/api/health` |
+| **06** | Converted Text to MP3 (Edge TTS) | `8006` | `/api/health` |
+| **07** | Final Video & Audio Merge | `8007` | `/api/health` |
+| **08** | Acoustic Profiling & Voice Cloning (XTTS v2) | CLI / `8008` | Direct CLI / In-Process |
+
 
 ---
 
@@ -177,6 +185,7 @@ Each pipeline job generates the following structured outputs:
 ## 🛠️ Troubleshooting
 
 - **Python not recognized / wrong version:** Ensure Python 3.11 is active (`python --version`). Avoid Python 3.14+ as it lacks binary wheels for PyTorch and CTranslate2.
-- **Port already in use:** Verify another process is not binding to ports `8001`–`8014` or run `python orchestrator.py --status`.
+- **Port already in use:** Verify another process is not binding to ports `8001`–`8008` or run `python orchestrator.py --status`.
 - **FFmpeg not found:** Ensure `ffmpeg` is installed and added to `PATH` (`ffmpeg -version`).
+- **Coqui TTS & Voice Cloning (`TTS` / `demucs`):** Stages 2b and 06 use Demucs and Coqui XTTS v2 for background separation and cloned voice synthesis. Ensure `coqui-tts`, `demucs`, and `torchaudio` are installed in your environment (`pip install -r requirements.txt`).
 - **Stage 4 PyTorch Security Warning:** If Windows Application Control blocks `c10.dll`, ensure Python is installed in an approved user directory.

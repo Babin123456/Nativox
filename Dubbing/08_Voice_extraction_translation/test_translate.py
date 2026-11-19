@@ -84,14 +84,15 @@ INPUT_TEXT = "The greatest pleasure I've had is trying to do something that ever
 TARGET_LANG = "hi"                          # e.g. hi, es, fr, de, it, pt, ru, ja, ko, ar, zh-CN, tr, nl, pl, cs, hu
 SOURCE_LANG = "auto"                        # "auto" = detect automatically
 
-PROFILE_JSON = "voice_profile.json"             # created by main.py
-REFERENCE_WAV = "voice_profile_reference.wav"   # created by main.py
-CLIPS_DIR = "voice_profile_clips"               # created by main.py
-LATENTS_CACHE = "voice_latents.pt"              # voice embedding cache (auto-created)
+DEFAULT_OUTPUT_DIR = ".output"
+PROFILE_JSON = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json") if os.path.isfile(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json")) else "voice_profile.json"             # created by main.py
+REFERENCE_WAV = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_reference.wav") if os.path.isfile(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_reference.wav")) else "voice_profile_reference.wav"   # created by main.py
+CLIPS_DIR = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips") if os.path.isdir(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips")) else "voice_profile_clips"               # created by main.py
+LATENTS_CACHE = os.path.join(DEFAULT_OUTPUT_DIR, "voice_latents.pt")              # voice embedding cache (auto-created)
 
-OUTPUT_MP3 = "translated_cloned.mp3"
-ENERGY_GRAPH_PNG = "energy_graph.png"           # original vs cloned energy + pitch graph
-REPORT_JSON = "cloned_audio_report.json"        # similarity numbers
+OUTPUT_MP3 = os.path.join(DEFAULT_OUTPUT_DIR, "translated_cloned.mp3")
+ENERGY_GRAPH_PNG = os.path.join(DEFAULT_OUTPUT_DIR, "energy_graph.png")           # original vs cloned energy + pitch graph
+REPORT_JSON = os.path.join(DEFAULT_OUTPUT_DIR, "cloned_audio_report.json")        # similarity numbers
 
 # ---- voice quality (main levers against the "robotic" sound) ---------------
 N_CANDIDATES = 2          # generate N takes per sentence, keep the one closest to the original voice

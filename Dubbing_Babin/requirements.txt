@@ -1,0 +1,15 @@
+coqui-tts>=0.22.0
+torch
+torchaudio
+demucs
+faster-whisper
+deep-translator
+librosa
+soundfile
+scipy
+matplotlib
+pydub
+numpy
+fastapi
+uvicorn
+python-multipart

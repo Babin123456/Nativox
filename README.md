@@ -32,10 +32,11 @@
 
 **Nativox** is an enterprise-grade AI-powered audiovisual dubbing and synchronization suite designed for high-fidelity cross-lingual video translation. It translates spoken English talking-head videos into natural, culturally fluent Indic speech (**Hindi `hi`** and **Bengali `bn`**) with strict 1:1 timeline duration constraints, background music and acoustic atmosphere preservation, vocal timbre transfer, and high-definition sub-nasal lip synchronization.
 
-The suite is engineered as three complementary, decoupled pillars:
-1. **`Dubbing/` (Microservices Orchestration Suite)**: Modular multi-port pipeline (Stages 00–08) coordinating audio demuxing, faster-whisper transcription, keyword extraction, grammatical SOV reformation, neural TTS synthesis, and lossless remuxing.
-2. **`LipSync_Babin/` (Autonomous Free Dubbing & Neural Lip-Sync Pipeline)**: Zero-API autonomous pipeline featuring Meta HTDemucs vocal stem separation, syllable-budgeted translation, pitch & formant voice cloning (Praat PSOLA / OpenVoice V2), Wav2Lip lip-sync generation, and GFPGAN v1.4 facial micro-texture restoration.
-3. **`Lipsync/` (Computer-Vision Quantitative Evaluation Engine)**: Objective, non-intrusive evaluation suite extracting 468 3D MediaPipe facial mesh landmarks, computing Normalized Mouth Aspect Ratio (MAR) curves, and applying Dynamic Time Warping (DTW) to quantify audiovisual temporal synchrony against native ground truth.
+The suite is engineered as four complementary, decoupled pillars:
+1. **`Dubbing_Babin/` (Streamlined Direct Dubbing Studio & Engine)**: Single-command, end-to-end automated dubbing pipeline containing strictly the essential production stages (`[01 Demux -> 02a Whisper -> 02b Demucs Profiling -> Direct Translation -> 06 XTTS v2 Cloned Voice -> 07 Remux]`) with a modern dark-mode SaaS web UI.
+2. **`Dubbing/` (Microservices Orchestration Suite)**: Modular multi-port research pipeline (Stages 00–08) coordinating audio demuxing, faster-whisper transcription, keyword extraction, grammatical SOV reformation, neural TTS synthesis, and lossless remuxing.
+3. **`LipSync_Babin/` (Autonomous Free Dubbing & Neural Lip-Sync Pipeline)**: Zero-API autonomous pipeline featuring Meta HTDemucs vocal stem separation, syllable-budgeted translation, pitch & formant voice cloning (Praat PSOLA / OpenVoice V2), Wav2Lip lip-sync generation, and GFPGAN v1.4 facial micro-texture restoration.
+4. **`Lipsync/` (Computer-Vision Quantitative Evaluation Engine)**: Objective, non-intrusive evaluation suite extracting 468 3D MediaPipe facial mesh landmarks, computing Normalized Mouth Aspect Ratio (MAR) curves, and applying Dynamic Time Warping (DTW) to quantify audiovisual temporal synchrony against native ground truth.
 
 ---
 
@@ -43,8 +44,15 @@ The suite is engineered as three complementary, decoupled pillars:
 
 ```text
 Nativox/
+├── Dubbing_Babin/                    # Streamlined Direct Dubbing Studio (Essential Stages Only)
+│   ├── web/                          # Modern SaaS Studio Web Interface
+│   ├── pipeline.py                   # Master Single-Command End-to-End Pipeline
+│   ├── server.py                     # FastAPI REST API & Streaming Server (Port 8000)
+│   ├── requirements.txt              # Dedicated Minimal Dependencies
+│   └── README.md                     # Pipeline Architecture & Manual
+│
 ├── Dubbing/                          # Modular Microservices Dubbing Suite
-│   ├── 00_Auto_Pip/                  # Master Orchestrator & Interactive Web Dashboard (Port 8000)
+│   ├── 00_Auto_Pip/                  # Master Orchestrator & Research Dashboard (Port 8000)
 │   ├── 01_MP4_to_MP3/                # Audio Demuxer & F0 Pitch Detection (Port 8001)
 │   ├── 02_MP3_to_Text/               # Whisper Speech-to-Text & VAD (Port 8002)
 │   ├── 03_Text_to_Keyword/           # Salient Keyword & Entity Extractor (Port 8003)
@@ -98,7 +106,33 @@ Nativox/
 
 ---
 
-### Track 1: Automated Dubbing Orchestrator (`Dubbing/00_Auto_Pip`)
+### Track 1: Streamlined Direct Dubbing Studio (`Dubbing_Babin`)
+
+Runs strictly the essential production stages (`[01 Demux -> 02a Whisper -> 02b Profiling -> Translation -> 06 XTTS v2 -> 07 Remux]`) without intermediate keyword/précis research steps.
+
+#### Option A: Interactive SaaS Web Studio (FastAPI)
+```powershell
+# Navigate to directory
+cd Dubbing_Babin
+
+# Launch the modern studio web interface:
+python server.py
+# (Or on a custom port: python server.py --port 8080)
+```
+- **Web Dashboard:** 👉 [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Features:** Dark-mode SaaS UI, drag-and-drop asset uploader, multi-language selector, live lifecycle stepper, streaming terminal telemetry, side-by-side synchronized video player, and one-click MP4 download.
+
+#### Option B: Single-Command Headless CLI
+```powershell
+cd Dubbing_Babin
+
+# Run single command dubbing on any input video
+python pipeline.py --video "path/to/video.mp4" --target-lang hi
+```
+
+---
+
+### Track 2: Modular Research Orchestrator (`Dubbing/00_Auto_Pip`)
 
 Runs the full microservices dubbing suite through a single unified web dashboard.
 
@@ -120,7 +154,7 @@ python main.py --auto-start
 
 ---
 
-### Track 2: Autonomous Neural Dubbing & Lip-Sync (`LipSync_Babin`)
+### Track 3: Autonomous Neural Dubbing & Lip-Sync (`LipSync_Babin`)
 
 Runs the zero-API pipeline combining Demucs stem separation, syllable-budgeted translation, voice cloning, and sub-nasal Wav2Lip + GFPGAN.
 
@@ -164,7 +198,7 @@ python pipeline.py --input ..\tests\test2.mp4 --lang bn --output outputs\test2_b
 
 ---
 
-### Track 3: Quantitative Lip-Sync Evaluation Suite (`Lipsync/`)
+### Track 4: Quantitative Lip-Sync Evaluation Suite (`Lipsync/`)
 
 Evaluates audiovisual mouth alignment between a generated video and a native ground truth.
 
@@ -232,6 +266,7 @@ Every pipeline in this repository has been comprehensively tested and verified e
 
 | Subsystem / Pipeline | Verification Type | Status | Confirmation Details |
 | :--- | :--- | :---: | :--- |
+| **`Dubbing_Babin` (Studio)** | End-to-End Pipeline & Web Server | **PASSING** | Full run on `test2.mp4` completed in 174s; exact 8.30s video duration preserved, cloned voice, background sound intact. |
 | **`Dubbing/00_Auto_Pip`** | Live Server & Health API | **PASSING** | Port `8000` active; FastAPI health checks, status APIs, and orchestrator validated. |
 | **`Dubbing/01_MP4_to_MP3`** | Service Launch & Import | **PASSING** | Validated cleanly; FFmpeg demuxer and pitch detection functional. |
 | **`Dubbing/02_MP3_to_Text`** | Service Launch & Import | **PASSING** | Validated cleanly; Faster-Whisper and VAD models load without error. |

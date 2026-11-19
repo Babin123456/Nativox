@@ -106,23 +106,14 @@ Dubbing/08_Voice_extraction_translation/
 ├── test_cloned.py               # Step 2A: Direct text-to-cloned speech (duration & script matched)
 ├── test_translate.py            # Step 2B: Translates text and synthesizes in cloned voice
 ├── test2.mp3                    # Sample input audio file
-│
-├── voice_profile.json           # Comprehensive JSON profile with all acoustic metrics
-├── voice_profile_reference.wav  # Normalized, silence-free ~30s reference audio (22,050 Hz)
-├── voice_profile_clips/         # Folder containing 6-12s speech clips for conditioning
-│   ├── clip_01.wav
-│   └── clip_02.wav (if audio length allows)
-├── voice_profile_energy.png     # Energy and pitch track visualization of source voice
-├── voice_latents.pt             # Cached XTTS speaker & GPT conditioning tensors
-│
-├── cloned_output.wav            # Generated cloned voice output (WAV format, 24,000 Hz)
-├── cloned_output.mp3            # Generated cloned voice output (MP3 format, 192 kbps)
-├── cloned_energy_graph.png      # Original vs. cloned energy and pitch overlay plot
-│
-├── translated_cloned.wav        # Translated cloned audio output (WAV)
-├── translated_cloned.mp3        # Translated cloned audio output (MP3)
-├── cloned_audio_report.json     # Quantitative delta report (pitch, loudness, centroid)
-├── energy_graph.png             # Diagnostic energy plot for test_translate.py
+├── .output/                     # Dedicated hidden output directory (auto-created via attrib +h)
+│   ├── voice_profile.json       # Comprehensive JSON profile with all acoustic metrics
+│   ├── voice_profile_reference.wav # Normalized, silence-free ~30s reference audio (22,050 Hz)
+│   ├── voice_profile_clips/     # Clean 6-12s speech clips for conditioning (clip_01.wav, etc.)
+│   ├── voice_profile_background.wav # Preserved original background stem (Demucs htdemucs)
+│   ├── voice_profile_vocals.wav # Isolated clean vocal stem
+│   ├── voice_profile_energy.png # Energy and pitch track visualization of source voice
+│   └── voice_latents.pt         # Cached XTTS speaker & GPT conditioning tensors
 └── README.md                    # Module documentation
 ```
 

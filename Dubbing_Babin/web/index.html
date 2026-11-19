@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nativox Studio - AI Dubbing Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1f2937;
+      --bg-input: #0e1526;
+      --border-subtle: #242f45;
+      --border-focus: #3b82f6;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      height: 64px;
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #3b82f6, #10b981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1rem;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-enterprise {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .pipeline-status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Main Workspace Layout */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 1.25rem;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-main);
+    }
+
+    .card-title i {
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Upload Zone */
+    .dropzone {
+      border: 1.5px dashed var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-input);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.04);
+    }
+
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 0.75rem auto;
+      border-radius: 50%;
+      background: var(--bg-surface-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.25rem;
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.2s;
+    }
+
+    .dropzone:hover .dropzone-icon {
+      transform: scale(1.05);
+      color: #60a5fa;
+    }
+
+    .dropzone-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .dropzone-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Form Fields */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-custom {
+      width: 100%;
+      appearance: none;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .select-custom:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .select-wrapper::after {
+      content: '\f107';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+      font-size: 0.85rem;
+    }
+
+    /* Primary Action Button */
+    .btn-action {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-action:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Stepper */
+    .stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.65rem 0.85rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .step-item.waiting {
+      opacity: 0.55;
+    }
+
+    .step-item.active {
+      opacity: 1;
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .step-item.completed {
+      opacity: 1;
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .step-icon-wrap {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      background: var(--bg-surface-elevated);
+      color: var(--text-dim);
+    }
+
+    .step-item.active .step-icon-wrap {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .step-item.completed .step-icon-wrap {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .step-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .step-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .step-meta {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .step-badge {
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+    }
+
+    .step-item.active .step-badge {
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.2);
+    }
+
+    .step-item.completed .step-badge {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    /* Terminal Console */
+    .terminal-container {
+      background: #070a12;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-topbar {
+      height: 32px;
+      background: #0f1523;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0.85rem;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--border-subtle);
+    }
+
+    .terminal-dot.r { background: #ef4444; }
+    .terminal-dot.y { background: #f59e0b; }
+    .terminal-dot.g { background: #10b981; }
+
+    .terminal-body {
+      height: 220px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #93c5fd;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Video Dual Grid */
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 800px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .player-card {
+      background: #070a12;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .player-header {
+      padding: 0.65rem 0.85rem;
+      background: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .player-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--text-muted);
+    }
+
+    .player-header-left i {
+      font-size: 0.75rem;
+    }
+
+    .btn-download {
+      font-size: 0.75rem;
+      color: #34d399;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      transition: all 0.2s;
+    }
+
+    .btn-download:hover {
+      background: rgba(16, 185, 129, 0.22);
+    }
+
+    .player-wrapper {
+      height: 250px;
+      background: #000000;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .player-empty {
+      position: absolute;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .player-empty i {
+      font-size: 1.5rem;
+      opacity: 0.4;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-waveform-lines"></i>
+      </div>
+      <div class="brand-title">
+        Nativox
+        <span class="badge-enterprise">Enterprise Dubbing</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="pipeline-status">
+        <div class="status-dot"></div>
+        <span>Core Pipeline Engine Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <main>
+    <!-- Left Panel: Job Controls & Stages -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-sliders"></i>
+          Job Configuration
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Drag and Drop Video Zone -->
+        <div class="field-group">
+          <label class="field-label">
+            <i class="fa-solid fa-film"></i>
+            Source Media Asset
+          </label>
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="videoFile" accept="video/mp4,video/quicktime,video/x-matroska" class="hidden">
+            <div class="dropzone-icon">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="dropzone-title" id="dropTitle">Select or drop video file</div>
+            <div class="dropzone-subtitle" id="dropSubtitle">Supported containers: MP4, MOV, MKV</div>
+          </div>
+        </div>
+
+        <!-- Target Language Selector -->
+        <div class="field-group">
+          <label class="field-label" for="langSelect">
+            <i class="fa-solid fa-language"></i>
+            Target Vernacular Language
+          </label>
+          <div class="select-wrapper">
+            <select id="langSelect" class="select-custom">
+              <option value="hi" selected>Hindi (हिन्दी - hi)</option>
+              <option value="es">Spanish (Español - es)</option>
+              <option value="fr">French (Français - fr)</option>
+              <option value="de">German (Deutsch - de)</option>
+              <option value="it">Italian (Italiano - it)</option>
+              <option value="pt">Portuguese (Português - pt)</option>
+              <option value="ru">Russian (Русский - ru)</option>
+              <option value="ja">Japanese (日本語 - ja)</option>
+              <option value="zh-cn">Chinese (Simplified - zh-cn)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Launch Dubbing Button -->
+        <button id="btnLaunch" class="btn-action" disabled>
+          <i class="fa-solid fa-bolt"></i>
+          <span>Execute Dubbing Pipeline</span>
+        </button>
+
+        <!-- Pipeline Stages Stepper -->
+        <div class="field-group" style="margin-top: 0.5rem;">
+          <label class="field-label">
+            <i class="fa-solid fa-layer-group"></i>
+            Execution Lifecycle
+          </label>
+          <div class="stepper">
+            <div class="step-item waiting" id="s1">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-file-audio"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">01 Audio Extraction</span>
+                <span class="step-meta">FFmpeg Demuxing & Pitch</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s2a">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-microphone-lines"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">02a Speech Recognition</span>
+                <span class="step-meta">Faster-Whisper Neural Model</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s2b">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-fingerprint"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">02b Speaker Profiling</span>
+                <span class="step-meta">Demucs Vocal Separation</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="sTr">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-globe"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">Translation Layer</span>
+                <span class="step-meta">Direct Vernacular Alignment</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s6">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-user-astronaut"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">06 Voice Cloning</span>
+                <span class="step-meta">XTTS v2 & Background Preservation</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s7">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-clapperboard"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">07 Video Remuxing</span>
+                <span class="step-meta">Zero Frame Truncation</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Telemetry & Player View -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-terminal"></i>
+          Pipeline Telemetry & Studio Player
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Terminal Output -->
+        <div class="terminal-container">
+          <div class="terminal-topbar">
+            <div class="terminal-dots">
+              <div class="terminal-dot r"></div>
+              <div class="terminal-dot y"></div>
+              <div class="terminal-dot g"></div>
+            </div>
+            <span>STDOUT / STDERR</span>
+            <i class="fa-solid fa-server"></i>
+          </div>
+          <div class="terminal-body" id="termOutput">Ready. Select a video file to begin execution.</div>
+        </div>
+
+        <!-- Video Player Grid -->
+        <div class="video-grid">
+          <div class="player-card">
+            <div class="player-header">
+              <div class="player-header-left">
+                <i class="fa-solid fa-video"></i>
+                <span>Original Source</span>
+              </div>
+            </div>
+            <div class="player-wrapper">
+              <video id="vidOrig" controls></video>
+              <div class="player-empty" id="emptyOrig">
+                <i class="fa-regular fa-circle-play"></i>
+                <span>No source selected</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="player-card">
+            <div class="player-header">
+              <div class="player-header-left">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Dubbed Cloned Output</span>
+              </div>
+              <a id="btnDownload" href="#" download class="btn-download hidden">
+                <i class="fa-solid fa-download"></i>
+                <span>Download MP4</span>
+              </a>
+            </div>
+            <div class="player-wrapper">
+              <video id="vidDub" controls></video>
+              <div class="player-empty" id="emptyDub">
+                <i class="fa-solid fa-spinner fa-spin hidden" id="spinnerDub"></i>
+                <span id="dubStatusText">Waiting for pipeline completion</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const videoFile = document.getElementById('videoFile');
+    const dropTitle = document.getElementById('dropTitle');
+    const dropSubtitle = document.getElementById('dropSubtitle');
+    const langSelect = document.getElementById('langSelect');
+    const btnLaunch = document.getElementById('btnLaunch');
+    const termOutput = document.getElementById('termOutput');
+    const vidOrig = document.getElementById('vidOrig');
+    const vidDub = document.getElementById('vidDub');
+    const emptyOrig = document.getElementById('emptyOrig');
+    const emptyDub = document.getElementById('emptyDub');
+    const spinnerDub = document.getElementById('spinnerDub');
+    const dubStatusText = document.getElementById('dubStatusText');
+    const btnDownload = document.getElementById('btnDownload');
+
+    let activeAsset = null;
+    let pollTimer = null;
+
+    dropzone.addEventListener('click', () => videoFile.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        processFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    videoFile.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        processFile(e.target.files[0]);
+      }
+    });
+
+    function processFile(file) {
+      activeAsset = file;
+      dropTitle.textContent = file.name;
+      dropSubtitle.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB • ${file.type || 'video/mp4'}`;
+      btnLaunch.disabled = false;
+      emptyOrig.classList.add('hidden');
+      vidOrig.src = URL.createObjectURL(file);
+    }
+
+    function setStep(id, state, text) {
+      const el = document.getElementById(id);
+      el.className = `step-item ${state}`;
+      el.querySelector('.step-badge').textContent = text;
+    }
+
+    function clearSteps() {
+      ['s1', 's2a', 's2b', 'sTr', 's6', 's7'].forEach(id => setStep(id, 'waiting', 'Pending'));
+      vidDub.src = '';
+      emptyDub.classList.remove('hidden');
+      spinnerDub.classList.add('hidden');
+      dubStatusText.textContent = 'Waiting for pipeline completion';
+      btnDownload.classList.add('hidden');
+    }
+
+    btnLaunch.addEventListener('click', async () => {
+      if (!activeAsset) return;
+
+      btnLaunch.disabled = true;
+      clearSteps();
+      spinnerDub.classList.remove('hidden');
+      dubStatusText.textContent = 'Processing neural stages...';
+      termOutput.textContent = `[INIT] Uploading ${activeAsset.name} to server...\n`;
+
+      const formData = new FormData();
+      formData.append('video', activeAsset);
+      formData.append('target_lang', langSelect.value);
+
+      try {
+        const resp = await fetch('/api/dub', { method: 'POST', body: formData });
+        const res = await resp.json();
+        if (!res.job_id) throw new Error(res.error || 'Failed to initialize server task');
+
+        pollTelemetry(res.job_id);
+      } catch (err) {
+        termOutput.textContent += `\n[FATAL] ${err.message}\n`;
+        btnLaunch.disabled = false;
+        spinnerDub.classList.add('hidden');
+        dubStatusText.textContent = 'Execution aborted';
+      }
+    });
+
+    function pollTelemetry(jobId) {
+      if (pollTimer) clearInterval(pollTimer);
+
+      pollTimer = setInterval(async () => {
+        try {
+          const resp = await fetch(`/api/status/${jobId}`);
+          const job = await resp.json();
+
+          if (job.logs && job.logs.length) {
+            termOutput.textContent = job.logs.join('\n');
+            termOutput.scrollTop = termOutput.scrollHeight;
+          }
+
+          const s = job.current_step || 0;
+          if (s >= 1) setStep('s1', s === 1 ? 'active' : 'completed', s === 1 ? 'Running' : 'Done');
+          if (s >= 2) {
+            setStep('s2a', s === 2 ? 'active' : 'completed', s === 2 ? 'Transcribing' : 'Done');
+            setStep('s2b', s === 2 ? 'active' : 'completed', s === 2 ? 'Profiling' : 'Done');
+          }
+          if (s >= 3) setStep('sTr', s === 3 ? 'active' : 'completed', s === 3 ? 'Translating' : 'Done');
+          if (s >= 4) setStep('s6', s === 4 ? 'active' : 'completed', s === 4 ? 'Cloning' : 'Done');
+          if (s >= 5) setStep('s7', s === 5 ? 'active' : 'completed', s === 5 ? 'Remuxing' : 'Done');
+
+          if (job.status === 'completed') {
+            clearInterval(pollTimer);
+            btnLaunch.disabled = false;
+            ['s1', 's2a', 's2b', 'sTr', 's6', 's7'].forEach(id => setStep(id, 'completed', 'Done'));
+            
+            const vidUrl = `/api/video/${jobId}`;
+            vidDub.src = vidUrl;
+            emptyDub.classList.add('hidden');
+            btnDownload.href = vidUrl;
+            btnDownload.classList.remove('hidden');
+          } else if (job.status === 'failed') {
+            clearInterval(pollTimer);
+            btnLaunch.disabled = false;
+            spinnerDub.classList.add('hidden');
+            dubStatusText.textContent = 'Execution failed';
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

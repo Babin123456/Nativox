@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Pipeline generated outputs & intermediate clips
+outputs/
+jobs/
+.output/
+*.wav
+*.mp3
+*.mp4
+*.mkv
+*.pt
+*.png
+*.json
+!requirements.txt
+
+# OS generated files
+Thumbs.db
+.DS_Store

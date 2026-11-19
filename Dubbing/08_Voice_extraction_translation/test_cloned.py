@@ -100,23 +100,25 @@ INPUT_TEXT = "मेरे लिए सबसे बड़ी खुशी क�
 # mixture of two languages - e.g. Hindi text with "en".)
 LANGUAGE = "auto"
 
-OUTPUT_MP3 = "cloned_output.mp3"
-OUTPUT_WAV = "cloned_output.wav"
-ENERGY_GRAPH_PNG = "cloned_energy_graph.png"     # original vs cloned energy + pitch
+# Voice profile files (created by main.py)
+DEFAULT_OUTPUT_DIR = ".output"
+OUTPUT_MP3 = os.path.join(DEFAULT_OUTPUT_DIR, "cloned_output.mp3")
+OUTPUT_WAV = os.path.join(DEFAULT_OUTPUT_DIR, "cloned_output.wav")
+ENERGY_GRAPH_PNG = os.path.join(DEFAULT_OUTPUT_DIR, "cloned_energy_graph.png")     # original vs cloned energy + pitch
 SAVE_ENERGY_GRAPH = True
 
 # ---- Background sound (kept exactly as in the original recording) ------------
 PRESERVE_BACKGROUND = True
-OUTPUT_VOICE_ONLY_WAV = "cloned_voice_only.wav"   # cloned voice without background (for checking)
+OUTPUT_VOICE_ONLY_WAV = os.path.join(DEFAULT_OUTPUT_DIR, "cloned_voice_only.wav")   # cloned voice without background (for checking)
 # If the cloned voice is longer than the original recording, the background is
 # "loop"ed (first pass untouched, 20 ms fade-in on repeats) or continued as "silence".
 BACKGROUND_FIT = "loop"
 
-# Voice profile files (created by main.py)
-PROFILE_JSON = "voice_profile.json"
-REFERENCE_WAV = "voice_profile_reference.wav"
-CLIPS_DIR = "voice_profile_clips"
-LATENTS_CACHE = "voice_latents.pt"              # auto-created; speeds up re-runs
+PROFILE_JSON = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json") if os.path.isfile(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json")) else "voice_profile.json"
+REFERENCE_WAV = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_reference.wav") if os.path.isfile(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_reference.wav")) else "voice_profile_reference.wav"
+CLIPS_DIR = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips") if os.path.isdir(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips")) else "voice_profile_clips"
+LATENTS_CACHE = os.path.join(DEFAULT_OUTPUT_DIR, "voice_latents.pt")              # auto-created; speeds up re-runs
+
 
 # ---- Length control ---------------------------------------------------------
 MATCH_ORIGINAL_DURATION = True   # make the output about as long as the original recording
@@ -262,11 +264,15 @@ def highpass(y, sr, cutoff=60):
 
 
 def tidy_chunk(w, sr=SYNTH_SR):
-    """Trim silence/noise XTTS leaves around a sentence and fade edges."""
+    """Trim silence/noise XTTS leaves around a sentence and fade edges, preserving speech tail."""
     w = np.asarray(w, dtype=np.float32).squeeze()
     if w.size == 0:
         return w
-    w, _ = librosa.effects.trim(w, top_db=35)
+    # Use conservative 48 dB threshold to avoid clipping soft ending consonants
+    w, _ = librosa.effects.trim(w, top_db=48)
+    # Add 120ms safety padding at the tail so the final word isn't abruptly cut
+    tail_pad = int(sr * 0.12)
+    w = np.pad(w, (0, tail_pad))
     n = int(sr * 0.012)
     if w.size > 2 * n:
         ramp = np.linspace(0, 1, n, dtype=np.float32)
@@ -348,10 +354,11 @@ def _wrap(s, max_len):
     return out
 
 
-def split_text(text, lang, max_len=200):
-    """Sentence-wise chunks; every sentence ends with proper punctuation."""
+def split_text(text, lang, max_len=95):
+    """Sentence-wise chunks; splits clauses naturally so XTTS never cuts off trailing words."""
     end_mark = "।" if lang == "hi" else "。" if lang in ("ja", "zh-cn") else "."
     chunks = []
+    # Also split on natural conjunctions / pauses like 'जिसके', 'कि', commas, etc.
     for p in re.split(r"(?<=[.!?।。！？])\s+", text.strip()):
         p = p.strip()
         if not p:
@@ -360,14 +367,22 @@ def split_text(text, lang, max_len=200):
             pieces = [(p, SENTENCE_PAUSE_SEC)]
         else:
             pieces, cur = [], ""
-            for pc in re.split(r"(?<=[,;:，、])\s+", p):
+            # Split by comma or subordinating conjunctions if clause is long
+            split_regex = r"(?<=[,;:，、])\s+|(?<=\s)(?=जिसके|ताकि|क्योंकि|लेकिन|किन्तु|परन्तु|परंतु|कि\s)" if lang == "hi" else r"(?<=[,;:，、])\s+"
+            for pc in re.split(split_regex, p):
+                if not pc:
+                    continue
                 if len(cur) + len(pc) + 1 > max_len and cur:
                     pieces.append((cur, COMMA_PAUSE_SEC))
                     cur = pc
                 else:
                     cur = f"{cur} {pc}".strip()
-            pieces += [(w, COMMA_PAUSE_SEC) for w in _wrap(cur, max_len)]
-            pieces[-1] = (pieces[-1][0], SENTENCE_PAUSE_SEC)
+            if cur:
+                pieces += [(w, COMMA_PAUSE_SEC) for w in _wrap(cur, max_len)]
+            if pieces:
+                pieces[-1] = (pieces[-1][0], SENTENCE_PAUSE_SEC)
+        if not pieces:
+            continue
         # a missing full stop makes XTTS ramble / add extra sound at the end
         txt, pause = pieces[-1]
         if not re.search(r"[.!?।。！？]$", txt):
@@ -552,9 +567,12 @@ def fit_background(bg, n):
     return np.concatenate(parts)[:n]
 
 
-def mix_with_background(voice_24k, bg):
-    """Add the (processed) cloned voice on top of the untouched background."""
+def mix_with_background(voice_24k, bg, start_sec=0.0):
+    """Add the (processed) cloned voice on top of the untouched background at the original start offset."""
     voice = librosa.resample(voice_24k, orig_sr=SYNTH_SR, target_sr=BG_SR).astype(np.float32)
+    start_pad = max(0, int(round(start_sec * BG_SR)))
+    if start_pad > 0:
+        voice = np.pad(voice, (start_pad, 0))
     n = max(len(voice), bg.shape[0])                 # keep the whole background
     voice = np.pad(voice, (0, n - len(voice)))
     mix = fit_background(bg, n) + voice[:, None]
@@ -705,9 +723,20 @@ def main():
     if PRESERVE_BACKGROUND and not args.no_background:
         bg, voice_target_db = load_background(profile, profile_path, args.background_wav)
 
+    # Determine target duration and timing alignment
+    bg_info = profile.get("background", {})
+    speech_start_sec = float(bg_info.get("speech_start_sec", 0.0))
+    speech_dur_sec = float(bg_info.get("speech_duration_sec", 0.0))
+    bg_total_dur = float(bg_info.get("duration_sec", 0.0))
+
     target = target_dur
     if target is None and MATCH_ORIGINAL_DURATION:
-        target = profile.get("metadata", {}).get("duration_sec")
+        # Align target speech duration to the active speaking window of the source speaker
+        if speech_dur_sec > 1.0:
+            target = speech_dur_sec
+        else:
+            target = profile.get("metadata", {}).get("duration_sec") or bg_total_dur or None
+
 
     model, device, torch = load_model()
     gpt, spk = get_voice_embedding(model, device, torch, clips_dir=clips_folder, ref_wav=ref_wav_path, cache_path=cache_path)
@@ -742,21 +771,44 @@ def main():
     # ---- put the original background back, untouched ----
     out_sr, final = SYNTH_SR, y
     if bg is not None:
+        voice_only_dir = os.path.dirname(args.voice_only_wav)
+        if voice_only_dir:
+            os.makedirs(voice_only_dir, exist_ok=True)
+            if sys.platform == "win32" and os.path.basename(voice_only_dir).startswith("."):
+                subprocess.run(["attrib", "+h", voice_only_dir], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         sf.write(args.voice_only_wav, voice_only, SYNTH_SR)
-        final, mix_gain = mix_with_background(voice_only, bg)
+        final, mix_gain = mix_with_background(voice_only, bg, start_sec=speech_start_sec)
         out_sr = BG_SR
         adjustments["background"] = "original, unprocessed"
+        adjustments["speech_start_offset_sec"] = speech_start_sec
         if mix_gain:
             adjustments["overall_gain_db_to_avoid_clipping"] = round(mix_gain, 2)
 
+
     # ---- save output ----
     print("\nSaving output ...")
+    wav_out_dir = os.path.dirname(wav_out_path)
+    if wav_out_dir:
+        os.makedirs(wav_out_dir, exist_ok=True)
+    if mp3_out_path:
+        mp3_out_dir = os.path.dirname(mp3_out_path)
+        if mp3_out_dir:
+            os.makedirs(mp3_out_dir, exist_ok=True)
+
     wav_out, mp3_out = save_output(final, out_sr, wav_out_path, mp3_out_path)
 
     if SAVE_ENERGY_GRAPH:
         try:
-            save_energy_graph(analyze(ref_y, SYNTH_SR), analyze(voice_only, SYNTH_SR), ENERGY_GRAPH_PNG)
-            print(f"  Graph saved: {ENERGY_GRAPH_PNG}")
+            graph_path = ENERGY_GRAPH_PNG
+            # If the user specified a specific output dir for wav/mp3, place the graph alongside it
+            if wav_out_dir and wav_out_dir != "." and wav_out_dir != DEFAULT_OUTPUT_DIR:
+                graph_path = os.path.join(wav_out_dir, os.path.basename(ENERGY_GRAPH_PNG))
+            else:
+                os.makedirs(DEFAULT_OUTPUT_DIR, exist_ok=True)
+                if sys.platform == "win32":
+                    subprocess.run(["attrib", "+h", DEFAULT_OUTPUT_DIR], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            save_energy_graph(analyze(ref_y, SYNTH_SR), analyze(voice_only, SYNTH_SR), graph_path)
+            print(f"  Graph saved: {graph_path}")
         except Exception as exc:
             print(f"  Energy graph skipped ({exc})")
 

@@ -950,16 +950,20 @@
         const names = {
           mp4_to_mp3: "01 MP4→MP3",
           mp3_to_text: "02a Whisper",
+          voice_extraction: "02b & 06 Voice Extraction (08)",
           text_to_kw: "03 Keywords",
+          kw_to_sentence: "04 Sentences",
           kw_translation: "05a Translate",
           sentence_reformation: "05b Reform",
+          text_to_mp3: "06 Edge-TTS",
           merge_mp3_mp4: "07 Merge",
         };
 
         for (const [key, info] of Object.entries(data.stages)) {
           const chip = document.createElement('span');
           chip.className = `service-chip ${info.online ? 'online' : 'offline'}`;
-          chip.innerHTML = `<span class="dot-status"></span> ${names[key] || key} (${info.port})`;
+          const portText = info.port === "Direct CLI/Engine" ? "Engine Ready" : info.port;
+          chip.innerHTML = `<span class="dot-status"></span> ${names[key] || key} (${portText})`;
           container.appendChild(chip);
         }
       } catch (e) {

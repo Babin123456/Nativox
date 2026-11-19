@@ -25,6 +25,7 @@ __pycache__/
 *.mp4
 *.wav
 08_Voice_extraction_translation/output/
+08_Voice_extraction_translation/.output/
 08_Voice_extraction_translation/storage/
 08_Voice_extraction_translation/*voice_profile*.json
 08_Voice_extraction_translation/*voice_profile*.wav
