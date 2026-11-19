@@ -10,3 +10,7 @@ scipy
 matplotlib
 pydub
 numpy
+fastapi
+uvicorn
+python-multipart
+

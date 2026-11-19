@@ -44,20 +44,43 @@ This pipeline contains **only the strictly required stages** to convert an input
 
 ---
 
-## ⚡ Quick Start (Single Command)
+## 🖥️ Running the Interactive Web UI
+
+Launch the modern Web Dashboard from inside `Dubbing_Babin`:
+
+```bash
+cd Dubbing_Babin
+python server.py
+```
+
+*Or specify a custom port:*
+```bash
+python server.py --port 8080
+```
+
+Open your browser to:
+👉 **`http://127.0.0.1:8000`**
+
+### Web UI Features:
+- **Drag-and-Drop Video Uploader:** Directly upload MP4, MOV, or MKV videos.
+- **Target Language Picker:** Choose Hindi, Spanish, French, German, Japanese, and more.
+- **Visual Multi-Stage Stepper:** Live step tracking across Stages 1, 2a, 2b, Translate, 6, and 7.
+- **Real-Time Terminal Output:** View streaming Whisper transcription and synthesis logs.
+- **Side-by-Side Video Comparison Player:** Compare original video against dubbed video.
+- **One-Click Video Download:** Instant download for the finalized dubbed MP4.
+
+---
+
+## ⚡ Running the Pipeline via CLI (Single Command)
 
 All execution happens directly inside `Dubbing_Babin`:
 
 ```bash
 cd Dubbing_Babin
-```
-
-### Run Dubbing on Any Video:
-```bash
 python pipeline.py --video "path/to/video.mp4" --target-lang hi
 ```
 
-### Options:
+### CLI Options:
 - `--video`, `-v`: Path to input video file (`.mp4`, `.mov`, `.mkv`).
 - `--target-lang`, `-l`: Target language code (e.g., `hi` for Hindi, `es` for Spanish, `fr` for French, `de` for German, etc.). Default is `hi`.
 - `--work-dir`, `-o`: (Optional) Custom output directory. Defaults to `outputs/job_<timestamp>/`.

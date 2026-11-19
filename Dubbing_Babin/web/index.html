@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nativox Dubbing_Babin - Streamlined Dubbing Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --bg-card: #111726;
+      --bg-card-hover: #161e31;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent: #00d26a;
+      --accent-glow: rgba(0, 210, 106, 0.25);
+      --primary: #3b82f6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1.25rem 2rem;
+      background: rgba(17, 23, 38, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #00d26a, #3b82f6);
+      color: #000;
+      font-weight: 800;
+      font-size: 1.1rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand span {
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 0.85rem;
+      background: rgba(0, 210, 106, 0.12);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin-left: 0.5rem;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--accent);
+      background: rgba(0, 210, 106, 0.08);
+      border: 1px solid rgba(0, 210, 106, 0.2);
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .upload-zone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.02);
+      margin-bottom: 1.25rem;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(0, 210, 106, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .upload-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-select {
+      width: 100%;
+      background: #0a0d14;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-select:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #00d26a, #059669);
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px var(--accent-glow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 210, 106, 0.4);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .stages-stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .step-item.waiting {
+      opacity: 0.5;
+      border-left-color: var(--text-muted);
+    }
+
+    .step-item.active {
+      opacity: 1;
+      background: rgba(0, 210, 106, 0.08);
+      border-left-color: var(--accent);
+    }
+
+    .step-item.completed {
+      opacity: 1;
+      background: rgba(59, 130, 246, 0.08);
+      border-left-color: var(--primary);
+    }
+
+    .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .step-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .step-status {
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .logs-terminal {
+      background: #06080e;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      height: 230px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .player-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .player-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .video-container {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .video-container video {
+      width: 100%;
+      height: 260px;
+      object-fit: contain;
+      background: #000;
+      display: block;
+    }
+
+    .video-label {
+      padding: 0.6rem 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #111726;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .download-btn {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .download-btn:hover {
+      text-decoration: underline;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo-badge">NB</div>
+      <h1>Dubbing_Babin <span>Streamlined Pipeline</span></h1>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span>STRICT STAGES ACTIVE: [1, 2a, 2b, Translate, 6, 7]</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column: Controls & Upload -->
+    <section class="card">
+      <h2>🚀 Video Dubbing Control</h2>
+
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="videoInput" accept="video/mp4,video/quicktime,video/x-matroska" class="hidden">
+        <div class="upload-icon">🎥</div>
+        <div class="upload-text" id="uploadPrompt">Choose a source video or drag here</div>
+        <div class="upload-sub" id="fileName">Supports MP4, MOV, MKV</div>
+      </div>
+
+      <div class="form-group">
+        <label for="targetLang">Target Vernacular Language</label>
+        <select id="targetLang" class="form-select">
+          <option value="hi" selected>Hindi (हिन्दी - hi)</option>
+          <option value="es">Spanish (Español - es)</option>
+          <option value="fr">French (Français - fr)</option>
+          <option value="de">German (Deutsch - de)</option>
+          <option value="it">Italian (Italiano - it)</option>
+          <option value="pt">Portuguese (Português - pt)</option>
+          <option value="ru">Russian (Русский - ru)</option>
+          <option value="ja">Japanese (日本語 - ja)</option>
+          <option value="zh-cn">Chinese (Simplified - zh-cn)</option>
+        </select>
+      </div>
+
+      <button id="startBtn" class="btn-submit" disabled>
+        <span>Start Automatic Dubbing</span>
+      </button>
+
+      <div style="margin-top: 1.5rem;">
+        <h2 style="font-size: 0.95rem;">Pipeline Stages Status</h2>
+        <div class="stages-stepper">
+          <div class="step-item waiting" id="step1">
+            <span class="step-num">01</span>
+            <span class="step-title">Audio Demuxing (FFmpeg)</span>
+            <span class="step-status">Idle</span>
+          </div>
+          <div class="step-item waiting" id="step2a">
+            <span class="step-num">02a</span>
+            <span class="step-title">Speech-to-Text (Whisper)</span>
+            <span class="step-status">Idle</span>
+          </div>
+          <div class="step-item waiting" id="step2b">
+            <span class="step-num">02b</span>
+            <span class="step-title">Speaker Profiling (Demucs)</span>
+            <span class="step-status">Idle</span>
+          </div>
+          <div class="step-item waiting" id="stepTrans">
+            <span class="step-num">TR</span>
+            <span class="step-title">Direct Translation</span>
+            <span class="step-status">Idle</span>
+          </div>
+          <div class="step-item waiting" id="step6">
+            <span class="step-num">06</span>
+            <span class="step-title">Voice Cloning (XTTS v2)</span>
+            <span class="step-status">Idle</span>
+          </div>
+          <div class="step-item waiting" id="step7">
+            <span class="step-num">07</span>
+            <span class="step-title">Remux & Output (FFmpeg)</span>
+            <span class="step-status">Idle</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Logs & Player Preview -->
+    <section class="card" style="display: flex; flex-direction: column;">
+      <h2>📊 Live Pipeline Terminal</h2>
+      <div class="logs-terminal" id="logsTerminal">Ready to process. Upload a video and start the pipeline...</div>
+
+      <div class="player-grid" id="playerGrid">
+        <div class="video-container">
+          <video id="origVideo" controls></video>
+          <div class="video-label">
+            <span>Original Source Video</span>
+          </div>
+        </div>
+        <div class="video-container">
+          <video id="dubbedVideo" controls></video>
+          <div class="video-label">
+            <span>Final Dubbed Video (Cloned)</span>
+            <a id="downloadLink" href="#" download class="download-btn hidden">⬇ Download MP4</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const uploadZone = document.getElementById('uploadZone');
+    const videoInput = document.getElementById('videoInput');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const fileName = document.getElementById('fileName');
+    const targetLang = document.getElementById('targetLang');
+    const startBtn = document.getElementById('startBtn');
+    const logsTerminal = document.getElementById('logsTerminal');
+    const origVideo = document.getElementById('origVideo');
+    const dubbedVideo = document.getElementById('dubbedVideo');
+    const downloadLink = document.getElementById('downloadLink');
+
+    let selectedFile = null;
+    let pollInterval = null;
+
+    uploadZone.addEventListener('click', () => videoInput.click());
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    videoInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      selectedFile = file;
+      uploadPrompt.textContent = file.name;
+      fileName.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+      startBtn.disabled = false;
+      origVideo.src = URL.createObjectURL(file);
+    }
+
+    startBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      startBtn.disabled = true;
+      resetSteps();
+      logsTerminal.textContent = "Uploading video and initializing Dubbing_Babin pipeline...\n";
+
+      const formData = new FormData();
+      formData.append('video', selectedFile);
+      formData.append('target_lang', targetLang.value);
+
+      try {
+        const res = await fetch('/api/dub', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!data.job_id) {
+          throw new Error(data.error || 'Failed to start job');
+        }
+
+        startPolling(data.job_id);
+      } catch (err) {
+        logsTerminal.textContent += `\n[ERROR] ${err.message}\n`;
+        startBtn.disabled = false;
+      }
+    });
+
+    function setStepState(id, state, statusText) {
+      const el = document.getElementById(id);
+      el.className = `step-item ${state}`;
+      el.querySelector('.step-status').textContent = statusText;
+    }
+
+    function resetSteps() {
+      ['step1', 'step2a', 'step2b', 'stepTrans', 'step6', 'step7'].forEach(id => {
+        setStepState(id, 'waiting', 'Waiting');
+      });
+      dubbedVideo.src = '';
+      downloadLink.classList.add('hidden');
+    }
+
+    function startPolling(jobId) {
+      if (pollInterval) clearInterval(pollInterval);
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/status/${jobId}`);
+          const job = await res.json();
+
+          // Update terminal logs
+          if (job.logs && job.logs.length) {
+            logsTerminal.textContent = job.logs.join('\n');
+            logsTerminal.scrollTop = logsTerminal.scrollHeight;
+          }
+
+          // Step state highlighting
+          const step = job.current_step || 0;
+          if (step >= 1) setStepState('step1', step === 1 ? 'active' : 'completed', step === 1 ? 'Demuxing...' : 'Done');
+          if (step >= 2) {
+            setStepState('step2a', step === 2 ? 'active' : 'completed', step === 2 ? 'Transcribing...' : 'Done');
+            setStepState('step2b', step === 2 ? 'active' : 'completed', step === 2 ? 'Profiling...' : 'Done');
+          }
+          if (step >= 3) setStepState('stepTrans', step === 3 ? 'active' : 'completed', step === 3 ? 'Translating...' : 'Done');
+          if (step >= 4) setStepState('step6', step === 4 ? 'active' : 'completed', step === 4 ? 'Cloning...' : 'Done');
+          if (step >= 5) setStepState('step7', step === 5 ? 'active' : 'completed', step === 5 ? 'Remuxing...' : 'Done');
+
+          if (job.status === 'completed') {
+            clearInterval(pollInterval);
+            startBtn.disabled = false;
+            ['step1', 'step2a', 'step2b', 'stepTrans', 'step6', 'step7'].forEach(id => {
+              setStepState(id, 'completed', 'Done');
+            });
+            const videoUrl = `/api/video/${jobId}`;
+            dubbedVideo.src = videoUrl;
+            downloadLink.href = videoUrl;
+            downloadLink.classList.remove('hidden');
+          } else if (job.status === 'failed') {
+            clearInterval(pollInterval);
+            startBtn.disabled = false;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
