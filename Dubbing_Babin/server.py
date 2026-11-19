@@ -176,6 +176,29 @@ def get_output_video(job_id: str):
     return FileResponse(str(video_path), media_type="video/mp4", filename=video_path.name)
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return JSONResponse(status_code=204, content={})
+
+
+def silence_proactor_reset():
+    """Silences harmless WinError 10054 on Windows when browsers seek video."""
+    if sys.platform == "win32":
+        from asyncio.proactor_events import _ProactorBasePipeTransport
+        orig_call_connection_lost = _ProactorBasePipeTransport._call_connection_lost
+
+        def _patched_call_connection_lost(self, exc):
+            try:
+                orig_call_connection_lost(self, exc)
+            except (ConnectionResetError, OSError):
+                pass
+
+        _ProactorBasePipeTransport._call_connection_lost = _patched_call_connection_lost
+
+
+silence_proactor_reset()
+
+
 def main():
     import uvicorn
     parser = argparse.ArgumentParser(description="Nativox Dubbing_Babin Web UI Server")
