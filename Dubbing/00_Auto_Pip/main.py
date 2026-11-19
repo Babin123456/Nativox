@@ -103,6 +103,16 @@ def get_services_status():
             "directory": rel_dir,
         }
 
+    # Include Stage 2b & 08 Voice Extraction & Cloning engine status
+    stage08_ready = (ROOT_DIR / "08_Voice_extraction_translation" / "main.py").is_file() and (ROOT_DIR / "08_Voice_extraction_translation" / "test_cloned.py").is_file()
+    statuses["voice_extraction"] = {
+        "port": "Direct CLI/Engine",
+        "url": "#",
+        "online": stage08_ready,
+        "directory": "08_Voice_extraction_translation",
+    }
+
+
     return {
         "all_ready": all_ready,
         "stages": statuses,

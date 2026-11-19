@@ -554,9 +554,12 @@ def fit_background(bg, n):
     return np.concatenate(parts)[:n]
 
 
-def mix_with_background(voice_24k, bg):
-    """Add the (processed) cloned voice on top of the untouched background."""
+def mix_with_background(voice_24k, bg, start_sec=0.0):
+    """Add the (processed) cloned voice on top of the untouched background at the original start offset."""
     voice = librosa.resample(voice_24k, orig_sr=SYNTH_SR, target_sr=BG_SR).astype(np.float32)
+    start_pad = max(0, int(round(start_sec * BG_SR)))
+    if start_pad > 0:
+        voice = np.pad(voice, (start_pad, 0))
     n = max(len(voice), bg.shape[0])                 # keep the whole background
     voice = np.pad(voice, (0, n - len(voice)))
     mix = fit_background(bg, n) + voice[:, None]
@@ -707,9 +710,20 @@ def main():
     if PRESERVE_BACKGROUND and not args.no_background:
         bg, voice_target_db = load_background(profile, profile_path, args.background_wav)
 
+    # Determine target duration and timing alignment
+    bg_info = profile.get("background", {})
+    speech_start_sec = float(bg_info.get("speech_start_sec", 0.0))
+    speech_dur_sec = float(bg_info.get("speech_duration_sec", 0.0))
+    bg_total_dur = float(bg_info.get("duration_sec", 0.0))
+
     target = target_dur
     if target is None and MATCH_ORIGINAL_DURATION:
-        target = profile.get("metadata", {}).get("duration_sec")
+        # Align target speech duration to the active speaking window of the source speaker
+        if speech_dur_sec > 1.0:
+            target = speech_dur_sec
+        else:
+            target = profile.get("metadata", {}).get("duration_sec") or bg_total_dur or None
+
 
     model, device, torch = load_model()
     gpt, spk = get_voice_embedding(model, device, torch, clips_dir=clips_folder, ref_wav=ref_wav_path, cache_path=cache_path)
@@ -745,11 +759,13 @@ def main():
     out_sr, final = SYNTH_SR, y
     if bg is not None:
         sf.write(args.voice_only_wav, voice_only, SYNTH_SR)
-        final, mix_gain = mix_with_background(voice_only, bg)
+        final, mix_gain = mix_with_background(voice_only, bg, start_sec=speech_start_sec)
         out_sr = BG_SR
         adjustments["background"] = "original, unprocessed"
+        adjustments["speech_start_offset_sec"] = speech_start_sec
         if mix_gain:
             adjustments["overall_gain_db_to_avoid_clipping"] = round(mix_gain, 2)
+
 
     # ---- save output ----
     print("\nSaving output ...")

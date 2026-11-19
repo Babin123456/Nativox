@@ -550,7 +550,17 @@ def separate_stems(path, bg_path, vocals_path):
             json.dump(sig, f)
 
     vo, _ = sf.read(vocals_path, dtype="float32", always_2d=True)
-    voice_db = active_db_mean(librosa.resample(vo.mean(axis=1), orig_sr=BG_SR, target_sr=SR))
+    v_mono = vo.mean(axis=1)
+    voice_db = active_db_mean(librosa.resample(v_mono, orig_sr=BG_SR, target_sr=SR))
+    
+    # Calculate speech start/end timestamps in the original vocal track for video timing alignment
+    e = np.abs(v_mono)
+    thr = max(0.015, float(np.max(e)) * 0.08) if e.size > 0 else 0.02
+    act = np.where(e > thr)[0]
+    speech_start_sec = round(float(act[0]) / BG_SR, 3) if act.size > 0 else 0.0
+    speech_end_sec = round(float(act[-1]) / BG_SR, 3) if act.size > 0 else round(float(len(v_mono)) / BG_SR, 3)
+    speech_dur_sec = max(0.5, round(speech_end_sec - speech_start_sec, 3))
+
     return {
         "enabled": True,
         "separation_model": "htdemucs",
@@ -559,6 +569,9 @@ def separate_stems(path, bg_path, vocals_path):
         "vocals_wav": vocals_path.replace("\\", "/"),
         "sample_rate": BG_SR,
         "duration_sec": sf.info(bg_path).frames / BG_SR,
+        "speech_start_sec": speech_start_sec,
+        "speech_end_sec": speech_end_sec,
+        "speech_duration_sec": speech_dur_sec,
         # loudness of the voice inside the original recording (unnormalised) - lets
         # test_cloned.py keep the same voice-to-background balance
         "voice_level_db_in_original": voice_db,
