@@ -178,7 +178,8 @@ def get_output_video(job_id: str):
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
-    return JSONResponse(status_code=204, content={})
+    from fastapi.responses import Response
+    return Response(status_code=204)
 
 
 def silence_proactor_reset():
