@@ -3,359 +3,563 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nativox Dubbing_Babin - Streamlined Dubbing Studio</title>
+  <title>Nativox Studio - AI Dubbing Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
-      --bg-dark: #0a0d14;
-      --bg-card: #111726;
-      --bg-card-hover: #161e31;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --accent: #00d26a;
-      --accent-glow: rgba(0, 210, 106, 0.25);
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1f2937;
+      --bg-input: #0e1526;
+      --border-subtle: #242f45;
+      --border-focus: #3b82f6;
       --primary: #3b82f6;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --warning: #f59e0b;
+      --primary-hover: #2563eb;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
       --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
-      background: var(--bg-dark);
+      background-color: var(--bg-base);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
+    /* Top Navigation Bar */
     header {
-      padding: 1.25rem 2rem;
-      background: rgba(17, 23, 38, 0.8);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
+      height: 64px;
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 100;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
 
-    .logo-badge {
-      background: linear-gradient(135deg, #00d26a, #3b82f6);
-      color: #000;
-      font-weight: 800;
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #3b82f6, #10b981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1rem;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .brand-title {
       font-size: 1.1rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 8px;
-      letter-spacing: -0.5px;
-    }
-
-    .brand h1 {
-      font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .brand span {
-      color: var(--accent);
-      font-weight: 500;
-      font-size: 0.85rem;
-      background: rgba(0, 210, 106, 0.12);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      margin-left: 0.5rem;
-    }
-
-    .status-badge {
+      letter-spacing: -0.3px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-size: 0.85rem;
+    }
+
+    .badge-enterprise {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .pipeline-status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      font-weight: 500;
       color: var(--accent);
-      background: rgba(0, 210, 106, 0.08);
-      border: 1px solid rgba(0, 210, 106, 0.2);
-      padding: 0.35rem 0.75rem;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 0.35rem 0.85rem;
       border-radius: 20px;
       font-family: 'JetBrains Mono', monospace;
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       background: var(--accent);
       border-radius: 50%;
-      box-shadow: 0 0 10px var(--accent);
-      animation: pulse 2s infinite;
+      box-shadow: 0 0 8px var(--accent);
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.9); }
-    }
-
+    /* Main Workspace Layout */
     main {
       flex: 1;
-      max-width: 1400px;
+      max-width: 1440px;
       width: 100%;
       margin: 0 auto;
       padding: 2rem;
       display: grid;
       grid-template-columns: 460px 1fr;
-      gap: 2rem;
+      gap: 1.75rem;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1100px) {
       main {
         grid-template-columns: 1fr;
+        padding: 1.25rem;
       }
     }
 
+    /* Cards */
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    }
-
-    .card h2 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--text-main);
-    }
-
-    .upload-zone {
-      border: 2px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      padding: 2.5rem 1.5rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.02);
-      margin-bottom: 1.25rem;
-    }
-
-    .upload-zone:hover, .upload-zone.dragover {
-      border-color: var(--accent);
-      background: rgba(0, 210, 106, 0.05);
-    }
-
-    .upload-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .upload-text {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .upload-sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.25rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-select {
-      width: 100%;
-      background: #0a0d14;
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .form-select:focus {
-      border-color: var(--accent);
-    }
-
-    .btn-submit {
-      width: 100%;
-      background: linear-gradient(135deg, #00d26a, #059669);
-      color: #000;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 0.9rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 16px var(--accent-glow);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 24px rgba(0, 210, 106, 0.4);
-    }
-
-    .btn-submit:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .stages-stepper {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-main);
+    }
+
+    .card-title i {
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Upload Zone */
+    .dropzone {
+      border: 1.5px dashed var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-input);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.04);
+    }
+
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 0.75rem auto;
+      border-radius: 50%;
+      background: var(--bg-surface-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.25rem;
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.2s;
+    }
+
+    .dropzone:hover .dropzone-icon {
+      transform: scale(1.05);
+      color: #60a5fa;
+    }
+
+    .dropzone-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .dropzone-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Form Fields */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-custom {
+      width: 100%;
+      appearance: none;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .select-custom:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .select-wrapper::after {
+      content: '\f107';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+      font-size: 0.85rem;
+    }
+
+    /* Primary Action Button */
+    .btn-action {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-action:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Stepper */
+    .stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
     }
 
     .step-item {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
       padding: 0.65rem 0.85rem;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 8px;
-      border-left: 3px solid transparent;
-      transition: all 0.2s;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
     }
 
     .step-item.waiting {
-      opacity: 0.5;
-      border-left-color: var(--text-muted);
+      opacity: 0.55;
     }
 
     .step-item.active {
       opacity: 1;
-      background: rgba(0, 210, 106, 0.08);
-      border-left-color: var(--accent);
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.08);
     }
 
     .step-item.completed {
       opacity: 1;
-      background: rgba(59, 130, 246, 0.08);
-      border-left-color: var(--primary);
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.05);
     }
 
-    .step-num {
-      font-family: 'JetBrains Mono', monospace;
+    .step-icon-wrap {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.2rem 0.45rem;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--bg-surface-elevated);
+      color: var(--text-dim);
     }
 
-    .step-title {
-      font-size: 0.85rem;
-      font-weight: 600;
+    .step-item.active .step-icon-wrap {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .step-item.completed .step-icon-wrap {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .step-text {
       flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
-    .step-status {
-      font-size: 0.75rem;
+    .step-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .step-meta {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .step-badge {
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+    }
+
+    .step-item.active .step-badge {
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.2);
+    }
+
+    .step-item.completed .step-badge {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    /* Terminal Console */
+    .terminal-container {
+      background: #070a12;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-topbar {
+      height: 32px;
+      background: #0f1523;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0.85rem;
+      font-size: 0.72rem;
+      color: var(--text-dim);
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .logs-terminal {
-      background: #06080e;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--border-subtle);
+    }
+
+    .terminal-dot.r { background: #ef4444; }
+    .terminal-dot.y { background: #f59e0b; }
+    .terminal-dot.g { background: #10b981; }
+
+    .terminal-body {
+      height: 220px;
       padding: 1rem;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.8rem;
-      color: #38bdf8;
-      height: 230px;
+      line-height: 1.6;
+      color: #93c5fd;
       overflow-y: auto;
       white-space: pre-wrap;
-      line-height: 1.5;
+      word-break: break-all;
     }
 
-    .player-grid {
+    /* Video Dual Grid */
+    .video-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-top: 1.5rem;
+      gap: 1.25rem;
     }
 
-    @media (max-width: 768px) {
-      .player-grid {
+    @media (max-width: 800px) {
+      .video-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .video-container {
-      background: #000;
-      border-radius: 12px;
+    .player-card {
+      background: #070a12;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
       overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-
-    .video-container video {
-      width: 100%;
-      height: 260px;
-      object-fit: contain;
-      background: #000;
-      display: block;
-    }
-
-    .video-label {
-      padding: 0.6rem 0.85rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #111726;
-      border-top: 1px solid var(--border-color);
       display: flex;
+      flex-direction: column;
+    }
+
+    .player-header {
+      padding: 0.65rem 0.85rem;
+      background: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
-    .download-btn {
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.8rem;
-      font-weight: 700;
+    .player-header-left {
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.45rem;
+      color: var(--text-muted);
     }
 
-    .download-btn:hover {
-      text-decoration: underline;
+    .player-header-left i {
+      font-size: 0.75rem;
+    }
+
+    .btn-download {
+      font-size: 0.75rem;
+      color: #34d399;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      transition: all 0.2s;
+    }
+
+    .btn-download:hover {
+      background: rgba(16, 185, 129, 0.22);
+    }
+
+    .player-wrapper {
+      height: 250px;
+      background: #000000;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .player-empty {
+      position: absolute;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .player-empty i {
+      font-size: 1.5rem;
+      opacity: 0.4;
     }
 
     .hidden {
@@ -364,231 +568,359 @@
   </style>
 </head>
 <body>
+
+  <!-- Navigation -->
   <header>
     <div class="brand">
-      <div class="logo-badge">NB</div>
-      <h1>Dubbing_Babin <span>Streamlined Pipeline</span></h1>
+      <div class="brand-icon">
+        <i class="fa-solid fa-waveform-lines"></i>
+      </div>
+      <div class="brand-title">
+        Nativox
+        <span class="badge-enterprise">Enterprise Dubbing</span>
+      </div>
     </div>
-    <div class="status-badge">
-      <div class="status-dot"></div>
-      <span>STRICT STAGES ACTIVE: [1, 2a, 2b, Translate, 6, 7]</span>
+    <div class="header-actions">
+      <div class="pipeline-status">
+        <div class="status-dot"></div>
+        <span>Core Pipeline Engine Ready</span>
+      </div>
     </div>
   </header>
 
+  <!-- Workspace -->
   <main>
-    <!-- Left Column: Controls & Upload -->
+    <!-- Left Panel: Job Controls & Stages -->
     <section class="card">
-      <h2>🚀 Video Dubbing Control</h2>
-
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" id="videoInput" accept="video/mp4,video/quicktime,video/x-matroska" class="hidden">
-        <div class="upload-icon">🎥</div>
-        <div class="upload-text" id="uploadPrompt">Choose a source video or drag here</div>
-        <div class="upload-sub" id="fileName">Supports MP4, MOV, MKV</div>
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-sliders"></i>
+          Job Configuration
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="targetLang">Target Vernacular Language</label>
-        <select id="targetLang" class="form-select">
-          <option value="hi" selected>Hindi (हिन्दी - hi)</option>
-          <option value="es">Spanish (Español - es)</option>
-          <option value="fr">French (Français - fr)</option>
-          <option value="de">German (Deutsch - de)</option>
-          <option value="it">Italian (Italiano - it)</option>
-          <option value="pt">Portuguese (Português - pt)</option>
-          <option value="ru">Russian (Русский - ru)</option>
-          <option value="ja">Japanese (日本語 - ja)</option>
-          <option value="zh-cn">Chinese (Simplified - zh-cn)</option>
-        </select>
-      </div>
+      <div class="card-body">
+        <!-- Drag and Drop Video Zone -->
+        <div class="field-group">
+          <label class="field-label">
+            <i class="fa-solid fa-film"></i>
+            Source Media Asset
+          </label>
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="videoFile" accept="video/mp4,video/quicktime,video/x-matroska" class="hidden">
+            <div class="dropzone-icon">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="dropzone-title" id="dropTitle">Select or drop video file</div>
+            <div class="dropzone-subtitle" id="dropSubtitle">Supported containers: MP4, MOV, MKV</div>
+          </div>
+        </div>
 
-      <button id="startBtn" class="btn-submit" disabled>
-        <span>Start Automatic Dubbing</span>
-      </button>
+        <!-- Target Language Selector -->
+        <div class="field-group">
+          <label class="field-label" for="langSelect">
+            <i class="fa-solid fa-language"></i>
+            Target Vernacular Language
+          </label>
+          <div class="select-wrapper">
+            <select id="langSelect" class="select-custom">
+              <option value="hi" selected>Hindi (हिन्दी - hi)</option>
+              <option value="es">Spanish (Español - es)</option>
+              <option value="fr">French (Français - fr)</option>
+              <option value="de">German (Deutsch - de)</option>
+              <option value="it">Italian (Italiano - it)</option>
+              <option value="pt">Portuguese (Português - pt)</option>
+              <option value="ru">Russian (Русский - ru)</option>
+              <option value="ja">Japanese (日本語 - ja)</option>
+              <option value="zh-cn">Chinese (Simplified - zh-cn)</option>
+            </select>
+          </div>
+        </div>
 
-      <div style="margin-top: 1.5rem;">
-        <h2 style="font-size: 0.95rem;">Pipeline Stages Status</h2>
-        <div class="stages-stepper">
-          <div class="step-item waiting" id="step1">
-            <span class="step-num">01</span>
-            <span class="step-title">Audio Demuxing (FFmpeg)</span>
-            <span class="step-status">Idle</span>
-          </div>
-          <div class="step-item waiting" id="step2a">
-            <span class="step-num">02a</span>
-            <span class="step-title">Speech-to-Text (Whisper)</span>
-            <span class="step-status">Idle</span>
-          </div>
-          <div class="step-item waiting" id="step2b">
-            <span class="step-num">02b</span>
-            <span class="step-title">Speaker Profiling (Demucs)</span>
-            <span class="step-status">Idle</span>
-          </div>
-          <div class="step-item waiting" id="stepTrans">
-            <span class="step-num">TR</span>
-            <span class="step-title">Direct Translation</span>
-            <span class="step-status">Idle</span>
-          </div>
-          <div class="step-item waiting" id="step6">
-            <span class="step-num">06</span>
-            <span class="step-title">Voice Cloning (XTTS v2)</span>
-            <span class="step-status">Idle</span>
-          </div>
-          <div class="step-item waiting" id="step7">
-            <span class="step-num">07</span>
-            <span class="step-title">Remux & Output (FFmpeg)</span>
-            <span class="step-status">Idle</span>
+        <!-- Launch Dubbing Button -->
+        <button id="btnLaunch" class="btn-action" disabled>
+          <i class="fa-solid fa-bolt"></i>
+          <span>Execute Dubbing Pipeline</span>
+        </button>
+
+        <!-- Pipeline Stages Stepper -->
+        <div class="field-group" style="margin-top: 0.5rem;">
+          <label class="field-label">
+            <i class="fa-solid fa-layer-group"></i>
+            Execution Lifecycle
+          </label>
+          <div class="stepper">
+            <div class="step-item waiting" id="s1">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-file-audio"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">01 Audio Extraction</span>
+                <span class="step-meta">FFmpeg Demuxing & Pitch</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s2a">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-microphone-lines"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">02a Speech Recognition</span>
+                <span class="step-meta">Faster-Whisper Neural Model</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s2b">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-fingerprint"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">02b Speaker Profiling</span>
+                <span class="step-meta">Demucs Vocal Separation</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="sTr">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-globe"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">Translation Layer</span>
+                <span class="step-meta">Direct Vernacular Alignment</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s6">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-user-astronaut"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">06 Voice Cloning</span>
+                <span class="step-meta">XTTS v2 & Background Preservation</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
+
+            <div class="step-item waiting" id="s7">
+              <div class="step-icon-wrap">
+                <i class="fa-solid fa-clapperboard"></i>
+              </div>
+              <div class="step-text">
+                <span class="step-name">07 Video Remuxing</span>
+                <span class="step-meta">Zero Frame Truncation</span>
+              </div>
+              <span class="step-badge">Idle</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Right Column: Logs & Player Preview -->
-    <section class="card" style="display: flex; flex-direction: column;">
-      <h2>📊 Live Pipeline Terminal</h2>
-      <div class="logs-terminal" id="logsTerminal">Ready to process. Upload a video and start the pipeline...</div>
+    <!-- Right Panel: Telemetry & Player View -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-terminal"></i>
+          Pipeline Telemetry & Studio Player
+        </div>
+      </div>
 
-      <div class="player-grid" id="playerGrid">
-        <div class="video-container">
-          <video id="origVideo" controls></video>
-          <div class="video-label">
-            <span>Original Source Video</span>
+      <div class="card-body">
+        <!-- Terminal Output -->
+        <div class="terminal-container">
+          <div class="terminal-topbar">
+            <div class="terminal-dots">
+              <div class="terminal-dot r"></div>
+              <div class="terminal-dot y"></div>
+              <div class="terminal-dot g"></div>
+            </div>
+            <span>STDOUT / STDERR</span>
+            <i class="fa-solid fa-server"></i>
+          </div>
+          <div class="terminal-body" id="termOutput">Ready. Select a video file to begin execution.</div>
+        </div>
+
+        <!-- Video Player Grid -->
+        <div class="video-grid">
+          <div class="player-card">
+            <div class="player-header">
+              <div class="player-header-left">
+                <i class="fa-solid fa-video"></i>
+                <span>Original Source</span>
+              </div>
+            </div>
+            <div class="player-wrapper">
+              <video id="vidOrig" controls></video>
+              <div class="player-empty" id="emptyOrig">
+                <i class="fa-regular fa-circle-play"></i>
+                <span>No source selected</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="player-card">
+            <div class="player-header">
+              <div class="player-header-left">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Dubbed Cloned Output</span>
+              </div>
+              <a id="btnDownload" href="#" download class="btn-download hidden">
+                <i class="fa-solid fa-download"></i>
+                <span>Download MP4</span>
+              </a>
+            </div>
+            <div class="player-wrapper">
+              <video id="vidDub" controls></video>
+              <div class="player-empty" id="emptyDub">
+                <i class="fa-solid fa-spinner fa-spin hidden" id="spinnerDub"></i>
+                <span id="dubStatusText">Waiting for pipeline completion</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="video-container">
-          <video id="dubbedVideo" controls></video>
-          <div class="video-label">
-            <span>Final Dubbed Video (Cloned)</span>
-            <a id="downloadLink" href="#" download class="download-btn hidden">⬇ Download MP4</a>
-          </div>
-        </div>
+
       </div>
     </section>
   </main>
 
   <script>
-    const uploadZone = document.getElementById('uploadZone');
-    const videoInput = document.getElementById('videoInput');
-    const uploadPrompt = document.getElementById('uploadPrompt');
-    const fileName = document.getElementById('fileName');
-    const targetLang = document.getElementById('targetLang');
-    const startBtn = document.getElementById('startBtn');
-    const logsTerminal = document.getElementById('logsTerminal');
-    const origVideo = document.getElementById('origVideo');
-    const dubbedVideo = document.getElementById('dubbedVideo');
-    const downloadLink = document.getElementById('downloadLink');
+    const dropzone = document.getElementById('dropzone');
+    const videoFile = document.getElementById('videoFile');
+    const dropTitle = document.getElementById('dropTitle');
+    const dropSubtitle = document.getElementById('dropSubtitle');
+    const langSelect = document.getElementById('langSelect');
+    const btnLaunch = document.getElementById('btnLaunch');
+    const termOutput = document.getElementById('termOutput');
+    const vidOrig = document.getElementById('vidOrig');
+    const vidDub = document.getElementById('vidDub');
+    const emptyOrig = document.getElementById('emptyOrig');
+    const emptyDub = document.getElementById('emptyDub');
+    const spinnerDub = document.getElementById('spinnerDub');
+    const dubStatusText = document.getElementById('dubStatusText');
+    const btnDownload = document.getElementById('btnDownload');
 
-    let selectedFile = null;
-    let pollInterval = null;
+    let activeAsset = null;
+    let pollTimer = null;
 
-    uploadZone.addEventListener('click', () => videoInput.click());
-    uploadZone.addEventListener('dragover', (e) => {
+    dropzone.addEventListener('click', () => videoFile.click());
+
+    dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      uploadZone.classList.add('dragover');
+      dropzone.classList.add('dragover');
     });
-    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-    uploadZone.addEventListener('drop', (e) => {
+
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+
+    dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
-      uploadZone.classList.remove('dragover');
+      dropzone.classList.remove('dragover');
       if (e.dataTransfer.files.length) {
-        handleFileSelect(e.dataTransfer.files[0]);
+        processFile(e.dataTransfer.files[0]);
       }
     });
 
-    videoInput.addEventListener('change', (e) => {
+    videoFile.addEventListener('change', (e) => {
       if (e.target.files.length) {
-        handleFileSelect(e.target.files[0]);
+        processFile(e.target.files[0]);
       }
     });
 
-    function handleFileSelect(file) {
-      selectedFile = file;
-      uploadPrompt.textContent = file.name;
-      fileName.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
-      startBtn.disabled = false;
-      origVideo.src = URL.createObjectURL(file);
+    function processFile(file) {
+      activeAsset = file;
+      dropTitle.textContent = file.name;
+      dropSubtitle.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB • ${file.type || 'video/mp4'}`;
+      btnLaunch.disabled = false;
+      emptyOrig.classList.add('hidden');
+      vidOrig.src = URL.createObjectURL(file);
     }
 
-    startBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
-
-      startBtn.disabled = true;
-      resetSteps();
-      logsTerminal.textContent = "Uploading video and initializing Dubbing_Babin pipeline...\n";
-
-      const formData = new FormData();
-      formData.append('video', selectedFile);
-      formData.append('target_lang', targetLang.value);
-
-      try {
-        const res = await fetch('/api/dub', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (!data.job_id) {
-          throw new Error(data.error || 'Failed to start job');
-        }
-
-        startPolling(data.job_id);
-      } catch (err) {
-        logsTerminal.textContent += `\n[ERROR] ${err.message}\n`;
-        startBtn.disabled = false;
-      }
-    });
-
-    function setStepState(id, state, statusText) {
+    function setStep(id, state, text) {
       const el = document.getElementById(id);
       el.className = `step-item ${state}`;
-      el.querySelector('.step-status').textContent = statusText;
+      el.querySelector('.step-badge').textContent = text;
     }
 
-    function resetSteps() {
-      ['step1', 'step2a', 'step2b', 'stepTrans', 'step6', 'step7'].forEach(id => {
-        setStepState(id, 'waiting', 'Waiting');
-      });
-      dubbedVideo.src = '';
-      downloadLink.classList.add('hidden');
+    function clearSteps() {
+      ['s1', 's2a', 's2b', 'sTr', 's6', 's7'].forEach(id => setStep(id, 'waiting', 'Pending'));
+      vidDub.src = '';
+      emptyDub.classList.remove('hidden');
+      spinnerDub.classList.add('hidden');
+      dubStatusText.textContent = 'Waiting for pipeline completion';
+      btnDownload.classList.add('hidden');
     }
 
-    function startPolling(jobId) {
-      if (pollInterval) clearInterval(pollInterval);
+    btnLaunch.addEventListener('click', async () => {
+      if (!activeAsset) return;
 
-      pollInterval = setInterval(async () => {
+      btnLaunch.disabled = true;
+      clearSteps();
+      spinnerDub.classList.remove('hidden');
+      dubStatusText.textContent = 'Processing neural stages...';
+      termOutput.textContent = `[INIT] Uploading ${activeAsset.name} to server...\n`;
+
+      const formData = new FormData();
+      formData.append('video', activeAsset);
+      formData.append('target_lang', langSelect.value);
+
+      try {
+        const resp = await fetch('/api/dub', { method: 'POST', body: formData });
+        const res = await resp.json();
+        if (!res.job_id) throw new Error(res.error || 'Failed to initialize server task');
+
+        pollTelemetry(res.job_id);
+      } catch (err) {
+        termOutput.textContent += `\n[FATAL] ${err.message}\n`;
+        btnLaunch.disabled = false;
+        spinnerDub.classList.add('hidden');
+        dubStatusText.textContent = 'Execution aborted';
+      }
+    });
+
+    function pollTelemetry(jobId) {
+      if (pollTimer) clearInterval(pollTimer);
+
+      pollTimer = setInterval(async () => {
         try {
-          const res = await fetch(`/api/status/${jobId}`);
-          const job = await res.json();
+          const resp = await fetch(`/api/status/${jobId}`);
+          const job = await resp.json();
 
-          // Update terminal logs
           if (job.logs && job.logs.length) {
-            logsTerminal.textContent = job.logs.join('\n');
-            logsTerminal.scrollTop = logsTerminal.scrollHeight;
+            termOutput.textContent = job.logs.join('\n');
+            termOutput.scrollTop = termOutput.scrollHeight;
           }
 
-          // Step state highlighting
-          const step = job.current_step || 0;
-          if (step >= 1) setStepState('step1', step === 1 ? 'active' : 'completed', step === 1 ? 'Demuxing...' : 'Done');
-          if (step >= 2) {
-            setStepState('step2a', step === 2 ? 'active' : 'completed', step === 2 ? 'Transcribing...' : 'Done');
-            setStepState('step2b', step === 2 ? 'active' : 'completed', step === 2 ? 'Profiling...' : 'Done');
+          const s = job.current_step || 0;
+          if (s >= 1) setStep('s1', s === 1 ? 'active' : 'completed', s === 1 ? 'Running' : 'Done');
+          if (s >= 2) {
+            setStep('s2a', s === 2 ? 'active' : 'completed', s === 2 ? 'Transcribing' : 'Done');
+            setStep('s2b', s === 2 ? 'active' : 'completed', s === 2 ? 'Profiling' : 'Done');
           }
-          if (step >= 3) setStepState('stepTrans', step === 3 ? 'active' : 'completed', step === 3 ? 'Translating...' : 'Done');
-          if (step >= 4) setStepState('step6', step === 4 ? 'active' : 'completed', step === 4 ? 'Cloning...' : 'Done');
-          if (step >= 5) setStepState('step7', step === 5 ? 'active' : 'completed', step === 5 ? 'Remuxing...' : 'Done');
+          if (s >= 3) setStep('sTr', s === 3 ? 'active' : 'completed', s === 3 ? 'Translating' : 'Done');
+          if (s >= 4) setStep('s6', s === 4 ? 'active' : 'completed', s === 4 ? 'Cloning' : 'Done');
+          if (s >= 5) setStep('s7', s === 5 ? 'active' : 'completed', s === 5 ? 'Remuxing' : 'Done');
 
           if (job.status === 'completed') {
-            clearInterval(pollInterval);
-            startBtn.disabled = false;
-            ['step1', 'step2a', 'step2b', 'stepTrans', 'step6', 'step7'].forEach(id => {
-              setStepState(id, 'completed', 'Done');
-            });
-            const videoUrl = `/api/video/${jobId}`;
-            dubbedVideo.src = videoUrl;
-            downloadLink.href = videoUrl;
-            downloadLink.classList.remove('hidden');
+            clearInterval(pollTimer);
+            btnLaunch.disabled = false;
+            ['s1', 's2a', 's2b', 'sTr', 's6', 's7'].forEach(id => setStep(id, 'completed', 'Done'));
+            
+            const vidUrl = `/api/video/${jobId}`;
+            vidDub.src = vidUrl;
+            emptyDub.classList.add('hidden');
+            btnDownload.href = vidUrl;
+            btnDownload.classList.remove('hidden');
           } else if (job.status === 'failed') {
-            clearInterval(pollInterval);
-            startBtn.disabled = false;
+            clearInterval(pollTimer);
+            btnLaunch.disabled = false;
+            spinnerDub.classList.add('hidden');
+            dubStatusText.textContent = 'Execution failed';
           }
-        } catch (err) {
-          console.error(err);
+        } catch (e) {
+          console.error(e);
         }
       }, 1000);
     }
