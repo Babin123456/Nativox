@@ -14,7 +14,7 @@ SUPPORTED_LANGUAGES = {
 # faster-whisper model size. "small" is a good CPU-friendly default;
 # bump to "medium" or "large-v3" if a GPU is available and accuracy
 # matters more than speed.
-DEFAULT_MODEL_SIZE = "small"
+DEFAULT_MODEL_SIZE = "base"
 
 # Device / compute type. "cpu" + "int8" runs everywhere with no GPU
 # required. Switch to "cuda" + "float16" if a GPU is present.

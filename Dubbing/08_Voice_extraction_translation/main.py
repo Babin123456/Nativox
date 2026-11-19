@@ -64,9 +64,11 @@ except ImportError:
 # SETTINGS - edit these, then just run:  python main.py
 # =========================================================================== #
 AUDIO_PATH = r"D:/VS Code/Nativox/Dubbing/08_Voice_extraction_translation/test2.mp3"   # <-- your .mp3 / .wav
-OUTPUT_JSON = "voice_profile.json"       # JSON file that will be created
-CLIPS_DIR = "voice_profile_clips"        # folder for the clean reference clips
+DEFAULT_OUTPUT_DIR = ".output"           # hidden folder where all generated outputs are placed
+OUTPUT_JSON = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json")       # JSON file that will be created
+CLIPS_DIR = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips")        # folder for the clean reference clips
 USE_EMOTION_MODEL = False                # True = neural emotion model (needs transformers + torch)
+
 USE_SPEAKER_EMBEDDING = False            # True = speaker embedding (needs resemblyzer)
 USE_DENOISE = True                       # gentle noise reduction (needs noisereduce; skipped if missing)
 PRESERVE_BACKGROUND = True               # split voice / background (Demucs) and keep the background untouched
@@ -633,6 +635,17 @@ def main():
 
     if not os.path.isfile(audio_path):
         sys.exit(f"Audio file not found: {audio_path}\nEdit AUDIO_PATH at the top of main.py or provide path via argument.")
+
+    out_dir = os.path.dirname(output_json)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+        if sys.platform == "win32":
+            try:
+                subprocess.run(["attrib", "+h", out_dir], check=False, capture_output=True)
+            except Exception:
+                pass
+    if clips_dir:
+        os.makedirs(clips_dir, exist_ok=True)
 
     base = os.path.splitext(output_json)[0]
     ref_path = base + "_reference.wav"

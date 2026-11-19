@@ -113,10 +113,12 @@ OUTPUT_VOICE_ONLY_WAV = "cloned_voice_only.wav"   # cloned voice without backgro
 BACKGROUND_FIT = "loop"
 
 # Voice profile files (created by main.py)
-PROFILE_JSON = "voice_profile.json"
-REFERENCE_WAV = "voice_profile_reference.wav"
-CLIPS_DIR = "voice_profile_clips"
-LATENTS_CACHE = "voice_latents.pt"              # auto-created; speeds up re-runs
+DEFAULT_OUTPUT_DIR = ".output"
+PROFILE_JSON = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json") if os.path.isfile(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile.json")) else "voice_profile.json"
+REFERENCE_WAV = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_reference.wav") if os.path.isfile(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_reference.wav")) else "voice_profile_reference.wav"
+CLIPS_DIR = os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips") if os.path.isdir(os.path.join(DEFAULT_OUTPUT_DIR, "voice_profile_clips")) else "voice_profile_clips"
+LATENTS_CACHE = os.path.join(DEFAULT_OUTPUT_DIR, "voice_latents.pt")              # auto-created; speeds up re-runs
+
 
 # ---- Length control ---------------------------------------------------------
 MATCH_ORIGINAL_DURATION = True   # make the output about as long as the original recording

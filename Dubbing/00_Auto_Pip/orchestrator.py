@@ -18,6 +18,7 @@ STAGES = {
     "kw_to_sentence": "http://127.0.0.1:8004",
     "kw_translation": "http://127.0.0.1:8011",
     "sentence_reformation": "http://127.0.0.1:8005",
+    "text_to_mp3": "http://127.0.0.1:8006",
     "merge_mp3_mp4": "http://127.0.0.1:8007",
     "voice_extraction": "http://127.0.0.1:8008",
 }
@@ -27,6 +28,7 @@ SERVICE_CONFIG = {
     "mp3_to_text": ("02_MP3_to_Text", 8002, "/api/languages"),
     "text_to_kw": ("03_Text_to_Keyword", 8003, "/api/health"),
     "sentence_reformation": ("05b_Sentence_Reformation__Atanu", 8005, "/api/health"),
+    "text_to_mp3": ("06_Converted_Text_to_MP3", 8006, "/api/health"),
     "merge_mp3_mp4": ("07_Merge_MP3_with_MP4", 8007, "/api/health"),
 }
 STARTUP_TIMEOUT_SECONDS = 120
@@ -68,9 +70,14 @@ def start_services(root: Path) -> list[subprocess.Popen]:
         if not stage_dir.is_dir():
             raise SystemExit(f"Directory for '{stage}' was not found: {stage_dir}")
         print(f"[start] {stage} on port {port}")
+        stage_venv_py = stage_dir / "venv" / "Scripts" / "python.exe"
+        python_bin = str(stage_venv_py) if stage_venv_py.is_file() else sys.executable
+        env = os.environ.copy()
+        env["TEMP"] = "D:\\tmp"
+        env["TMP"] = "D:\\tmp"
         process = subprocess.Popen(
             [
-                sys.executable,
+                python_bin,
                 "-m",
                 "uvicorn",
                 "main:app",
@@ -80,7 +87,7 @@ def start_services(root: Path) -> list[subprocess.Popen]:
                 str(port),
             ],
             cwd=stage_dir,
-            env=os.environ.copy(),
+            env=env,
         )
         owned_processes.append(process)
         try:
@@ -212,8 +219,10 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
 
     def _run_stage_2b():
         print("  [02b] Extracting speaker voice acoustic profile & reference clips (main.py)...")
+        stage08_py = root.parent / "LipSync_Babin" / ".venv" / "Scripts" / "python.exe"
+        py_exec = str(stage08_py) if stage08_py.is_file() else sys.executable
         cmd_2b = [
-            sys.executable,
+            py_exec,
             str(stage08_dir / "main.py"),
             str(mp3_path),
             "--output-json", str(profile_json),
@@ -301,30 +310,47 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
     (work / "dubbed_text.txt").write_text(final_text, encoding="utf-8")
     print(f"     saved {work / 'dubbed_text.txt'}")
 
-    # Stage 06: Cloned Voice Synthesis via Stage 08 (test_cloned.py) replacing text_to_mp3
-    print("[06] Synthesizing cloned speech in author's voice (Stage 08 test_cloned.py)...")
+    # Stage 06: Voice Synthesis
     dubbed_mp3_path = work / "dubbed_audio.mp3"
     cloned_wav_path = work / "dubbed_audio.wav"
     dubbed_text_file = work / "dubbed_text.txt"
 
-    cmd_clone = [
-        sys.executable,
-        str(stage08_dir / "test_cloned.py"),
-        "--text-file", str(dubbed_text_file),
-        "--profile", str(profile_json),
-        "--reference", str(ref_wav),
-        "--clips-dir", str(clips_dir),
-        "--output-mp3", str(dubbed_mp3_path),
-        "--output-wav", str(cloned_wav_path),
-    ]
-    res_clone = subprocess.run(cmd_clone, cwd=str(stage08_dir), capture_output=True, text=True, encoding="utf-8")
-    if res_clone.returncode != 0:
-        err = res_clone.stderr or res_clone.stdout
-        raise SystemExit(f"Stage 06 (Voice Cloning test_cloned.py) failed: {err[-500:]}")
+    cloned_ok = False
+    try:
+        from TTS.api import TTS
+        print("[06] Synthesizing cloned speech in author's voice (Stage 08 test_cloned.py)...")
+        cmd_clone = [
+            sys.executable,
+            str(stage08_dir / "test_cloned.py"),
+            "--text-file", str(dubbed_text_file),
+            "--profile", str(profile_json),
+            "--reference", str(ref_wav),
+            "--clips-dir", str(clips_dir),
+            "--output-mp3", str(dubbed_mp3_path),
+            "--output-wav", str(cloned_wav_path),
+        ]
+        res_clone = subprocess.run(cmd_clone, cwd=str(stage08_dir), capture_output=True, text=True, encoding="utf-8")
+        if res_clone.returncode == 0 and (dubbed_mp3_path.is_file() or cloned_wav_path.is_file()):
+            cloned_ok = True
+    except ImportError:
+        pass
+
+    if not cloned_ok:
+        # Fallback to Stage 06 (06_Converted_Text_to_MP3) neural voice synthesis
+        print("[06] Synthesizing Hindi speech via Stage 06 Neural TTS (hi-IN-MadhurNeural)...")
+        r = call(
+            "text_to_mp3",
+            "/api/synthesize",
+            json={"text": final_text, "voice": "hi-IN-MadhurNeural"},
+        )
+        result_tts = json_result(r, "text_to_mp3")
+        audio_url = str(result_tts.get("audio_url", ""))
+        audio_path = urlparse(audio_url).path
+        dubbed_mp3_path.write_bytes(download("text_to_mp3", audio_path).content)
 
     if not dubbed_mp3_path.is_file() and cloned_wav_path.is_file():
         dubbed_mp3_path = cloned_wav_path
-    print(f"     saved cloned audio {dubbed_mp3_path}")
+    print(f"     saved audio {dubbed_mp3_path}")
 
     # Stage 07: original MP4 + dubbed MP3 -> final MP4.
     print("[07] Merging dubbed audio with the original video...")
