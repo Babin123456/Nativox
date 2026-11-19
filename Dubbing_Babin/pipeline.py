@@ -207,9 +207,13 @@ def stage_06_voice_clone(
     cloned_wav = work_dir / "dubbed_audio.wav"
     voice_only_wav = work_dir / "cloned_voice_only.wav"
 
+    cloner_script = MODULE_DIR / "cloner.py"
+    if not cloner_script.is_file():
+        cloner_script = STAGE08_DIR / "test_cloned.py"
+
     cmd = [
         sys.executable,
-        str(STAGE08_DIR / "test_cloned.py"),
+        str(cloner_script),
         "--text-file", str(text_file),
         "--profile", str(profile_json),
         "--reference", str(ref_wav),
@@ -224,8 +228,8 @@ def stage_06_voice_clone(
         cmd.extend(["--target-duration", f"{target_duration:.2f}"])
         print(f"[*] Targeting exact dialogue speech duration: {target_duration:.2f}s")
 
-    print("[*] Synthesizing speech with cloned voice timbre & background preservation...")
-    res = subprocess.run(cmd, cwd=str(STAGE08_DIR), capture_output=True, text=True, encoding="utf-8")
+    print("[*] Synthesizing speech with enhanced expression, dynamic pitch & timbre matching...")
+    res = subprocess.run(cmd, cwd=str(MODULE_DIR), capture_output=True, text=True, encoding="utf-8")
     if res.returncode != 0:
         err = res.stderr or res.stdout
         raise RuntimeError(f"Stage 06 Voice Cloning failed: {err[-400:]}")
