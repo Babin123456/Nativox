@@ -732,7 +732,7 @@ def main():
     target = target_dur
     if target is None and MATCH_ORIGINAL_DURATION:
         # Align target speech duration to the active speaking window of the source speaker
-        if speech_dur_sec > 1.0:
+        if speech_dur_sec > 0.5:
             target = speech_dur_sec
         else:
             target = profile.get("metadata", {}).get("duration_sec") or bg_total_dur or None
