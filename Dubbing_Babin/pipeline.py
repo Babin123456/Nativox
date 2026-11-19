@@ -124,14 +124,46 @@ def stage_02b_voice_profile(audio_path: Path, work_dir: Path) -> tuple[Path, Pat
 
 def stage_translate(text: str, source_lang: str, target_lang: str, work_dir: Path) -> str:
     print_banner("Translate", f"Direct Vernacular Translation ({source_lang} -> {target_lang})")
-    try:
-        from deep_translator import GoogleTranslator
-    except ImportError:
-        raise RuntimeError("deep-translator is not installed. Run: pip install deep-translator")
-
+    
+    translated_text = ""
     src = "auto" if source_lang == "auto" else source_lang
-    translator = GoogleTranslator(source=src, target=target_lang)
-    translated_text = translator.translate(text).strip()
+
+    # Method 1: direct googleapis gtx client (robust, doesn't hit web scraper rate limits)
+    try:
+        import urllib.request
+        import urllib.parse
+        encoded_q = urllib.parse.quote(text)
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl={src}&tl={target_lang}&dt=t&q={encoded_q}"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if data and data[0]:
+                translated_text = "".join([part[0] for part in data[0] if part and part[0]]).strip()
+    except Exception as exc:
+        print(f"[*] Direct client fallback info: {exc}")
+
+    # Method 2: deep-translator with retry & backoff if Method 1 didn't return
+    if not translated_text:
+        try:
+            from deep_translator import GoogleTranslator
+            for attempt in range(3):
+                try:
+                    translator = GoogleTranslator(source=src, target=target_lang)
+                    translated_text = translator.translate(text).strip()
+                    if translated_text:
+                        break
+                except Exception as e:
+                    if attempt < 2:
+                        time.sleep(1.5 * (attempt + 1))
+                    else:
+                        raise e
+        except Exception as exc:
+            print(f"[!] Warning: deep-translator hit rate limit: {exc}")
+
+    # Method 3: Fallback if translation fails completely: pass text through
+    if not translated_text:
+        print("[!] Warning: Translation failed across providers. Retaining original transcript.")
+        translated_text = text
 
     dubbed_text_file = work_dir / "dubbed_text.txt"
     dubbed_text_file.write_text(translated_text, encoding="utf-8")
