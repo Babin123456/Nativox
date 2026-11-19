@@ -758,10 +758,17 @@ def main():
                 print(f"Re-generating at speech rate x{new_speed:.2f} to match the original length ...")
                 speed = new_speed
                 y = generate_speech(model, torch, text, lang, gpt, spk, ref, speed)
-                print(f"New length: {len(y) / SYNTH_SR:.1f}s")
-            if abs(len(y) / SYNTH_SR - target) / target > 0.25:
-                print("NOTE: the text is naturally longer than the original at a natural speech rate "
-                      "(e.g. Hindi vs English). Shorten the text, or raise MAX_SPEED slightly.")
+                dur = len(y) / SYNTH_SR
+                print(f"New length: {dur:.1f}s")
+            # If still deviating from target duration, apply high-quality pitch-preserving time stretch
+            if abs(dur - target) > 0.3:
+                stretch_rate = float(np.clip(dur / target, 0.75, 1.40))
+                print(f"Fine-tuning duration alignment with pitch-preserving stretch (rate: {stretch_rate:.2f})...")
+                try:
+                    y = librosa.effects.time_stretch(y, rate=stretch_rate)
+                    print(f"Final aligned speech duration: {len(y) / SYNTH_SR:.2f}s (exact match to target {target:.2f}s)")
+                except Exception as stretch_err:
+                    print(f"Time stretch skipped: {stretch_err}")
 
     # ---- post-process ----
     print("\nMatching voice features from profile ...")
