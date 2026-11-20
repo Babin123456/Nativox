@@ -584,6 +584,33 @@
       color: #000;
     }
 
+    /* ── Pipeline Execution Timer ────────────────────────────── */
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      color: #DDD6FE;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .timer-badge.completed {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.35);
+      color: #86EFAC;
+    }
+
+    .timer-badge.error {
+      background: rgba(248, 113, 113, 0.15);
+      border-color: rgba(248, 113, 113, 0.35);
+      color: #FCA5A5;
+    }
+
     /* ── Footer ──────────────────────────────────────────────── */
     footer {
       margin-top: 40px;
@@ -750,9 +777,15 @@
 
       <!-- Multi-Stage Progress Tracker -->
       <div class="progress-section" id="progressSection">
-        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; margin-bottom:8px; gap:12px;">
           <span id="stepName" style="color:var(--primary);">Initializing pipeline...</span>
-          <span id="progressPct" style="font-family:'JetBrains Mono',monospace;">0%</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="timer-badge" id="liveTimerBadge">
+              <i data-lucide="clock" style="width:13px;height:13px;"></i>
+              <span id="elapsedTime">00:00.0</span>
+            </span>
+            <span id="progressPct" style="font-family:'JetBrains Mono',monospace;">0%</span>
+          </div>
         </div>
         <div class="progress-bar-wrap">
           <div class="progress-fill" id="progressFill"></div>
@@ -820,9 +853,16 @@
           </div>
           <video id="finalVideoPlayer" controls></video>
           
-          <div id="voiceResultBadge" class="voice-result-chip" style="display:none;">
-            <i data-lucide="mic" style="width:13px;height:13px;color:var(--primary);"></i>
-            <span id="voiceBadgeText">Voice: Detecting...</span>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <div id="voiceResultBadge" class="voice-result-chip" style="display:none; margin-top:0;">
+              <i data-lucide="mic" style="width:13px;height:13px;color:var(--primary);"></i>
+              <span id="voiceBadgeText">Voice: Detecting...</span>
+            </div>
+
+            <div id="finalTimeBadge" class="timer-badge completed" style="display:none;">
+              <i data-lucide="timer" style="width:13px;height:13px;"></i>
+              <span id="finalTimeText">Completed in 00:00.0</span>
+            </div>
           </div>
 
           <div class="download-row">
@@ -880,6 +920,53 @@
       }
     }
 
+    // Add these state variables near the top of <script>
+    let timerInterval = null;
+    let pipelineStartTime = null;
+
+    function formatDuration(ms) {
+      const totalSeconds = ms / 1000;
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = Math.floor(totalSeconds % 60);
+      const tenths = Math.floor((ms % 1000) / 100);
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`;
+    }
+
+    function startTimer() {
+      stopTimer();
+      pipelineStartTime = performance.now();
+      const badge = document.getElementById('liveTimerBadge');
+      const display = document.getElementById('elapsedTime');
+      const finalBadge = document.getElementById('finalTimeBadge');
+
+      if (badge) badge.className = 'timer-badge';
+      if (finalBadge) finalBadge.style.display = 'none';
+      if (display) display.textContent = '00:00.0';
+
+      timerInterval = setInterval(() => {
+        const elapsed = performance.now() - pipelineStartTime;
+        if (display) display.textContent = formatDuration(elapsed);
+      }, 100);
+    }
+
+    function stopTimer(status = 'completed') {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (!pipelineStartTime) return '00:00.0';
+
+      const finalFormatted = formatDuration(performance.now() - pipelineStartTime);
+      const badge = document.getElementById('liveTimerBadge');
+      const display = document.getElementById('elapsedTime');
+
+      if (display) display.textContent = finalFormatted;
+      if (badge) {
+        badge.className = status === 'completed' ? 'timer-badge completed' : 'timer-badge error';
+      }
+      return finalFormatted;
+    }
+
     dropzone.addEventListener('click', () => fileInput.click());
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
@@ -902,6 +989,8 @@
       resultsGrid.style.display = 'none';
       origVideoPreview.src = '';
       finalVideoPlayer.src = '';
+      stopTimer();
+      document.getElementById('finalTimeBadge').style.display = 'none';
     });
 
     function handleFile(file) {
@@ -986,6 +1075,7 @@
       formData.append('voice_gender', selectedGender);
 
       try {
+        startTimer();
         const res = await fetch('/api/run-pipeline', {
           method: 'POST',
           body: formData
@@ -998,6 +1088,7 @@
         // Poll for progress
         pollInterval = setInterval(pollJobProgress, 1200);
       } catch (err) {
+        stopTimer('error');
         alert('Error: ' + err.message);
         runBtn.disabled = false;
         runBtn.innerHTML = '<i data-lucide="play" style="width:18px;height:18px;"></i> Execute Full End-to-End Dubbing Pipeline';
@@ -1039,6 +1130,13 @@
 
         if (job.status === 'completed') {
           clearInterval(pollInterval);
+          const totalTime = stopTimer('completed');
+          const finalBadge = document.getElementById('finalTimeBadge');
+          const finalText = document.getElementById('finalTimeText');
+          if (finalBadge && finalText) {
+            finalText.textContent = `Completed in ${totalTime}`;
+            finalBadge.style.display = 'inline-flex';
+          }
           runBtn.disabled = false;
           runBtn.innerHTML = '<i data-lucide="check" style="width:18px;height:18px;"></i> Pipeline Finished Successfully!';
           resultsGrid.style.display = 'grid';
@@ -1060,6 +1158,7 @@
           renderIcons();
         } else if (job.status === 'error') {
           clearInterval(pollInterval);
+          stopTimer('error');
           runBtn.disabled = false;
           runBtn.innerHTML = '<i data-lucide="alert-circle" style="width:18px;height:18px;"></i> Execution Halted (See Logs)';
           renderIcons();
