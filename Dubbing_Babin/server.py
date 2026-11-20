@@ -77,8 +77,8 @@ def run_pipeline_thread(job_id: str, video_path: Path, target_lang: str):
         # Stage 2: Parallel Transcription & Profiling
         job["current_step"] = 2
         log("Stage 02a: Transcribing speech with Faster-Whisper neural model...")
-        transcript, detected_lang = pipeline.stage_02a_transcribe(audio_path, work_dir)
-        log(f"Stage 02a: Transcription completed ({detected_lang}, {len(transcript.split())} words)")
+        transcript, detected_lang, speech_start, speech_duration = pipeline.stage_02a_transcribe(audio_path, work_dir)
+        log(f"Stage 02a: Transcription completed ({detected_lang}, {len(transcript.split())} words, dialogue window: {speech_duration:.2f}s)")
 
         log("Stage 02b: Extracting speaker acoustic profile & clean reference clips (Demucs)...")
         profile_json, clips_dir, ref_wav = pipeline.stage_02b_voice_profile(audio_path, work_dir)
@@ -93,9 +93,9 @@ def run_pipeline_thread(job_id: str, video_path: Path, target_lang: str):
 
         # Stage 6: Voice Cloning via Stage 08
         job["current_step"] = 4
-        log("Stage 06: Synthesizing speech with author's cloned voice (XTTS v2)...")
+        log(f"Stage 06: Synthesizing speech with author's cloned voice (XTTS v2, target dialogue: {speech_duration:.2f}s)...")
         dubbed_audio = pipeline.stage_06_voice_clone(
-            dubbed_text_file, profile_json, clips_dir, ref_wav, work_dir, target_lang
+            dubbed_text_file, profile_json, clips_dir, ref_wav, work_dir, target_lang, target_duration=speech_duration
         )
         log("Stage 06: Cloned speech audio synthesized with background audio preserved")
 
@@ -178,7 +178,8 @@ def get_output_video(job_id: str):
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
-    return JSONResponse(status_code=204, content={})
+    from fastapi.responses import Response
+    return Response(status_code=204)
 
 
 def silence_proactor_reset():

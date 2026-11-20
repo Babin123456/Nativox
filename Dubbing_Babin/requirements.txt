@@ -1,6 +1,8 @@
 coqui-tts>=0.22.0
 torch
 torchaudio
+torchcodec
+six
 demucs
 faster-whisper
 deep-translator

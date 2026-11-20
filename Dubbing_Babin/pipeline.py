@@ -70,7 +70,7 @@ def stage_01_extract_audio(video_path: Path, work_dir: Path) -> tuple[Path, floa
     return audio_path, duration
 
 
-def stage_02a_transcribe(audio_path: Path, work_dir: Path, source_lang: str = "auto") -> tuple[str, str]:
+def stage_02a_transcribe(audio_path: Path, work_dir: Path, source_lang: str = "auto") -> tuple[str, str, float, float]:
     print_banner("02a", "Transcribing Speech with Faster-Whisper")
     try:
         from faster_whisper import WhisperModel
@@ -83,15 +83,36 @@ def stage_02a_transcribe(audio_path: Path, work_dir: Path, source_lang: str = "a
     segments, info = model.transcribe(
         str(audio_path),
         language=None if source_lang == "auto" else source_lang,
-        beam_size=5
+        beam_size=5,
+        word_timestamps=True
     )
     
-    text_segments = [seg.text.strip() for seg in segments if seg.text.strip()]
+    text_segments = []
+    first_start = None
+    last_end = 0.0
+
+    for seg in segments:
+        txt = seg.text.strip()
+        if txt:
+            text_segments.append(txt)
+            if first_start is None:
+                first_start = seg.start
+            last_end = max(last_end, seg.end)
+
     full_text = " ".join(text_segments).strip()
     detected_lang = info.language or "en"
+    speech_start = first_start if first_start is not None else 0.0
+    speech_end = last_end if last_end > 0.0 else 0.0
+    speech_duration = max(0.0, speech_end - speech_start)
 
     transcript_file = work_dir / "transcript.txt"
     transcript_file.write_text(full_text, encoding="utf-8")
+
+    print(f"[+] Detected language: {detected_lang} (confidence: {info.language_probability:.2f})")
+    print(f"[+] Spoken words: {len(full_text.split())}")
+    print(f"[+] Accurate Speech Window: {speech_start:.2f}s -> {speech_end:.2f}s (duration: {speech_duration:.2f}s)")
+    print(f"[+] Transcript:\n    \"{full_text}\"")
+    return full_text, detected_lang, speech_start, speech_duration
 
     print(f"[+] Detected language: {detected_lang} (confidence: {info.language_probability:.2f})")
     print(f"[+] Spoken words: {len(full_text.split())}")
@@ -178,16 +199,21 @@ def stage_06_voice_clone(
     clips_dir: Path,
     ref_wav: Path,
     work_dir: Path,
-    target_lang: str
+    target_lang: str,
+    target_duration: float = None
 ) -> Path:
     print_banner("06", "Author Voice Cloning & Background Remux (XTTS v2)")
     dubbed_mp3 = work_dir / "dubbed_audio.mp3"
     cloned_wav = work_dir / "dubbed_audio.wav"
     voice_only_wav = work_dir / "cloned_voice_only.wav"
 
+    cloner_script = MODULE_DIR / "cloner.py"
+    if not cloner_script.is_file():
+        cloner_script = STAGE08_DIR / "test_cloned.py"
+
     cmd = [
         sys.executable,
-        str(STAGE08_DIR / "test_cloned.py"),
+        str(cloner_script),
         "--text-file", str(text_file),
         "--profile", str(profile_json),
         "--reference", str(ref_wav),
@@ -198,8 +224,12 @@ def stage_06_voice_clone(
         "--language", target_lang
     ]
 
-    print("[*] Synthesizing speech with cloned voice timbre & background preservation...")
-    res = subprocess.run(cmd, cwd=str(STAGE08_DIR), capture_output=True, text=True, encoding="utf-8")
+    if target_duration and target_duration > 0.5:
+        cmd.extend(["--target-duration", f"{target_duration:.2f}"])
+        print(f"[*] Targeting exact dialogue speech duration: {target_duration:.2f}s")
+
+    print("[*] Synthesizing speech with enhanced expression, dynamic pitch & timbre matching...")
+    res = subprocess.run(cmd, cwd=str(MODULE_DIR), capture_output=True, text=True, encoding="utf-8")
     if res.returncode != 0:
         err = res.stderr or res.stdout
         raise RuntimeError(f"Stage 06 Voice Cloning failed: {err[-400:]}")
@@ -257,7 +287,7 @@ def run_pipeline(video_path: Path, target_lang: str = "hi", work_dir: Path = Non
     audio_path, video_duration = stage_01_extract_audio(video_path, work_dir)
 
     # 2. Stage 2a (Transcription) and Stage 2b (Speaker Profiling)
-    transcript, detected_lang = stage_02a_transcribe(audio_path, work_dir)
+    transcript, detected_lang, speech_start, speech_duration = stage_02a_transcribe(audio_path, work_dir)
     profile_json, clips_dir, ref_wav = stage_02b_voice_profile(audio_path, work_dir)
 
     # 3. Direct Translation
@@ -265,7 +295,9 @@ def run_pipeline(video_path: Path, target_lang: str = "hi", work_dir: Path = Non
     dubbed_text_file = work_dir / "dubbed_text.txt"
 
     # 4. Voice Cloning (Stage 06 via Stage 08)
-    dubbed_audio = stage_06_voice_clone(dubbed_text_file, profile_json, clips_dir, ref_wav, work_dir, target_lang)
+    dubbed_audio = stage_06_voice_clone(
+        dubbed_text_file, profile_json, clips_dir, ref_wav, work_dir, target_lang, target_duration=speech_duration
+    )
 
     # 5. Remux (Stage 07)
     final_video = stage_07_merge_video(video_path, dubbed_audio, video_duration, work_dir)
