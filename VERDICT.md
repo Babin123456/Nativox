@@ -6,12 +6,49 @@ This document provides a comparative evaluation of the dubbed video outputs prod
 
 ## 1. Side-by-Side Video Demonstration
 
-The three reference videos are cataloged below for side-by-side listening and inspection:
+The three reference videos are embedded directly below with sound and full playback controls:
 
-| Video 1: Original Ground Truth | Video 2: Stage 00 (`00_Auto_Pip`) | Video 3: `Dubbing_Babin` (Studio) |
-| :---: | :---: | :---: |
-| **English Input** | **Literal Multi-Stage Pipeline** | **Cadence-Aligned Précis Studio** |
-| [Watch 01_input_original.mp4](comparison_demo/01_input_original.mp4) | [Watch 02_dubbing_00_stage.mp4](comparison_demo/02_dubbing_00_stage.mp4) | [Watch 03_dubbing_babin_studio.mp4](comparison_demo/03_dubbing_babin_studio.mp4) |
+<table>
+  <tr>
+    <th align="center" width="33%">Video 1: Original Ground Truth</th>
+    <th align="center" width="33%">Video 2: Stage 00 (00_Auto_Pip)</th>
+    <th align="center" width="33%">Video 3: Dubbing_Babin (Studio)</th>
+  </tr>
+  <tr>
+    <td align="center"><b>English Input</b></td>
+    <td align="center"><b>Literal Multi-Stage Pipeline</b></td>
+    <td align="center"><b>Cadence-Aligned Précis Studio</b></td>
+  </tr>
+  <tr>
+    <td align="center">
+      <video controls width="100%" preload="metadata">
+        <source src="comparison_demo/01_input_original.mp4" type="video/mp4">
+        <source src="https://raw.githubusercontent.com/Babin123456/Nativox/main/comparison_demo/01_input_original.mp4" type="video/mp4">
+        Your browser or markdown reader does not support the video tag.
+      </video>
+      <br>
+      <a href="comparison_demo/01_input_original.mp4">Open 01_input_original.mp4</a>
+    </td>
+    <td align="center">
+      <video controls width="100%" preload="metadata">
+        <source src="comparison_demo/02_dubbing_00_stage.mp4" type="video/mp4">
+        <source src="https://raw.githubusercontent.com/Babin123456/Nativox/main/comparison_demo/02_dubbing_00_stage.mp4" type="video/mp4">
+        Your browser or markdown reader does not support the video tag.
+      </video>
+      <br>
+      <a href="comparison_demo/02_dubbing_00_stage.mp4">Open 02_dubbing_00_stage.mp4</a>
+    </td>
+    <td align="center">
+      <video controls width="100%" preload="metadata">
+        <source src="comparison_demo/03_dubbing_babin_studio.mp4" type="video/mp4">
+        <source src="https://raw.githubusercontent.com/Babin123456/Nativox/main/comparison_demo/03_dubbing_babin_studio.mp4" type="video/mp4">
+        Your browser or markdown reader does not support the video tag.
+      </video>
+      <br>
+      <a href="comparison_demo/03_dubbing_babin_studio.mp4">Open 03_dubbing_babin_studio.mp4</a>
+    </td>
+  </tr>
+</table>
 
 ```
 Source Reference Paths in Repository:
