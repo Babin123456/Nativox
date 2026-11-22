@@ -1,1 +1,0 @@
-"""Lipsync analysis package."""

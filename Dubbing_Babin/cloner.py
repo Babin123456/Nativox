@@ -35,6 +35,7 @@ import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 # Ensure UTF-8 output on Windows console
@@ -354,11 +355,11 @@ def _wrap(s, max_len):
     return out
 
 
-def split_text(text, lang, max_len=95):
-    """Sentence-wise chunks; splits clauses naturally so XTTS never cuts off trailing words."""
+def split_text(text, lang, max_len=65):
+    """Sentence-wise chunks; splits compound clauses evenly to prevent speed fluctuations."""
     end_mark = "।" if lang == "hi" else "。" if lang in ("ja", "zh-cn") else "."
     chunks = []
-    # Also split on natural conjunctions / pauses like 'जिसके', 'कि', commas, etc.
+    # Split on natural conjunctions / clauses so each chunk is balanced in word count
     for p in re.split(r"(?<=[.!?।。！？])\s+", text.strip()):
         p = p.strip()
         if not p:
@@ -367,16 +368,21 @@ def split_text(text, lang, max_len=95):
             pieces = [(p, SENTENCE_PAUSE_SEC)]
         else:
             pieces, cur = [], ""
-            # Split by comma or subordinating conjunctions if clause is long
-            split_regex = r"(?<=[,;:，、])\s+|(?<=\s)(?=जिसके|ताकि|क्योंकि|लेकिन|किन्तु|परन्तु|परंतु|कि\s)" if lang == "hi" else r"(?<=[,;:，、])\s+"
+            # Split by comma or subordinating conjunctions if clause exceeds target length
+            split_regex = (
+                r"(?<=[,;:，、])\s*|(?<=\s)(?=जिसके|जिसमें|ताकि|क्योंकि|लेकिन|किन्तु|परन्तु|परंतु|कि\s|जब\s|तब\s)"
+                if lang == "hi"
+                else r"(?<=[,;:，、])\s+"
+            )
             for pc in re.split(split_regex, p):
                 if not pc:
                     continue
-                if len(cur) + len(pc) + 1 > max_len and cur:
-                    pieces.append((cur, COMMA_PAUSE_SEC))
-                    cur = pc
-                else:
+                if len(cur) + len(pc) + 1 <= max_len:
                     cur = f"{cur} {pc}".strip()
+                else:
+                    if cur:
+                        pieces.append((cur, COMMA_PAUSE_SEC))
+                    cur = pc
             if cur:
                 pieces += [(w, COMMA_PAUSE_SEC) for w in _wrap(cur, max_len)]
             if pieces:

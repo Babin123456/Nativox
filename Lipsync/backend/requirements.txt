@@ -1,8 +1,0 @@
-mediapipe==0.10.14
-opencv-python
-numpy
-scipy
-matplotlib
-fastapi
-uvicorn
-python-multipart
