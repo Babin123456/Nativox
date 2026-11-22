@@ -9,6 +9,11 @@ from urllib.parse import urlparse
 
 import requests
 
+# Feature flag: Skip Stage 03 (Keywords) and Stage 04 (Sentence Construction) temporarily.
+# When True, the speech transcript from Stage 02 is routed directly into Stage 05b (Reformation).
+# Can be enabled/disabled here or via env var NATIVOX_SKIP_STAGES_3_4="0" (to enable) or "1" (to skip).
+SKIP_STAGES_3_AND_4 = os.environ.get("NATIVOX_SKIP_STAGES_3_4", "1") == "1"
+
 # One port per HTTP stage. Stage 04 is loaded directly from construct.py or via port 8004.
 # Stage 2b (main.py) and Stage 6 (test_cloned.py) are executed in Stage 08 directly.
 STAGES = {
@@ -54,10 +59,14 @@ def wait_for_service(stage: str, health_path: str) -> None:
     )
 
 
-def start_services(root: Path) -> list[subprocess.Popen]:
+def start_services(root: Path, skip_stages_3_4: bool = SKIP_STAGES_3_AND_4) -> list[subprocess.Popen]:
     """Start missing HTTP stages and return only processes owned by this run."""
     owned_processes = []
-    for stage, (relative_dir, port, health_path) in SERVICE_CONFIG.items():
+    configs = dict(SERVICE_CONFIG)
+    if skip_stages_3_4:
+        configs.pop("text_to_kw", None)
+
+    for stage, (relative_dir, port, health_path) in configs.items():
         try:
             response = requests.get(f"{STAGES[stage]}{health_path}", timeout=2)
             if response.ok:
@@ -169,7 +178,10 @@ def json_result(response: requests.Response, stage: str) -> dict:
 
 
 def run_pipeline(
-    mp4_path: str, work_dir: str | None = None, auto_start: bool = True
+    mp4_path: str,
+    work_dir: str | None = None,
+    auto_start: bool = True,
+    skip_stages_3_4: bool = SKIP_STAGES_3_AND_4,
 ) -> Path:
     input_path = Path(mp4_path).expanduser().resolve()
     if not input_path.is_file():
@@ -181,14 +193,19 @@ def run_pipeline(
     work.mkdir(parents=True, exist_ok=True)
 
     root = Path(__file__).resolve().parent.parent
-    owned_processes = start_services(root) if auto_start else []
+    owned_processes = start_services(root, skip_stages_3_4=skip_stages_3_4) if auto_start else []
     try:
-        return _run_pipeline_steps(input_path, work, root)
+        return _run_pipeline_steps(input_path, work, root, skip_stages_3_4=skip_stages_3_4)
     finally:
         stop_services(owned_processes)
 
 
-def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
+def _run_pipeline_steps(
+    input_path: Path,
+    work: Path,
+    root: Path,
+    skip_stages_3_4: bool = SKIP_STAGES_3_AND_4,
+) -> Path:
     # Stage 01: video -> audio
     print("[01] Extracting audio...")
     with input_path.open("rb") as f:
@@ -241,50 +258,58 @@ def _run_pipeline_steps(input_path: Path, work: Path, root: Path) -> Path:
         text, language_label = fut_2a.result()
         fut_2b.result()
 
-    # Stage 03: text -> keywords (Intelligent Auto-Extraction).
-    print("[03] Extracting salient keywords (auto-adaptive)...")
-    r = call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": None, "mode": "auto"})
-    result = json_result(r, "text_to_kw")
+    if skip_stages_3_4:
+        # Stages 03 and 04 are temporarily skipped: route transcribed text directly to Stage 05b
+        print("[03 & 04] Temporarily skipping Stage 03 (Keywords) and Stage 04 (Sentence Construction)...")
+        print("          Routing Whisper transcript directly to Stage 05b (Sentence Reformation).")
+        constructed_sentence = text
+        (work / "constructed_sentence.txt").write_text(constructed_sentence, encoding="utf-8")
+        (work / "keywords.json").write_text("[]", encoding="utf-8")
+    else:
+        # Stage 03: text -> keywords (Intelligent Auto-Extraction).
+        print("[03] Extracting salient keywords (auto-adaptive)...")
+        r = call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": None, "mode": "auto"})
+        result = json_result(r, "text_to_kw")
 
-    try:
-        keywords = result["keywords_in_order"]
-        if not isinstance(keywords, list) or not all(isinstance(word, str) for word in keywords):
-            raise TypeError("keywords_in_order must be a list of strings")
-    except (KeyError, TypeError) as exc:
-        raise SystemExit(
-            f"Stage 'text_to_kw' returned an invalid response: {r.text[:300]}"
-        ) from exc
-    (work / "keywords.json").write_text(
-        json.dumps(keywords, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"     {len(keywords)} keywords: {keywords}")
-
-    # Stage 04: keywords -> grammatical sentence, loaded directly from construct.py.
-    print("[04] Constructing a sentence from keywords...")
-    keyword_text = ", ".join(keywords)
-    stage4_dir = root / "04_Keyword_to_Sentence_Construction"
-    if str(stage4_dir) not in sys.path:
-        sys.path.insert(0, str(stage4_dir))
-    try:
-        import importlib
-        construct_mod = importlib.import_module("construct")
-        SentenceConstructor = getattr(construct_mod, "SentenceConstructor")
-        model_dir = stage4_dir / "saved_model"
-        constructor = SentenceConstructor(model_path=str(model_dir))
-        constructed_sentence = constructor.construct(keyword_text).strip()
-    except OSError as exc:
-        if exc.errno == 4551 or "c10.dll" in str(exc):
+        try:
+            keywords = result["keywords_in_order"]
+            if not isinstance(keywords, list) or not all(isinstance(word, str) for word in keywords):
+                raise TypeError("keywords_in_order must be a list of strings")
+        except (KeyError, TypeError) as exc:
             raise SystemExit(
-                "Stage 'kw_to_sentence' could not load PyTorch because Windows "
-                "Application Control blocked c10.dll. Ask your administrator to "
-                "approve the Python/PyTorch installation."
+                f"Stage 'text_to_kw' returned an invalid response: {r.text[:300]}"
             ) from exc
-        raise
-    if not constructed_sentence:
-        raise SystemExit("Stage 'kw_to_sentence' returned an empty sentence.")
-    (work / "constructed_sentence.txt").write_text(
-        constructed_sentence, encoding="utf-8"
-    )
-    print(f"     saved {work / 'constructed_sentence.txt'}")
+        (work / "keywords.json").write_text(
+            json.dumps(keywords, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"     {len(keywords)} keywords: {keywords}")
+
+        # Stage 04: keywords -> grammatical sentence, loaded directly from construct.py.
+        print("[04] Constructing a sentence from keywords...")
+        keyword_text = ", ".join(keywords)
+        stage4_dir = root / "04_Keyword_to_Sentence_Construction"
+        if str(stage4_dir) not in sys.path:
+            sys.path.insert(0, str(stage4_dir))
+        try:
+            import importlib
+            construct_mod = importlib.import_module("construct")
+            SentenceConstructor = getattr(construct_mod, "SentenceConstructor")
+            model_dir = stage4_dir / "saved_model"
+            constructor = SentenceConstructor(model_path=str(model_dir))
+            constructed_sentence = constructor.construct(keyword_text).strip()
+        except OSError as exc:
+            if exc.errno == 4551 or "c10.dll" in str(exc):
+                raise SystemExit(
+                    "Stage 'kw_to_sentence' could not load PyTorch because Windows "
+                    "Application Control blocked c10.dll. Ask your administrator to "
+                    "approve the Python/PyTorch installation."
+                ) from exc
+            raise
+        if not constructed_sentence:
+            raise SystemExit("Stage 'kw_to_sentence' returned an empty sentence.")
+        (work / "constructed_sentence.txt").write_text(
+            constructed_sentence, encoding="utf-8"
+        )
+        print(f"     saved {work / 'constructed_sentence.txt'}")
 
     # Stage 05b: sentence -> meaningful Hindi translation & précis (skipping 05a).
     print("[05b] Re-forming and translating sentence (Stage 05b)...")
@@ -410,6 +435,7 @@ if __name__ == "__main__":
             "Usage:\n"
             '  python orchestrator.py "path/to/video.mp4" [--work-dir "output/folder"]\n'
             '  python orchestrator.py "path/to/video.mp4" --no-auto-start\n'
+            '  python orchestrator.py "path/to/video.mp4" [--skip-stages-3-4 | --enable-stages-3-4]\n'
             "  python orchestrator.py --status\n"
             "  python orchestrator.py --start-services\n"
         )
@@ -428,15 +454,25 @@ if __name__ == "__main__":
     input_argument = sys.argv[1]
     work_dir = None
     auto_start = True
-    args = sys.argv[2:]
-    if args:
-        if len(args) == 2 and args[0] == "--work-dir":
-            work_dir = args[1]
-        elif len(args) == 1 and args[0] == "--no-auto-start":
-            auto_start = False
-        else:
-            raise SystemExit(
-                'Usage: python orchestrator.py "path/to/video.mp4" '
-                '[--work-dir "output/folder"] [--no-auto-start] [--status]'
-            )
-    run_pipeline(input_argument, work_dir, auto_start=auto_start)
+    skip_stages_3_4 = SKIP_STAGES_3_AND_4
+
+    args = list(sys.argv[2:])
+    if "--enable-stages-3-4" in args:
+        skip_stages_3_4 = False
+        args.remove("--enable-stages-3-4")
+    elif "--skip-stages-3-4" in args:
+        skip_stages_3_4 = True
+        args.remove("--skip-stages-3-4")
+
+    if "--no-auto-start" in args:
+        auto_start = False
+        args.remove("--no-auto-start")
+
+    if len(args) == 2 and args[0] == "--work-dir":
+        work_dir = args[1]
+    elif len(args) != 0:
+        raise SystemExit(
+            'Usage: python orchestrator.py "path/to/video.mp4" '
+            '[--work-dir "output/folder"] [--no-auto-start] [--skip-stages-3-4|--enable-stages-3-4] [--status]'
+        )
+    run_pipeline(input_argument, work_dir, auto_start=auto_start, skip_stages_3_4=skip_stages_3_4)

@@ -10,15 +10,64 @@ Input Video (.mp4)
   -> [02] Parallel Execution:
          * [2a] Speech-to-Text Transcription & VAD (Whisper)
          * [2b] Speaker Voice Extraction & Profiling (Stage 08 main.py)
-  -> [03] Salient Keyword Extraction (RAKE)
-  -> [04] Neural Sentence Construction (Flan-T5)
-  -> [05b] Hindi Sentence Reformation & Vernacular Translation
+  -> [03] Salient Keyword Extraction (RAKE) [TEMPORARILY SKIPPED BY DEFAULT]
+  -> [04] Neural Sentence Construction (Flan-T5) [TEMPORARILY SKIPPED BY DEFAULT]
+  -> [05b] Hindi Sentence Reformation & Vernacular Translation (Direct Transcript Mode)
   -> [06] Author Voice Cloning & Synthesis (Stage 08 test_cloned.py, XTTS v2)
   -> [07] Dubbed Audio Video Remuxing (Zero Truncation)
   -> Output Dubbed Video (final_dubbed_video.mp4)
 ```
 
+> [!IMPORTANT]
+> **Stage 3 and 4 are temporarily skipped:** By default, Stage 03 (Keyword Extraction) and Stage 04 (Sentence Construction) are temporarily skipped in `00_Auto_Pip`. The pipeline routes the high-fidelity speech transcript from Stage 02 directly into Stage 05b for vernacular reformation and translation, preserving complete dialogue fluency and accelerating processing. You can re-enable them at any time whenever needed.
+
 > **Note on Stage 05(a):** Stage 05(a) (`05a_Keyword_Translation__Sagnik`) remains available as a standalone research module in the repository. The automated dubbing pipeline directly routes Stage 04 reconstructed sentences into Stage 05(b) for vernacular translation and disfluency reformation.
+
+---
+
+## 🔄 How to Enable Stages 3 and 4
+
+If you want to re-enable Stage 03 (Keyword Extraction) and Stage 04 (Sentence Construction), you can do so easily through any of the following methods:
+
+### Method 1: Web Dashboard (One-Click Toggle)
+In the interactive Web UI (`http://127.0.0.1:8000`):
+1. Locate the switch above the execution button labeled:  
+   **"Skip Stage 3 (Keywords) & Stage 4 (Sentence Construction)"**
+2. **Toggle the switch OFF (Unchecked)** to re-enable Stage 03 & Stage 04.
+3. Click **"Execute Full End-to-End Dubbing Pipeline"** to run all 8 stages.
+
+### Method 2: CLI Command Flag
+When executing `orchestrator.py` from your terminal, pass `--enable-stages-3-4`:
+
+```bash
+# Re-enable Stages 3 & 4 (Full 8-stage execution):
+python orchestrator.py "path/to/video.mp4" --enable-stages-3-4
+
+# Default run (Stages 3 & 4 temporarily skipped):
+python orchestrator.py "path/to/video.mp4"
+
+# Explicitly skip Stages 3 & 4:
+python orchestrator.py "path/to/video.mp4" --skip-stages-3-4
+```
+
+### Method 3: Environment Variable
+Set the `NATIVOX_SKIP_STAGES_3_4` environment variable before running:
+
+- **Windows PowerShell:**
+  ```powershell
+  $env:NATIVOX_SKIP_STAGES_3_4="0"  # 0 = Enabled (Run stages 3 & 4)
+  $env:NATIVOX_SKIP_STAGES_3_4="1"  # 1 = Skipped (Default bypass)
+  ```
+- **Linux / macOS:**
+  ```bash
+  export NATIVOX_SKIP_STAGES_3_4="0"  # 0 = Enabled (Run stages 3 & 4)
+  export NATIVOX_SKIP_STAGES_3_4="1"  # 1 = Skipped (Default bypass)
+  ```
+
+### Method 4: Code Configuration
+You can also change the default in the source files directly:
+- In `orchestrator.py`: change `SKIP_STAGES_3_AND_4 = True` to `SKIP_STAGES_3_AND_4 = False`.
+- In `main.py`: change `SKIP_STAGES_3_AND_4 = True` to `SKIP_STAGES_3_AND_4 = False`.
 
 ---
 
@@ -112,7 +161,14 @@ The pipeline automatically analyzes the acoustic profile of the speaker in the u
 Run the orchestrator with your input video. It automatically starts any missing stage services, executes the workflow in order, and stops only the services it started:
 
 ```bash
+# Default (Stages 3 & 4 temporarily skipped):
 python orchestrator.py "path/to/video.mp4"
+
+# Re-enable Stages 3 & 4 (Full 8-stage pipeline):
+python orchestrator.py "path/to/video.mp4" --enable-stages-3-4
+
+# Explicitly skip Stages 3 & 4:
+python orchestrator.py "path/to/video.mp4" --skip-stages-3-4
 ```
 
 ### Custom Output Directory
