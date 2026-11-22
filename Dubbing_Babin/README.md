@@ -1,6 +1,6 @@
 # Dubbing_Babin — Streamlined AI Video Dubbing Studio
 
-A high-performance, single-command video dubbing pipeline for **Nativox**. 
+A high-performance, single-command video dubbing pipeline for **Nativox**.
 
 `Dubbing_Babin` isolates and runs **strictly the essential production stages** (`[01 Demux -> 02a Faster-Whisper -> 02b Demucs Profiling -> Direct Translation -> 06 XTTS v2 Cloner -> 07 Zero-Truncation Remux]`), skipping intermediate research stages (Keywords, T5 Sentence Reconstruction, Disfluency Précis).
 
@@ -50,10 +50,12 @@ A high-performance, single-command video dubbing pipeline for **Nativox**.
 ## 📋 Prerequisites & Setup
 
 ### 1. Requirements
+
 - **Python:** `3.11` (strictly recommended for PyTorch, Coqui TTS, and CTranslate2)
 - **FFmpeg:** Installed and added to system `PATH` (`ffmpeg -version`)
 
 ### 2. Virtual Environment Setup
+
 From repository root or `Dubbing_Babin`:
 
 ```bash
@@ -84,6 +86,7 @@ python server.py
 ```
 
 *Or run on a custom port:*
+
 ```bash
 python server.py --port 8080
 ```
@@ -91,7 +94,8 @@ python server.py --port 8080
 Open your browser to:
 👉 **`http://127.0.0.1:8000`**
 
-### Dashboard Features:
+### Dashboard Features
+
 - **Drag-and-Drop Media Upload:** MP4, MOV, or MKV containers.
 - **Target Vernacular Picker:** Dub into Hindi (`hi`), Spanish (`es`), French (`fr`), German (`de`), Japanese (`ja`), Russian (`ru`), and more.
 - **Live Stage Stepper:** Visual step tracking across all 6 production stages.
@@ -112,7 +116,8 @@ cd Dubbing_Babin
 python pipeline.py --video "path/to/video.mp4" --target-lang hi
 ```
 
-### Examples:
+### Examples
+
 ```bash
 # Dub a video to Spanish:
 python pipeline.py --video "D:/Videos/speech.mp4" --target-lang es
@@ -121,7 +126,8 @@ python pipeline.py --video "D:/Videos/speech.mp4" --target-lang es
 python pipeline.py --video "D:/Videos/speech.mp4" --target-lang hi --work-dir "outputs/my_job"
 ```
 
-### CLI Options:
+### CLI Options
+
 | Flag | Short | Default | Description |
 | :--- | :---: | :---: | :--- |
 | `--video` | `-v` | *Required* | Path to input talking-head video file (`.mp4`, `.mov`, `.mkv`). |

@@ -84,10 +84,12 @@ def run_pipeline_thread(job_id: str, video_path: Path, target_lang: str):
         profile_json, clips_dir, ref_wav = pipeline.stage_02b_voice_profile(audio_path, work_dir)
         log("Stage 02b: Speaker acoustic profile and clean reference clips extracted")
 
-        # Stage 3: Direct Translation
+        # Stage 3: Direct Translation (with Cadence Précis Optimization)
         job["current_step"] = 3
-        log(f"Translation: Translating speech directly to {target_lang}...")
-        dubbed_text = pipeline.stage_translate(transcript, detected_lang, target_lang, work_dir)
+        log(f"Translation: Translating speech directly to {target_lang} (cadence-aligned)...")
+        dubbed_text = pipeline.stage_translate(
+            transcript, detected_lang, target_lang, work_dir, target_duration=speech_duration
+        )
         dubbed_text_file = work_dir / "dubbed_text.txt"
         log(f"Translation: Speech translated to {target_lang}: '{dubbed_text[:60]}...'")
 
