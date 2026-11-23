@@ -1,165 +1,126 @@
-# Dubbing_Babin — Streamlined AI Video Dubbing Studio
+# Nativox Dubbing_Babin - Natural Actor Voice Dubbing
 
-A high-performance, single-command video dubbing pipeline for **Nativox**.
+Cinematic-quality video dubbing that preserves the original speaker's voice timbre, pitch, emotions, and speaking rhythm while translating into the target language naturally.
 
-`Dubbing_Babin` isolates and runs **strictly the essential production stages** (`[01 Demux -> 02a Faster-Whisper -> 02b Demucs Profiling -> Direct Translation -> 06 Universal High-Fidelity Voice Transfer -> 07 Zero-Truncation Remux]`), skipping intermediate research stages (Keywords, T5 Sentence Reconstruction, Disfluency Précis).
+## What makes this different
 
----
+| Feature | Old approach | New approach |
+|---------|-------------|--------------|
+| Translation | Keyword extraction -> sentence reconstruction | Direct natural sentence translation (Google Translate) |
+| Voice source | XTTS v2 on raw mixed audio | XTTS v2 on Demucs-separated clean vocals |
+| Duration control | Single global time-stretch | Speed-loop re-generation + WSOLA precision stretch |
+| Timbre matching | Basic EQ | Spectral envelope EQ + RMS loudness matching |
+| Background audio | Mixed into TTS ref | Separated clean; mixed back untouched after synthesis |
+| Language support | hi, en | hi, bn, en, es, fr, de, ja, ko, ru, it, pt, pl, tr, nl, cs, ar, hu, zh-cn |
 
-## Architecture: The Core Production Pipeline
+## Pipeline stages
 
-```text
-[Input Video (.mp4 / .mov / .mkv)]
-       │
-       ▼
-[01] Audio Demuxing (FFmpeg)
-       │  • Extracts audio.mp3 and detects exact video duration
-       │
-       ├─────────────────────────────────┐
-       ▼                                 ▼
-[02a] Faster-Whisper               [02b] Speaker Profiling (Demucs)
-      • Neural Speech-to-Text            • Separates vocals & background audio
-      • Exact word-level timestamps      • Extracts clean acoustic reference clips
-      • Spoken dialogue window locked    • Generates voice profile & biological register
-       │                                 │
-       ▼                                 │
-[Translation] Direct Vernacular          │
-      • Multi-tiered Google GTX client   │
-      • Cadence-aware précis adaptation  │
-      • Generates dubbed_text.txt        │
-       │                                 │
-       └────────────────┬────────────────┘
-                        ▼
-[06] Universal High-Fidelity Voice Transfer (voice_synthesizer.py)
-      • Regional Neural Phonation: Human-fluent native pronunciation (Edge-TTS)
-      • Praat PSOLA Tonal Transfer: Projects speaker's F0, vocal tract & formants
-      • Zero robotic vocoder artifacts or metallic phase buzz
-      • Smooth timeline dialogue alignment matching original speech window
-      • Restores untouched original background room ambience
-      • Generates dubbed_audio.mp3
-                        │
-                        ▼
-[07] Remuxing & Video Merging (FFmpeg)
-      • Zero video frame truncation
-      • Guarantees 100% video frame & audio timeline alignment
-                        │
-                        ▼
-[final_dubbed_video.mp4]
+```
+[01] Audio demux              FFmpeg WAV @ 44100 Hz
+[02a] Transcription           faster-whisper base (CPU, int8) with word timestamps
+[02b] Vocal separation        Demucs htdemucs_ft -> vocals.wav + background.wav
+[02c] Reference clip          Best 10s voiced segment from vocals stem
+[03] Natural translation      Google gtx REST -> deep-translator fallback + cadence check
+[04] XTTS v2 synthesis        N=3 candidates per chunk, best wins by MFCC/pitch score
+                              Speed-loop re-generation if >10% off target duration
+                              WSOLA time-stretch for final precision alignment
+[05] Post-processing          Spectral EQ (formant proxy) + RMS loudness matching
+[06] Background mix           Separated background mixed back at original levels
+[07] Video remux              FFmpeg copy video stream, replace audio
 ```
 
----
+## Quick start
 
-## 📋 Prerequisites & Setup
-
-### 1. Requirements
-
-- **Python:** `3.11` (strictly recommended for PyTorch, Coqui TTS, and CTranslate2)
-- **FFmpeg:** Installed and added to system `PATH` (`ffmpeg -version`)
-
-### 2. Virtual Environment Setup
-
-From repository root or `Dubbing_Babin`:
+### CLI (single command)
 
 ```bash
 cd Dubbing_Babin
-
-# Create local virtual environment
-python -m venv venv
-
-# Activate on Windows:
-.\venv\Scripts\activate
-
-# Activate on Linux / macOS:
-source venv/bin/activate
-
-# Install required dependencies
-pip install -r requirements.txt
+venv\Scripts\python pipeline.py --video path\to\video.mp4 --target-lang hi
 ```
 
----
-
-## 🖥️ Running the Interactive Web Studio
-
-Launch the modern dark-mode SaaS Web Dashboard from inside `Dubbing_Babin`:
+### Web UI
 
 ```bash
 cd Dubbing_Babin
-python server.py
+venv\Scripts\python server.py
+# Open: http://127.0.0.1:8000
 ```
 
-*Or run on a custom port:*
+### Supported target languages
 
-```bash
-python server.py --port 8080
-```
+| Code | Language |
+|------|---------|
+| hi | Hindi |
+| bn | Bengali |
+| en | English |
+| es | Spanish |
+| fr | French |
+| de | German |
+| ja | Japanese |
+| ko | Korean |
+| ru | Russian |
+| it | Italian |
+| pt | Portuguese |
+| pl | Polish |
+| tr | Turkish |
+| nl | Dutch |
+| cs | Czech |
+| ar | Arabic |
+| hu | Hungarian |
+| zh-cn | Chinese (Mandarin) |
 
-Open your browser to:
-👉 **`http://127.0.0.1:8000`**
+> Note: Bengali text is routed through Hindi phonetics in XTTS v2 since XTTS does not natively support the Bengali script.
 
-### Dashboard Features
+## Output files
 
-- **Drag-and-Drop Media Upload:** MP4, MOV, or MKV containers.
-- **Target Vernacular Picker:** Dub into Hindi (`hi`), Spanish (`es`), French (`fr`), German (`de`), Japanese (`ja`), Russian (`ru`), and more.
-- **Live Stage Stepper:** Visual step tracking across all 6 production stages.
-- **Streaming Telemetry Terminal:** Real-time Whisper logs, translation metrics, and voice cloning status.
-- **Side-by-Side Synchronized Studio Player:** Direct preview of the original video against the finalized dubbed video with audio playback.
-- **Instant Download:** One-click download for `final_dubbed_video.mp4`.
-
----
-
-## ⚡ Running via CLI (Single Command)
-
-All execution happens directly inside `Dubbing_Babin`:
-
-```bash
-cd Dubbing_Babin
-
-# Basic command (Dub to Hindi)
-python pipeline.py --video "path/to/video.mp4" --target-lang hi
-```
-
-### Examples
-
-```bash
-# Dub a video to Spanish:
-python pipeline.py --video "D:/Videos/speech.mp4" --target-lang es
-
-# Dub a video and specify custom output folder:
-python pipeline.py --video "D:/Videos/speech.mp4" --target-lang hi --work-dir "outputs/my_job"
-```
-
-### CLI Options
-
-| Flag | Short | Default | Description |
-| :--- | :---: | :---: | :--- |
-| `--video` | `-v` | *Required* | Path to input talking-head video file (`.mp4`, `.mov`, `.mkv`). |
-| `--target-lang` | `-l` | `hi` | Target language code (`hi`, `es`, `fr`, `de`, `it`, `pt`, `ru`, `ja`, `zh-cn`). |
-| `--work-dir` | `-o` | `outputs/job_<timestamp>` | Destination folder for intermediate and final outputs. |
-
----
-
-## ⚙️ Voice Expression & Timing Alignment Details
-
-- **Dialogue Window Locking:** Instead of stretching speech across silent pauses or trailing scenes, the pipeline locks dialogue synthesis strictly to the speaker's active speaking timestamps ($t_{\text{start}}$ to $t_{\text{end}}$).
-- **Decoupled Two-Stage Voice Architecture:**
-  1. *Stage 1 (Phonation):* High-fidelity regional neural phonation produces human-quality pronunciation, natural breath pauses, and native accent fluency.
-  2. *Stage 2 (Tone & Formant Transfer):* Praat PSOLA shifts the vocal tract length ($F_1, F_2, F_3$) and pitch distribution to match the biological register and timbre of the original speaker without robotic vocoder distortion.
-- **Cadence & Duration Awareness:** Automatic syllable-rate balancing prevents speed rushing or sluggish speech stretching, ensuring natural human conversational tempo across all languages.
-- **Untouched Room Atmosphere:** Continuous background room tone, ambient beds, and SFX separated by Meta HTDemucs are remuxed back in, preserving original production value.
-
----
-
-## 📦 Generated Output Artifacts
-
-Each run saves clean, structured outputs in `outputs/job_<id>/`:
+All outputs are written to `outputs/<job_id>/`:
 
 | File | Description |
-| :--- | :--- |
-| `audio.mp3` | Isolated audio track extracted from the input video. |
-| `transcript.txt` | Clean timestamped transcription from Faster-Whisper. |
-| `voice_profile.json` | Acoustic metrics ($F_0$ pitch median, timbre MFCC, energy envelope). |
-| `voice_profile_clips/` | Isolated reference clips for speaker voice conditioning. |
-| `dubbed_text.txt` | Target language translated dialogue script. |
-| `cloned_voice_only.wav` | Isolated synthesized voice clone track. |
-| `dubbed_audio.mp3` | Final dubbed audio with preserved background sounds. |
-| `final_dubbed_video.mp4` | Final output video with 100% video frame preservation and synchronized audio. |
+|------|-------------|
+| `final_dubbed_video.mp4` | Final dubbed video (ready to watch) |
+| `dubbed_audio.wav` | Dubbed voice + original background mix (stereo, 44100 Hz) |
+| `cloned_voice_only.wav` | XTTS v2 output before background mix |
+| `voice_profile_vocals.wav` | Demucs vocals stem |
+| `voice_profile_background.wav` | Demucs background stem |
+| `voice_profile_clips/clip_01.wav` | Reference clip used for XTTS voice embedding |
+| `voice_latents.pt` | Cached XTTS voice embedding (speeds up re-runs) |
+| `transcript.txt` | Original speech transcript |
+| `dubbed_text.txt` | Translated text used for synthesis |
+| `segments.json` | Whisper segments with timestamps |
+| `audio.wav` | Demuxed audio track |
+
+## Requirements
+
+Install inside the venv:
+
+```bash
+venv\Scripts\pip install -r requirements.txt
+```
+
+Key packages:
+- `coqui-tts>=0.22.0` - XTTS v2 multilingual voice cloning
+- `demucs` - Neural vocal/background separation
+- `faster-whisper` - Fast Whisper transcription
+- `librosa>=0.10.0` - Audio processing and WSOLA time-stretch
+- `deep-translator` - Fallback translation
+- `soundfile` - WAV/FLAC audio I/O
+- `scipy` - Signal processing (IIR filters)
+
+## Module reference
+
+| File | Role |
+|------|------|
+| `pipeline.py` | Main orchestrator; runs all 7 stages end-to-end |
+| `audio_processor.py` | Demucs separation, pitch profiling, time-stretch, EQ, loudness |
+| `translator.py` | Natural sentence translation with cadence check |
+| `voice_synthesizer.py` | XTTS v2 loading, embedding, chunk synthesis, post-processing |
+| `cloner.py` | Legacy XTTS v2 runner (kept as fallback) |
+| `server.py` | FastAPI web server and REST API |
+| `web/index.html` | Web UI dashboard |
+
+## Notes
+
+- XTTS v2 downloads ~1.8 GB on first run (cached in `~\.local\share\tts\`)
+- Demucs `htdemucs_ft` downloads ~300 MB on first run (cached in `~\.cache\torch\`)
+- CPU inference is slower but produces the same quality as GPU
+- Approximate processing time on CPU: 3-5x video duration
