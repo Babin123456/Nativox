@@ -244,7 +244,34 @@ def stage_06_voice_clone(
     target_lang: str,
     target_duration: float = None
 ) -> Path:
-    print_banner("06", "Author Voice Cloning & Background Remux (XTTS v2)")
+    print_banner("06", "Universal Voice Transfer & Background Remux (Zero Robotic Artifacts)")
+    text = text_file.read_text(encoding="utf-8").strip()
+
+    # Locate background audio if separated
+    bg_audio = None
+    cand_bgs = [
+        work_dir / "voice_profile_background.wav",
+        work_dir / "background.wav",
+    ]
+    for b in cand_bgs:
+        if b.is_file():
+            bg_audio = b
+            break
+
+    try:
+        from voice_synthesizer import universal_voice_pipeline
+        print("[*] Running Universal High-Fidelity Voice Transfer Engine...")
+        return universal_voice_pipeline(
+            text=text,
+            reference_vocals_path=ref_wav,
+            background_audio_path=bg_audio,
+            work_dir=work_dir,
+            target_lang=target_lang,
+            target_speech_duration=target_duration
+        )
+    except Exception as exc:
+        print(f"[!] Warning: Universal engine fallback due to: {exc}. Falling back to cloner.py...")
+
     dubbed_mp3 = work_dir / "dubbed_audio.mp3"
     cloned_wav = work_dir / "dubbed_audio.wav"
     voice_only_wav = work_dir / "cloned_voice_only.wav"

@@ -1,4 +1,58 @@
-work/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+*/venv/
+*/.venv/
+Dub_with_LipSync/.venv/
 LipSync_Babin/.venv/
+
+# Intermediate runtime workspaces & temporary files
+work/
+*/work/
+Dub_with_LipSync/work/
+Dub_with_LipSync/jobs/
+Dub_with_LipSync/outputs/
+Dub_with_LipSync/temp_lipsync/
 LipSync_Babin/work/
 LipSync_Babin/outputs/
+Dubbing/00_Auto_Pip/jobs/
+Dubbing_Babin/outputs/
+Dubbing_Babin/work/
+
+# Model checkpoints & large weights (keep repositories lean)
+*.pth
+*.pt
+*.onnx
+*.bin
+*.h5
+*.safetensors
+*.ckpt
+
+# Media outputs & logs
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wav
+*.mp3
+*.flac
+*.log
+
+# Keep sample test videos or demos in git if tracked
+!tests/*.mp4
+!comparison_demo/*.mp4
+
+# OS and IDE caches
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

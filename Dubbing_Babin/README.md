@@ -2,7 +2,7 @@
 
 A high-performance, single-command video dubbing pipeline for **Nativox**.
 
-`Dubbing_Babin` isolates and runs **strictly the essential production stages** (`[01 Demux -> 02a Faster-Whisper -> 02b Demucs Profiling -> Direct Translation -> 06 XTTS v2 Cloner -> 07 Zero-Truncation Remux]`), skipping intermediate research stages (Keywords, T5 Sentence Reconstruction, Disfluency Précis).
+`Dubbing_Babin` isolates and runs **strictly the essential production stages** (`[01 Demux -> 02a Faster-Whisper -> 02b Demucs Profiling -> Direct Translation -> 06 Universal High-Fidelity Voice Transfer -> 07 Zero-Truncation Remux]`), skipping intermediate research stages (Keywords, T5 Sentence Reconstruction, Disfluency Précis).
 
 ---
 
@@ -20,20 +20,22 @@ A high-performance, single-command video dubbing pipeline for **Nativox**.
 [02a] Faster-Whisper               [02b] Speaker Profiling (Demucs)
       • Neural Speech-to-Text            • Separates vocals & background audio
       • Exact word-level timestamps      • Extracts clean acoustic reference clips
-      • Spoken dialogue window locked    • Generates voice profile & timbre map
+      • Spoken dialogue window locked    • Generates voice profile & biological register
        │                                 │
        ▼                                 │
 [Translation] Direct Vernacular          │
       • Multi-tiered Google GTX client   │
-      • Rate-limit proof with backoff    │
+      • Cadence-aware précis adaptation  │
       • Generates dubbed_text.txt        │
        │                                 │
        └────────────────┬────────────────┘
                         ▼
-[06] Author Voice Cloning & Synthesis (XTTS v2 + Cloner)
-      • Enhanced emotive temperature (T=0.80) & tone matching (EQ 0.70)
-      • Phase-vocoder time-stretch to match exact spoken dialogue window
-      • Restores untouched original background audio
+[06] Universal High-Fidelity Voice Transfer (voice_synthesizer.py)
+      • Regional Neural Phonation: Human-fluent native pronunciation (Edge-TTS)
+      • Praat PSOLA Tonal Transfer: Projects speaker's F0, vocal tract & formants
+      • Zero robotic vocoder artifacts or metallic phase buzz
+      • Smooth timeline dialogue alignment matching original speech window
+      • Restores untouched original background room ambience
       • Generates dubbed_audio.mp3
                         │
                         ▼
@@ -138,10 +140,12 @@ python pipeline.py --video "D:/Videos/speech.mp4" --target-lang hi --work-dir "o
 
 ## ⚙️ Voice Expression & Timing Alignment Details
 
-- **Dialogue Window Locking:** Instead of stretching speech across silent pauses or trailing scenes, the pipeline locks dialogue synthesis strictly to the speaker's active speaking timestamps.
-- **Phase-Vocoder Alignment:** If the translated text naturally requires more or fewer syllables, `cloner.py` applies a phase-vocoder time-stretch to fit the speaking duration without pitch or timbre distortion.
-- **Emotive Expression:** `cloner.py` operates at `T=0.80` with a 3-candidate pitch-contour selection to capture vocal emotion, inflection, and natural conversational cadence.
-- **Tone & Brightness Equalization:** High-frequency rasp and vocal presence are restored via spectral tilt matching (`EQ_STRENGTH = 0.70`).
+- **Dialogue Window Locking:** Instead of stretching speech across silent pauses or trailing scenes, the pipeline locks dialogue synthesis strictly to the speaker's active speaking timestamps ($t_{\text{start}}$ to $t_{\text{end}}$).
+- **Decoupled Two-Stage Voice Architecture:**
+  1. *Stage 1 (Phonation):* High-fidelity regional neural phonation produces human-quality pronunciation, natural breath pauses, and native accent fluency.
+  2. *Stage 2 (Tone & Formant Transfer):* Praat PSOLA shifts the vocal tract length ($F_1, F_2, F_3$) and pitch distribution to match the biological register and timbre of the original speaker without robotic vocoder distortion.
+- **Cadence & Duration Awareness:** Automatic syllable-rate balancing prevents speed rushing or sluggish speech stretching, ensuring natural human conversational tempo across all languages.
+- **Untouched Room Atmosphere:** Continuous background room tone, ambient beds, and SFX separated by Meta HTDemucs are remuxed back in, preserving original production value.
 
 ---
 
