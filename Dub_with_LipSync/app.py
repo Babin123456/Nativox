@@ -95,6 +95,12 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
     # STEP 1: Run Stage 00 Auto Dubbing (Exact 00_Auto_Pip workflow)
     # -----------------------------------------------------------------
     _log(job_id, "\n[Stage 1/2] Executing Stage 00 Auto Dubbing Pipeline...")
+    import orchestrator
+
+    root_dir = DUBBING_DIR.parent
+    _log(job_id, "  Ensuring Stage 00 microservices (ports 8001-8007) are running...")
+    owned_processes = orchestrator.start_services(root_dir)
+
     auto_pip_main.job_store[job_id] = {
         "job_id": job_id,
         "filename": input_video_path.name,

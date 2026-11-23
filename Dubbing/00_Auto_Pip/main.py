@@ -425,13 +425,46 @@ def _run_job_worker(
 
         if not constructed_sentence:
             stage4_dir = ROOT_DIR / "04_Keyword_to_Sentence_Construction"
-            if str(stage4_dir) not in sys.path:
-                sys.path.insert(0, str(stage4_dir))
-            import importlib
-            construct_mod = importlib.import_module("construct")
-            SentenceConstructor = getattr(construct_mod, "SentenceConstructor")
-            constructor = SentenceConstructor(model_path=str(stage4_dir / "saved_model"))
-            constructed_sentence = constructor.construct(keyword_text).strip()
+            stage4_py = stage4_dir / "venv" / "Scripts" / "python.exe"
+            
+            # If current environment lacks transformers, dispatch via Stage 04's dedicated venv
+            try:
+                import transformers
+                has_transformers = True
+            except ImportError:
+                has_transformers = False
+
+            if not has_transformers and stage4_py.is_file():
+                # Execute construct.py in its dedicated virtual environment
+                cmd = [
+                    str(stage4_py),
+                    str(stage4_dir / "construct.py"),
+                    "--sentence", keyword_text,
+                    "--model_path", str(stage4_dir / "saved_model")
+                ]
+                res = subprocess.run(cmd, cwd=str(stage4_dir), capture_output=True, text=True, encoding="utf-8")
+                if res.returncode == 0:
+                    for line in res.stdout.splitlines():
+                        if "CONSTRUCTIVE OUTPUT :" in line:
+                            constructed_sentence = line.split("CONSTRUCTIVE OUTPUT :", 1)[1].strip()
+                            break
+                        elif "Constructed:" in line:
+                            constructed_sentence = line.split("Constructed:", 1)[1].strip()
+                            break
+                    if not constructed_sentence:
+                        # Fallback to output sentence from stdout
+                        lines = [l.strip() for l in res.stdout.splitlines() if l.strip() and not l.startswith("=")]
+                        if lines:
+                            constructed_sentence = lines[-1]
+
+            if not constructed_sentence:
+                if str(stage4_dir) not in sys.path:
+                    sys.path.insert(0, str(stage4_dir))
+                import importlib
+                construct_mod = importlib.import_module("construct")
+                SentenceConstructor = getattr(construct_mod, "SentenceConstructor")
+                constructor = SentenceConstructor(model_path=str(stage4_dir / "saved_model"))
+                constructed_sentence = constructor.construct(keyword_text).strip()
 
         (work_dir / "constructed_sentence.txt").write_text(constructed_sentence, encoding="utf-8")
         job["constructed_sentence"] = constructed_sentence
