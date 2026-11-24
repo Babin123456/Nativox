@@ -181,7 +181,7 @@ HTDemucs operates across dual domains simultaneously:
    $$X(f, t) = \sum_{n=-\infty}^{\infty} x[n] w[n - t] e^{-j 2\pi f n}$$
 The network minimizes the multi-scale spectral loss:
 $$\mathcal{L}_{\text{spectral}} = \| |X| - |\hat{X}| \|_1 + \| \log |X| - \log |\hat{X}| \|_1$$
-This yields the pure vocal signal $\hat{s}(t) = \text{source\_vocals.wav}$ and the non-vocal background track $\hat{m}(t) = \text{source\_bgm.wav}$.
+This yields the pure vocal signal $\hat{s}(t) = \text{source\_vocals}$ and the non-vocal background track $\hat{m}(t) = \text{source\_bgm}$ (stored as `source_vocals.wav` and `source_bgm.wav`).
 
 ---
 
@@ -351,8 +351,8 @@ flowchart TD
 #### Detailed Multi-Speaker Implementation Specifications:
 1. **Acoustic Diarization Stage (`PyAnnote.audio` / `WhisperX`):**
    - Ingests `source_vocals.wav` and segments speech into non-overlapping temporal intervals:
-     $$\mathcal{S} = \{ (t_{\text{start}}^{(i)}, t_{\text{end}}^{(i)}, \text{spk\_id}^{(i)}) \}_{i=1}^M$$
-   - For each unique speaker $\text{spk\_id} \in \{S_1, S_2, \dots, S_K\}$, extracts a dedicated 256-dimensional OpenVoice V2 speaker embedding vector $\mathbf{e}_k$ from the longest speech turn of that speaker.
+     $$\mathcal{S} = \{ (t_{\text{start}}^{(i)}, t_{\text{end}}^{(i)}, \text{spk}_{\text{id}}^{(i)}) \}_{i=1}^M$$
+   - For each unique speaker $\text{spk}_{\text{id}} \in \{S_1, S_2, \dots, S_K\}$, extracts a dedicated 256-dimensional OpenVoice V2 speaker embedding vector $\mathbf{e}_k$ from the longest speech turn of that speaker.
 2. **Segmented Multi-Voice Translation & Synthesis:**
    - Translates dialogue turns individually while maintaining conversational context.
    - Synthesizes each turn using a gender-matched base voice ($S_1 \to \text{Male Base}$, $S_2 \to \text{Female Base}$ or deep male / light male).

@@ -1,105 +1,96 @@
 <!-- markdownlint-disable -->
 
-# Nativox LipSync_Babin Pipeline: Zero-API Multilingual Video Dubbing & Performance Transfer
+# Nativox LipSync_Babin: Zero-API Multilingual Video Dubbing & High-Definition Lip Sync
 
-> **Universal, Free & Autonomous AI Video Dubbing**: The **LipSync_Babin pipeline** dubs English talking-head videos into natural **Hindi (`hi`)** and **Bengali (`bn`)** with **1:1 Video Duration Synchronization**, **Continuous Background Music (BGM) Preservation**, **Speaker Vocal Timbre/Pitch Cloning**, and **High-Definition Sub-Nasal Lip Sync**—**operating 100% Free with ZERO API Keys required**.  
+> **Autonomous AI Video Dubbing**: Dub any talking-head English video into natural **Hindi (`hi`)** and **Bengali (`bn`)** with **1:1 Video Duration Synchronization**, **Continuous Background Music Preservation**, **Speaker Vocal Timbre/Pitch Cloning**, and **High-Definition Lip Sync** (GFPGAN + MediaPipe Sub-Nasal Compositing)—**100% Free with ZERO API Keys required**.  
 > **Creator & Lead Architect**: Babin Bid  
 
 ---
 
-## 🌟 Key Features & Unique Selling Points (USP)
+## 🌟 Key Features
 
-1. **100% Free / Zero API Key Architecture**:
-   - **No subscriptions, credit cards, or external API keys needed**.
-   - The primary LipSync_Babin pipeline utilizes local OpenAI Whisper for ASR, public Google GTX / Deep-Translator for colloquial Indic translation, Microsoft Edge-TTS for native neural speech synthesis, and local Praat PSOLA / OpenVoice V2 for speaker voice timbre transfer.
-   - Optional Sarvam AI support is retained as a secondary fallback.
-2. **True Speaker Voice Identity Transfer**:
-   - Analyzes the original speaker's fundamental pitch ($F_0$), vocal tract formant resonance ($F_1, F_2, F_3$), and spectral centroid.
-   - Morphs synthesized Indic speech to carry the **original speaker's exact vocal weight, throat resonance, and pitch contour** while articulating with native Hindi and Bengali phonetics.
-3. **Continuous Background Music & Acoustic Environment Preservation**:
-   - Uses **Meta HTDemucs** neural stem separation to disentangle speech from room tone, ambient reverberation, sound effects, and background music.
-   - Mixes the dubbed dialogue back over the continuous BGM track, preventing silence gaps or jarring acoustic transitions.
-4. **Sub-Nasal Selective Compositing & HD Restoration (GFPGAN)**:
-   - Uses a dynamic 468-point 3D MediaPipe facial mesh to isolate only the lower lip boundary.
-   - Keeps 100% of non-mouth pixels (**eyes, gaze, eyebrows, nose bridge, forehead skin pores, hair, and camera background**) pixel-identical to the original recording.
-   - Restores mouth, lips, and teeth micro-textures using **GFPGAN v1.4**.
-5. **Exact 1:1 Video Duration & Timeline Match**:
-   - Enforces syllable-budgeted translation (~3.0 syllables/sec).
-   - Precision pitch-invariant `atempo` duration alignment locks audio duration to the exact video timeline.
+1. **100% Free / Zero API Key Architecture**: Runs completely on your machine. No API keys, paid credits, or third-party service subscriptions are needed.
+2. **Interactive Web Dashboard**: Upload any video directly in your browser, pick target language, and preview the translated, voice-cloned, lip-synced video instantly.
+3. **True Speaker Voice Identity Transfer**: Clones and preserves the original speaker's vocal pitch, throat resonance, and speaking timbre across languages.
+4. **Continuous Background Music Preservation**: Extracts and preserves original background audio/music, seamlessly remuxing it with the dubbed speech.
+5. **High-Definition Sub-Nasal Lip Sync**: Powered by Wav2Lip + GFPGAN v1.4 restoration + 468 MediaPipe facial landmarks, keeping eyes, nose, hair, and scene lighting 100% untouched original pixels.
 
 ---
 
-## 🚀 Quick Start Guide (Universal Local Setup)
+## 🚀 Quick Start (Web UI)
 
-### 1. Prerequisites
-- **OS**: Windows 10/11, Ubuntu/Debian Linux, or macOS
-- **Python**: Python 3.10 or 3.11 installed
-- **FFmpeg**: Installed and available on system `PATH` (`ffmpeg -version`)
-- **Git**: Installed on system `PATH`
+The primary and simplest way to use LipSync_Babin is via the interactive **Web UI**. You do not need to prepare test folders—simply upload your video through the browser interface.
 
-### 2. One-Time Environment Setup
-Open PowerShell (Windows) or Terminal (Linux/macOS) in the `LipSync_Babin` project directory:
+### 1. One-Time Setup
 
-```bash
-# 1. Create a dedicated virtual environment
+Open PowerShell or Terminal in the `LipSync_Babin` directory:
+
+```powershell
+# 1. Create and activate a virtual environment
 python -m venv .venv
-
-# 2. Activate the virtual environment
-# On Windows (PowerShell):
 .\.venv\Scripts\Activate.ps1
-# On Linux / macOS:
-# source .venv/bin/activate
 
-# 3. Upgrade pip and install all required dependencies
+# 2. Install dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 4. Automatically download and verify all neural model checkpoints
+# 3. Download neural weights (Wav2Lip GAN, GFPGAN v1.4, Face Detector)
 python setup_models.py
 ```
 
-### 3. Zero-API Operation (No `.env` or API Keys Required)
-The pipeline is designed to run 100% locally and completely free without any API keys or configuration files. All model checkpoints, speech engines, and Praat voice cloners automatically discover their dependencies out of the box.
+> **Tip**: If you already have `Dub_with_LipSync\venv` configured on your system, you can skip creating a new `.venv` and run `app.py` directly using that Python executable.
 
 ---
 
-## 💻 Running the LipSync_Babin Pipeline
+### 2. Launch the Web UI
 
-### Option A: Interactive Web UI (Recommended)
-1. Launch the web server:
-   ```powershell
-   cd LipSync_Babin
-   .\.venv\Scripts\python.exe -m uvicorn web.app:app --host 127.0.0.1 --port 7865
-   ```
-2. Open your web browser at:
-   👉 **`http://127.0.0.1:7865`**
-3. Drag and drop any talking-head `.mp4` video.
-4. Choose target language (**Hindi** or **Bengali**).
-5. Voice Backend defaults to **`Primary Zero-API Mode (Edge-TTS + Tone Transfer) [100% Free / No Keys]`**.
-6. Click **Dub Video Now** to watch live progress and view the final video in the integrated player.
-
-### Option B: Command-Line Interface (CLI)
+Simply navigate into the `web` folder and run `app.py`:
 
 ```powershell
-# Navigate to directory
-cd LipSync_Babin
-
-# Run 100% Free Zero-API LipSync_Babin Pipeline (Hindi):
-.\.venv\Scripts\python.exe pipeline.py --input testcases/test2.mp4 --lang hi --tts free --preserve-bgm --output outputs/test2_Hindi_Dubbed.mp4
-
-# Run 100% Free Zero-API LipSync_Babin Pipeline (Bengali):
-.\.venv\Scripts\python.exe pipeline.py --input testcases/test4.mp4 --lang bn --tts free --preserve-bgm --output outputs/test4_Bengali_Dubbed.mp4
+cd web
+python app.py
 ```
 
-### CLI Parameters:
-| Flag | Options | Default | Description |
+Once running, open your browser at:
+👉 **`http://127.0.0.1:7860`**
+
+### Using the Web UI:
+1. **Upload Video**: Drag and drop any talking-head `.mp4` video directly into the drop zone.
+2. **Select Language**: Choose **Hindi** or **Bengali**.
+3. **Voice Mode**: Default is **Zero-API Mode (100% Free / No Keys)**.
+4. **Click "Dub Video Now"**: The system transcribes, translates, clones the speaker's voice, articulates lips with GFPGAN restoration, and streams the finished video in the player.
+
+---
+
+## 💻 Optional: Command-Line Interface (Demo / Batch)
+
+If you prefer testing via terminal with an attached demo video (such as `test2.mp4` included in the root directory):
+
+```powershell
+# Dub attached demo video to Hindi:
+python pipeline.py --input test2.mp4 --lang hi --tts free --preserve-bgm --output outputs/demo_hindi_dubbed.mp4
+
+# Dub attached demo video to Bengali:
+python pipeline.py --input test2.mp4 --lang bn --tts free --preserve-bgm --output outputs/demo_bengali_dubbed.mp4
+```
+
+### CLI Options:
+| Flag | Values | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `--input` | `.mp4` path | *Required* | Path to input talking-head video |
-| `--lang` | `hi`, `bn` | *Required* | Target dubbed language |
-| `--output` | `.mp4` path | *Required* | Output destination file path |
-| `--tts` | `free`, `edgetts`, `sarvam` | `free` | Speech synthesis provider (`free` requires 0 keys) |
-| `--preserve-bgm`| boolean flag | `True` | Runs Demucs neural separation to keep BGM |
-| `--enhance` | boolean flag | `True` | Runs GFPGAN + Selective Compositor |
+| `--input` | File path (`.mp4`) | *Required* | Path to your demo or test video file |
+| `--lang` | `hi`, `bn` | *Required* | Target language (`hi` = Hindi, `bn` = Bengali) |
+| `--output` | File path (`.mp4`) | *Required* | Destination path for the final dubbed video |
+| `--tts` | `free`, `edgetts`, `sarvam` | `free` | Speech synthesis engine (`free` requires 0 keys) |
+| `--preserve-bgm`| Flag | `True` | Preserves and mixes original background music |
+| `--enhance` | Flag | `True` | Restores teeth/lips sharpness with GFPGAN v1.4 |
+
+---
+
+## 🛠️ Common Notes
+
+- **Port in Use?** You can launch on another port with `python -m uvicorn app:app --port 7865`.
+- **MediaPipe Version**: For optimal landmark support, keep `mediapipe<0.10.30`.
+- **Rendered Outputs**: Final videos generated via the Web UI are automatically stored in the `outputs/` folder.
 
 ---
 
@@ -107,44 +98,23 @@ cd LipSync_Babin
 
 ```
 LipSync_Babin/
-├── ARCHITECTURE.md            # Mermaid system diagrams & architectural workflows
-├── INSTRUCTIONS.md            # Comprehensive module-by-module working principles
-├── README.md                  # Project overview & running syntax
-├── setup_models.py            # Automated neural models and weights downloader
-├── config.py                  # Pipeline configuration schemas
-├── pipeline.py                # Master CLI orchestration pipeline
+├── README.md                  # Master guide (Web UI & setup)
+├── ARCHITECTURE.md            # System architecture & pipeline diagrams
+├── INSTRUCTIONS.md            # Technical specifications & working principles
+├── MATHEMATICAL_FOUNDATIONS.md# Acoustic and alignment mathematics
+├── setup_models.py            # Neural model weight downloader
+├── pipeline.py                # Core pipeline orchestration engine
 ├── requirements.txt           # Python package dependencies
+├── test2.mp4                  # Sample demo video file
 │
-├── speech_analysis/           # Speaker Performance Transfer Engine (SPTE)
-│   ├── spm/                   # Acoustic, pitch, and facial analysis modules
-│   └── transfer_engine.py     # High-level SPTE interface
+├── web/                       # Web Dashboard Interface
+│   ├── app.py                 # Main Web UI server (run with: cd web && python app.py)
+│   └── templates/index.html   # Responsive web interface
 │
-├── synthesis/                 # Neural speech synthesis & voice transfer
-│   ├── edgetts_adapter.py     # Microsoft Edge-TTS Zero-Key provider
-│   ├── sarvam_adapter.py      # Sarvam Indic Bulbul provider (Optional fallback)
-│   ├── tone_transfer_bridge.py# Praat PSOLA formant and timbre morphing bridge
-│   └── tts_provider.py        # Abstract TTS provider base class
-│
-├── translation/               # Transcription and linguistic adaptation
-│   ├── translator.py          # Local Whisper / Google GTX translation
-│   └── syllable_translator.py # Syllable-budgeted duration translator
-│
-├── alignment/                 # Forced alignment & viseme mapping
-├── lipsync/                   # Neural mouth synchronization
-│   ├── wav2lip_engine.py      # Audio-conditioned Wav2Lip GAN generator
-│   └── face_enhancer_bridge.py# GFPGAN super-resolution + selective mask
-│
-├── utils/                     # Audio, video, and alignment utilities
-│   ├── audio_utils.py         # Demuxing and amix background mixing
-│   ├── audio_separator_bridge.py # Meta HTDemucs neural stem separation
-│   ├── duration_aligner.py    # Sample-accurate atempo audio alignment
-│   └── video_utils.py         # FFprobe metadata extraction
-│
-├── web/                       # FastAPI web application
-│   ├── app.py                 # REST backend and file streaming
-│   └── templates/index.html   # Responsive HTML5 web dashboard
-│
-├── outputs/                   # Rendered dubbed video results
-├── testcases/                 # Benchmark talking-head video samples
-└── work/                      # Intermediate stem caches and feature arrays
+├── lipsync/                   # Neural mouth sync & GFPGAN super-resolution
+├── synthesis/                 # Zero-API neural TTS and voice identity morphing
+├── translation/               # Colloquial translation & syllable budgeting
+├── speech_analysis/           # Vocal pitch, formant, and prosody transfer
+├── utils/                     # BGM separation (HTDemucs) & audio/video tools
+└── outputs/                   # Destination for processed dubbed videos
 ```
