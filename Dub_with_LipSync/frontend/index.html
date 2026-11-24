@@ -288,6 +288,37 @@
       line-height: 1.5;
     }
 
+    /* Timer & Tentative Estimation Card */
+    .timer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .timer-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    .timer-item strong {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .timer-item.eta strong {
+      color: #a5b4fc;
+    }
+
     /* Video Output Display */
     .video-grid {
       display: none;
@@ -393,6 +424,22 @@
         <span class="status-badge status-running" id="statusBadge">Running</span>
       </div>
 
+      <!-- Execution Timer & ETA -->
+      <div class="timer-bar" id="timerBar">
+        <div class="timer-item">
+          <span>⏱ Elapsed:</span>
+          <strong id="timerElapsed">00:00</strong>
+        </div>
+        <div class="timer-item eta">
+          <span>⏳ Tentative ETA:</span>
+          <strong id="timerETA">Estimating...</strong>
+        </div>
+        <div class="timer-item">
+          <span>🎬 Input Video:</span>
+          <strong id="timerVideoDur">--</strong>
+        </div>
+      </div>
+
       <div class="progress-bar-container">
         <div class="progress-bar" id="progressBar"></div>
       </div>
@@ -434,6 +481,51 @@
     const origVideoPlayer = document.getElementById('origVideoPlayer');
     const resVideoPlayer = document.getElementById('resVideoPlayer');
     const downloadLink = document.getElementById('downloadLink');
+
+    const timerElapsed = document.getElementById('timerElapsed');
+    const timerETA = document.getElementById('timerETA');
+    const timerVideoDur = document.getElementById('timerVideoDur');
+
+    let timerInterval = null;
+    let jobStartTime = null;
+
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return '00:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function startTimer(estDuration) {
+      jobStartTime = Date.now();
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const elapsedSec = Math.floor((Date.now() - jobStartTime) / 1000);
+        timerElapsed.textContent = formatTime(elapsedSec);
+
+        if (estDuration && estDuration > 0) {
+          const remainSec = estDuration - elapsedSec;
+          if (remainSec > 0) {
+            timerETA.textContent = `~${formatTime(remainSec)} remaining (total ~${formatTime(estDuration)})`;
+          } else {
+            timerETA.textContent = `Finishing touches... (${formatTime(elapsedSec)})`;
+          }
+        }
+      }, 1000);
+    }
+
+    function stopTimer(isComplete) {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (isComplete && jobStartTime) {
+        const finalSec = Math.floor((Date.now() - jobStartTime) / 1000);
+        timerElapsed.textContent = formatTime(finalSec);
+        timerETA.textContent = `Done in ${formatTime(finalSec)}`;
+      }
+    }
 
     videoDropzone.onclick = () => videoFileInput.click();
 
@@ -483,6 +575,10 @@
       statusTitle.textContent = 'Running Stage 00 Dubbing & LipSync...';
       progressBar.style.width = '15%';
       logsTerminal.textContent = 'Uploading input video and preparing pipeline...\n';
+      timerElapsed.textContent = '00:00';
+      timerETA.textContent = 'Estimating...';
+      timerVideoDur.textContent = '--';
+      startTimer(120);
 
       const formData = new FormData();
       formData.append('video_file', file);
@@ -517,6 +613,13 @@
           const res = await fetch(`/api/status/${jobId}`);
           const status = await res.json();
 
+          if (status.video_duration) {
+            timerVideoDur.textContent = `${status.video_duration.toFixed(1)}s`;
+          }
+          if (status.estimated_duration && timerETA.textContent.includes('Estimating')) {
+            startTimer(status.estimated_duration);
+          }
+
           if (status.logs) {
             logsTerminal.textContent = status.logs;
             logsTerminal.scrollTop = logsTerminal.scrollHeight;
@@ -530,6 +633,7 @@
 
           if (status.state === 'completed') {
             clearInterval(interval);
+            stopTimer(true);
             progressBar.style.width = '100%';
             statusBadge.className = 'status-badge status-done';
             statusBadge.textContent = 'Completed';
@@ -542,6 +646,7 @@
             downloadLink.href = status.output_video_url;
           } else if (status.state === 'failed') {
             clearInterval(interval);
+            stopTimer(false);
             statusBadge.className = 'status-badge status-failed';
             statusBadge.textContent = 'Failed';
             statusTitle.textContent = 'Pipeline execution failed';

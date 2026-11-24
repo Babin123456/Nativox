@@ -83,13 +83,51 @@ def _log(job_id: str, message: str):
         job_registry[job_id]["logs"] += message + "\n"
 
 
+def _get_video_duration(video_path: Path) -> float:
+    """Probes video duration in seconds using ffprobe."""
+    try:
+        cmd = [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        if res.returncode == 0 and res.stdout.strip():
+            return float(res.stdout.strip())
+    except Exception:
+        pass
+    return 0.0
+
+
 def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: Path):
     """
     1. Executes the exact 00_Auto_Pip worker.
     2. Takes the dubbed audio and input video and performs selective lip-sync.
     """
+    start_time = time.time()
     job_registry[job_id]["state"] = "running"
+    job_registry[job_id]["start_time"] = start_time
+    
+    # Calculate tentative estimated duration based on video duration
+    video_dur = _get_video_duration(input_video_path)
+    job_registry[job_id]["video_duration"] = round(video_dur, 2)
+    
+    # CPU processing multiplier rule of thumb:
+    # Stage 00 Dubbing (Whisper, Demucs/profiling, XTTS v2, T5): ~30s base overhead + ~3.5x video duration
+    # Stage 2 Selective Lip-Sync (Wav2Lip face detection & inpainting): ~15s base overhead + ~4.5x video duration
+    # Total tentative estimated duration (seconds):
+    if video_dur > 0:
+        tentative_seconds = round(45.0 + (video_dur * 8.0))
+    else:
+        tentative_seconds = 120.0
+    job_registry[job_id]["estimated_duration"] = tentative_seconds
+
     _log(job_id, f"=== Starting Stage 00 Dubbing + Selective LipSync for {input_video_path.name} ===")
+    if video_dur > 0:
+        mins = int(tentative_seconds // 60)
+        secs = int(tentative_seconds % 60)
+        time_str = f"{mins}m {secs}s" if mins > 0 else f"{secs}s"
+        _log(job_id, f"[*] Video duration: {video_dur:.2f}s | Tentative estimated time: ~{time_str} ({tentative_seconds}s)")
+
 
     # -----------------------------------------------------------------
     # STEP 1: Run Stage 00 Auto Dubbing (Exact 00_Auto_Pip workflow)
@@ -148,6 +186,7 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
 
     except Exception as exc:
         job_registry[job_id]["state"] = "failed"
+        job_registry[job_id]["elapsed_seconds"] = round(time.time() - start_time, 1)
         _log(job_id, f"[ERROR in Stage 00 Dubbing]: {str(exc)}")
         return
 
@@ -196,14 +235,21 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
         final_dest = OUTPUTS_DIR / f"{job_id}_final_lipsynced_video.mp4"
         shutil.copy2(final_output_video, final_dest)
 
+        elapsed_total = round(time.time() - start_time, 1)
+        mins = int(elapsed_total // 60)
+        secs = int(elapsed_total % 60)
+        time_taken_str = f"{mins}m {secs}s" if mins > 0 else f"{secs}s"
+
         job_registry[job_id]["state"] = "completed"
         job_registry[job_id]["output_path"] = str(final_dest)
         job_registry[job_id]["output_video_url"] = f"/api/video/{job_id}/output"
         job_registry[job_id]["original_video_url"] = f"/api/video/{job_id}/original"
-        _log(job_id, f"\n=== SUCCESS! Dubbed + Lip-Synced video saved in outputs/: {final_dest.name} ===")
+        job_registry[job_id]["elapsed_seconds"] = elapsed_total
+        _log(job_id, f"\n=== SUCCESS! Dubbed + Lip-Synced video saved in outputs/: {final_dest.name} (Total time: {time_taken_str}) ===")
 
     except Exception as exc:
         job_registry[job_id]["state"] = "failed"
+        job_registry[job_id]["elapsed_seconds"] = round(time.time() - start_time, 1)
         _log(job_id, f"[ERROR in Stage 2 LipSync]: {str(exc)}")
 
 
