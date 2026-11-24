@@ -374,8 +374,22 @@ def _run_job_worker(
 
         def _task_2b():
             job["logs"].append("Stage 2b: Extracting speaker acoustic profile & clean reference clips (main.py)...")
+            
+            # Select python executable with demucs & torch installed
+            # Check Dubbing/00_Auto_Pip/venv, Dubbing_Babin/venv, or LipSync_Babin/.venv before falling back to sys.executable
+            cand_pythons = [
+                ROOT_DIR / "00_Auto_Pip" / "venv" / "Scripts" / "python.exe",
+                ROOT_DIR.parent / "Dubbing_Babin" / "venv" / "Scripts" / "python.exe",
+                ROOT_DIR.parent / "LipSync_Babin" / ".venv" / "Scripts" / "python.exe",
+            ]
+            stage08_py = sys.executable
+            for cp in cand_pythons:
+                if cp.is_file():
+                    stage08_py = str(cp)
+                    break
+
             cmd_2b = [
-                sys.executable,
+                stage08_py,
                 str(stage08_dir / "main.py"),
                 str(mp3_path),
                 "--output-json", str(profile_json),
@@ -505,8 +519,19 @@ def _run_job_worker(
         cloned_voice_only_path = work_dir / "cloned_voice_only.wav"
         dubbed_text_file = work_dir / "dubbed_text.txt"
 
+        cand_pythons = [
+            ROOT_DIR / "00_Auto_Pip" / "venv" / "Scripts" / "python.exe",
+            ROOT_DIR.parent / "Dubbing_Babin" / "venv" / "Scripts" / "python.exe",
+            ROOT_DIR.parent / "LipSync_Babin" / ".venv" / "Scripts" / "python.exe",
+        ]
+        clone_py = sys.executable
+        for cp in cand_pythons:
+            if cp.is_file():
+                clone_py = str(cp)
+                break
+
         cmd_clone = [
-            sys.executable,
+            clone_py,
             str(stage08_dir / "test_cloned.py"),
             "--text-file", str(dubbed_text_file),
             "--profile", str(profile_json),
