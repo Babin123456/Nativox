@@ -770,6 +770,22 @@
         </div>
       </div>
 
+      <!-- Stage 3 & 4 Bypass Toggle Option -->
+      <div style="margin-top:14px; margin-bottom:18px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i data-lucide="zap" style="width:18px;height:18px;color:var(--accent);"></i>
+          <div>
+            <div style="font-size:13px; font-weight:600; color:var(--text);">Skip Stage 3 (Keywords) & Stage 4 (Sentence Construction)</div>
+            <div style="font-size:11px; color:var(--text-muted);">Bypasses keyword extraction & T5 sentence reconstruction; sends Whisper transcript directly to Stage 05b.</div>
+          </div>
+        </div>
+        <label style="position:relative; display:inline-block; width:44px; height:24px; margin:0; cursor:pointer;">
+          <input type="checkbox" id="skipStages34Toggle" checked style="opacity:0; width:0; height:0;" />
+          <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#3b82f6; transition:.3s; border-radius:24px;" id="toggleSlider"></span>
+          <span style="position:absolute; content:''; height:18px; width:18px; left:23px; bottom:3px; background-color:white; transition:.3s; border-radius:50%;" id="toggleCircle"></span>
+        </label>
+      </div>
+
       <button id="runBtn" class="btn-primary" disabled onclick="executeAutomatedPipeline()">
         <i data-lucide="play" style="width:18px;height:18px;"></i>
         Execute Full End-to-End Dubbing Pipeline
@@ -1074,6 +1090,9 @@
       const selectedGender = document.querySelector('input[name="voiceGender"]:checked')?.value || 'auto';
       formData.append('voice_gender', selectedGender);
 
+      const skipStages = document.getElementById('skipStages34Toggle')?.checked ?? true;
+      formData.append('skip_stages_3_4', skipStages);
+
       try {
         startTimer();
         const res = await fetch('/api/run-pipeline', {
@@ -1113,12 +1132,23 @@
         for (let i = 1; i <= 7; i++) {
           const el = document.getElementById(stepMap[i]);
           if (!el) continue;
-          if (i < job.current_step || job.status === 'completed') {
-            el.className = 'step-card done';
-          } else if (i === job.current_step) {
-            el.className = 'step-card active';
+          if (job.skip_stages_3_4 && (i === 3 || i === 4)) {
+            if (job.current_step > 2 || job.status === 'completed') {
+              el.className = 'step-card done';
+              el.style.opacity = '0.55';
+            } else {
+              el.className = 'step-card';
+              el.style.opacity = '0.4';
+            }
           } else {
-            el.className = 'step-card';
+            el.style.opacity = '1';
+            if (i < job.current_step || job.status === 'completed') {
+              el.className = 'step-card done';
+            } else if (i === job.current_step) {
+              el.className = 'step-card active';
+            } else {
+              el.className = 'step-card';
+            }
           }
         }
 
@@ -1166,6 +1196,21 @@
       } catch (err) {
         console.error(err);
       }
+    }
+
+    const skipToggle = document.getElementById('skipStages34Toggle');
+    const toggleSlider = document.getElementById('toggleSlider');
+    const toggleCircle = document.getElementById('toggleCircle');
+    if (skipToggle && toggleSlider && toggleCircle) {
+      skipToggle.addEventListener('change', () => {
+        if (skipToggle.checked) {
+          toggleSlider.style.backgroundColor = '#3b82f6';
+          toggleCircle.style.left = '23px';
+        } else {
+          toggleSlider.style.backgroundColor = '#374151';
+          toggleCircle.style.left = '3px';
+        }
+      });
     }
 
     refreshServicesStatus();
