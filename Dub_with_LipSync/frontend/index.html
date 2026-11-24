@@ -712,25 +712,15 @@
         <span class="status-badge status-running" id="statusBadge">Running</span>
       </div>
 
-      <!-- Execution Timer & ETA -->
+      <!-- Execution Timer -->
       <div class="timer-bar" id="timerBar">
         <div class="timer-item">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          <span>Elapsed:</span>
+          <span>Elapsed Time:</span>
           <strong id="timerElapsed">00:00</strong>
-        </div>
-        <div class="timer-item eta">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 22h14"></path>
-            <path d="M5 2h14"></path>
-            <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
-            <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
-          </svg>
-          <span>Tentative ETA:</span>
-          <strong id="timerETA">Estimating...</strong>
         </div>
         <div class="timer-item">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -739,6 +729,13 @@
           </svg>
           <span>Input Video:</span>
           <strong id="timerVideoDur">--</strong>
+        </div>
+        <div class="timer-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>Current Phase:</span>
+          <strong id="timerPhase">Processing</strong>
         </div>
       </div>
 
@@ -816,7 +813,7 @@
     const downloadLink = document.getElementById('downloadLink');
 
     const timerElapsed = document.getElementById('timerElapsed');
-    const timerETA = document.getElementById('timerETA');
+    const timerPhase = document.getElementById('timerPhase');
     const timerVideoDur = document.getElementById('timerVideoDur');
 
     let timerInterval = null;
@@ -829,22 +826,13 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    function startTimer(estDuration) {
+    function startTimer() {
       jobStartTime = Date.now();
       if (timerInterval) clearInterval(timerInterval);
 
       timerInterval = setInterval(() => {
         const elapsedSec = Math.floor((Date.now() - jobStartTime) / 1000);
         timerElapsed.textContent = formatTime(elapsedSec);
-
-        if (estDuration && estDuration > 0) {
-          const remainSec = estDuration - elapsedSec;
-          if (remainSec > 0) {
-            timerETA.textContent = `~${formatTime(remainSec)} remaining (total ~${formatTime(estDuration)})`;
-          } else {
-            timerETA.textContent = `Finishing touches... (${formatTime(elapsedSec)})`;
-          }
-        }
       }, 1000);
     }
 
@@ -856,7 +844,7 @@
       if (isComplete && jobStartTime) {
         const finalSec = Math.floor((Date.now() - jobStartTime) / 1000);
         timerElapsed.textContent = formatTime(finalSec);
-        timerETA.textContent = `Done in ${formatTime(finalSec)}`;
+        if (timerPhase) timerPhase.textContent = 'Completed';
       }
     }
 
@@ -907,11 +895,11 @@
       statusBadge.textContent = 'Running';
       statusTitle.textContent = 'Running Stage 00 Dubbing & LipSync...';
       progressBar.style.width = '15%';
-      logsTerminal.textContent = 'Uploading input video and preparing pipeline...\n';
+      logsTerminal.textContent = 'Preparing pipeline...\n';
       timerElapsed.textContent = '00:00';
-      timerETA.textContent = 'Estimating...';
+      if (timerPhase) timerPhase.textContent = 'Input Video';
       timerVideoDur.textContent = '--';
-      startTimer(120);
+      startTimer();
 
       const formData = new FormData();
       formData.append('video_file', file);
@@ -949,18 +937,20 @@
           if (status.video_duration) {
             timerVideoDur.textContent = `${status.video_duration.toFixed(1)}s`;
           }
-          if (status.estimated_duration && timerETA.textContent.includes('Estimating')) {
-            startTimer(status.estimated_duration);
-          }
 
           if (status.logs) {
             logsTerminal.textContent = status.logs;
             logsTerminal.scrollTop = logsTerminal.scrollHeight;
 
-            if (status.logs.includes('[Stage 2/2]')) {
+            if (status.logs.includes('[Phase 3: Sub-Nasal Lip-Sync]')) {
               progressBar.style.width = '80%';
-            } else if (status.logs.includes('[Stage 1/2]')) {
+              if (timerPhase) timerPhase.textContent = 'Lip-Syncing';
+            } else if (status.logs.includes('[Phase 2: Stage 00 Dubbing Pipeline]')) {
               progressBar.style.width = '45%';
+              if (timerPhase) timerPhase.textContent = 'Dubbing';
+            } else if (status.logs.includes('[Phase 1: Input Video Loaded]')) {
+              progressBar.style.width = '20%';
+              if (timerPhase) timerPhase.textContent = 'Analyzing Video';
             }
           }
 
