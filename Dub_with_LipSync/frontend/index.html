@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nativox — Universal Dubbing + LipSync Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0c10;
+      --bg-card: rgba(18, 22, 31, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.35);
+      --accent-primary: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --status-running: #3b82f6;
+      --status-done: #10b981;
+      --status-failed: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(236, 72, 153, 0.10) 0%, transparent 45%);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      max-width: 720px;
+      line-height: 1.6;
+    }
+
+    .pipeline-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .pipe-step {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .pipe-step.active {
+      border-color: var(--accent-primary);
+      color: #c7d2fe;
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    .pipe-arrow {
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1.25rem;
+      padding: 2.25rem;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    .dropzone-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border-accent);
+      border-radius: 1rem;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.45);
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.1);
+      transform: scale(1.005);
+    }
+
+    .dropzone svg {
+      width: 3.5rem;
+      height: 3.5rem;
+      stroke: var(--accent-primary);
+    }
+
+    .dropzone span.title {
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+
+    .dropzone span.sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .selected-file-info {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1.25rem;
+      font-size: 0.95rem;
+      color: #c7d2fe;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 1.15rem 1.5rem;
+      background: var(--accent-gradient);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border: none;
+      border-radius: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      margin-top: 1.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Status Section */
+    .status-panel {
+      display: none;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+    }
+
+    .status-running {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .status-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-failed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-gradient);
+      transition: width 0.3s ease;
+    }
+
+    .logs-terminal {
+      background: #06080c;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+      height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    /* Video Output Display */
+    .video-grid {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .video-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .video-card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    video {
+      width: 100%;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: #000;
+      max-height: 480px;
+      object-fit: contain;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.25rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 0.75rem;
+      transition: background 0.2s ease;
+      margin-top: 0.5rem;
+    }
+
+    .btn-download:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Nativox Studio</div>
+      <h1>Stage 00 Dubbing + Selective LipSync</h1>
+      <p>Give one input video. It runs the exact 00_Auto_Pip dubbing pipeline (author voice cloning & vernacular dialogue) followed directly by selective sub-nasal lip synchronization.</p>
+      
+      <div class="pipeline-diagram">
+        <span class="pipe-step active">1. Input Video</span>
+        <span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">2. Stage 00 Dubbing (00_Auto_Pip)</span>
+        <span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">3. Selective LipSync (Wav2Lip)</span>
+        <span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step active">4. Final Video (outputs/)</span>
+      </div>
+    </header>
+
+    <div class="card">
+      <form id="dubForm">
+        <div class="dropzone-container">
+          <div class="dropzone" id="videoDropzone">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            <span class="title">Choose or Drop Input Video</span>
+            <span class="sub">MP4, MOV, MKV (Executes 00_Auto_Pip Dubbing + Lip-Sync)</span>
+            <input type="file" id="videoFileInput" accept="video/*">
+          </div>
+
+          <div class="selected-file-info" id="selectedFileInfo">
+            <span id="selectedFileName">video.mp4</span>
+            <span style="font-size: 0.8rem; color: #a5b4fc;">Ready to Process</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span>Run 00 Dubbing + LipSync Pipeline</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Status & Progress Panel -->
+    <div class="card status-panel" id="statusPanel">
+      <div class="status-header">
+        <h3 id="statusTitle">Processing Pipeline...</h3>
+        <span class="status-badge status-running" id="statusBadge">Running</span>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="logs-terminal" id="logsTerminal">Initializing unified pipeline...</div>
+
+      <!-- Result Comparison Video Grid -->
+      <div class="video-grid" id="videoGrid">
+        <div class="video-card">
+          <h3>Original Video</h3>
+          <video id="origVideoPlayer" controls></video>
+        </div>
+        <div class="video-card">
+          <h3>Stage 00 Dubbed + Lip-Synced Result</h3>
+          <video id="resVideoPlayer" controls></video>
+          <a href="#" id="downloadLink" class="btn-download" download="final_lipsynced_video.mp4">
+            Download Final Video
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const videoDropzone = document.getElementById('videoDropzone');
+    const videoFileInput = document.getElementById('videoFileInput');
+    const selectedFileInfo = document.getElementById('selectedFileInfo');
+    const selectedFileName = document.getElementById('selectedFileName');
+
+    const dubForm = document.getElementById('dubForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const statusPanel = document.getElementById('statusPanel');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusBadge = document.getElementById('statusBadge');
+    const progressBar = document.getElementById('progressBar');
+    const logsTerminal = document.getElementById('logsTerminal');
+    const videoGrid = document.getElementById('videoGrid');
+    const origVideoPlayer = document.getElementById('origVideoPlayer');
+    const resVideoPlayer = document.getElementById('resVideoPlayer');
+    const downloadLink = document.getElementById('downloadLink');
+
+    videoDropzone.onclick = () => videoFileInput.click();
+
+    videoDropzone.ondragover = (e) => {
+      e.preventDefault();
+      videoDropzone.classList.add('dragover');
+    };
+
+    videoDropzone.ondragleave = () => {
+      videoDropzone.classList.remove('dragover');
+    };
+
+    videoDropzone.ondrop = (e) => {
+      e.preventDefault();
+      videoDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        videoFileInput.files = e.dataTransfer.files;
+        handleFileChosen(videoFileInput.files[0]);
+      }
+    };
+
+    videoFileInput.onchange = () => {
+      if (videoFileInput.files.length > 0) {
+        handleFileChosen(videoFileInput.files[0]);
+      }
+    };
+
+    function handleFileChosen(file) {
+      selectedFileName.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+      selectedFileInfo.style.display = 'flex';
+    }
+
+    dubForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const file = videoFileInput.files[0];
+      if (!file) {
+        alert('Please choose or drop an input video first.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      statusPanel.style.display = 'flex';
+      videoGrid.style.display = 'none';
+      statusBadge.className = 'status-badge status-running';
+      statusBadge.textContent = 'Running';
+      statusTitle.textContent = 'Running Stage 00 Dubbing & LipSync...';
+      progressBar.style.width = '15%';
+      logsTerminal.textContent = 'Uploading input video and preparing pipeline...\n';
+
+      const formData = new FormData();
+      formData.append('video_file', file);
+
+      try {
+        const res = await fetch('/api/process', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || 'Failed to submit pipeline task');
+        }
+
+        const data = await res.json();
+        pollJobStatus(data.job_id);
+      } catch (err) {
+        statusBadge.className = 'status-badge status-failed';
+        statusBadge.textContent = 'Failed';
+        statusTitle.textContent = 'Error occurred';
+        logsTerminal.textContent += `\nError: ${err.message}`;
+        submitBtn.disabled = false;
+      }
+    };
+
+    async function pollJobStatus(jobId) {
+      logsTerminal.textContent += `[Pipeline Queued] Job ID: ${jobId}\n`;
+
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/status/${jobId}`);
+          const status = await res.json();
+
+          if (status.logs) {
+            logsTerminal.textContent = status.logs;
+            logsTerminal.scrollTop = logsTerminal.scrollHeight;
+
+            if (status.logs.includes('[Stage 2/2]')) {
+              progressBar.style.width = '80%';
+            } else if (status.logs.includes('[Stage 1/2]')) {
+              progressBar.style.width = '45%';
+            }
+          }
+
+          if (status.state === 'completed') {
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+            statusBadge.className = 'status-badge status-done';
+            statusBadge.textContent = 'Completed';
+            statusTitle.textContent = 'Dubbing & Lip-Sync Finished Successfully!';
+            submitBtn.disabled = false;
+
+            videoGrid.style.display = 'grid';
+            origVideoPlayer.src = status.original_video_url;
+            resVideoPlayer.src = status.output_video_url;
+            downloadLink.href = status.output_video_url;
+          } else if (status.state === 'failed') {
+            clearInterval(interval);
+            statusBadge.className = 'status-badge status-failed';
+            statusBadge.textContent = 'Failed';
+            statusTitle.textContent = 'Pipeline execution failed';
+            submitBtn.disabled = false;
+          }
+        } catch (e) {
+          console.warn('Polling error:', e);
+        }
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

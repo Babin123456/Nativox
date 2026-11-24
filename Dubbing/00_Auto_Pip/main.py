@@ -31,10 +31,6 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 JOBS_DIR = BASE_DIR / "jobs"
 JOBS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Feature flag: Skip Stage 03 (Keywords) and Stage 04 (Sentence Construction) temporarily
-# Can be controlled via env var NATIVOX_SKIP_STAGES_3_4="0" (to enable) or "1" (to skip).
-SKIP_STAGES_3_AND_4 = os.environ.get("NATIVOX_SKIP_STAGES_3_4", "1") == "1"
-
 # Add 00_Auto_Pip to sys.path so we can import orchestrator
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
@@ -97,8 +93,7 @@ def get_services_status():
         except Exception:
             online = False
 
-        # If stages 3 and 4 are skipped, offline text_to_kw does not fail all_ready
-        if not online and not (SKIP_STAGES_3_AND_4 and stage == "text_to_kw"):
+        if not online:
             all_ready = False
 
         statuses[stage] = {
@@ -106,7 +101,6 @@ def get_services_status():
             "url": url,
             "online": online,
             "directory": rel_dir,
-            "skipped": bool(SKIP_STAGES_3_AND_4 and stage == "text_to_kw"),
         }
 
     # Include Stage 2b & 08 Voice Extraction & Cloning engine status
@@ -306,7 +300,6 @@ def _run_job_worker(
     voice_gender: str = "auto",
     custom_voice: Optional[str] = None,
     target_language: str = "hindi",
-    skip_stages_3_4: bool = SKIP_STAGES_3_AND_4,
 ):
     job = job_store[job_id]
     try:
@@ -401,46 +394,70 @@ def _run_job_worker(
             text, lang_label = fut_2a.result()
             fut_2b.result()
 
-        if skip_stages_3_4:
-            # Stages 03 and 04 temporarily skipped: route transcribed text directly to Stage 05b
-            job["logs"].append("Stage 03 & 04: Temporarily bypassed (direct Whisper transcript routed to Stage 05b reformation).")
-            constructed_sentence = text
-            job["constructed_sentence"] = constructed_sentence
-            job["keywords"] = []
-            (work_dir / "constructed_sentence.txt").write_text(constructed_sentence, encoding="utf-8")
-            (work_dir / "keywords.json").write_text("[]", encoding="utf-8")
-        else:
-            # Stage 03
-            job["current_step"] = 3
-            job["step_name"] = "Extracting Salient Keywords (Stage 03 Auto-Intelligence)"
-            job["progress"] = 40
-            job["logs"].append("Stage 03: Extracting salient domain keywords via adaptive knee detection...")
-            r = orchestrator.call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": None, "mode": "auto"})
-            res3 = orchestrator.json_result(r, "text_to_kw")
-            keywords = res3.get("keywords_in_order", [])
-            (work_dir / "keywords.json").write_text(json.dumps(keywords, ensure_ascii=False, indent=2), encoding="utf-8")
-            job["keywords"] = keywords
-            job["logs"].append(f"Stage 03: Auto-extracted {len(keywords)} salient ordered keywords: {keywords}")
+        # Stage 03
+        job["current_step"] = 3
+        job["step_name"] = "Extracting Salient Keywords (Stage 03 Auto-Intelligence)"
+        job["progress"] = 40
+        job["logs"].append("Stage 03: Extracting salient domain keywords via adaptive knee detection...")
+        r = orchestrator.call("text_to_kw", "/api/extract-keywords", json={"text": text, "top_n": None, "mode": "auto"})
+        res3 = orchestrator.json_result(r, "text_to_kw")
+        keywords = res3.get("keywords_in_order", [])
+        (work_dir / "keywords.json").write_text(json.dumps(keywords, ensure_ascii=False, indent=2), encoding="utf-8")
+        job["keywords"] = keywords
+        job["logs"].append(f"Stage 03: Auto-extracted {len(keywords)} salient ordered keywords: {keywords}")
 
 
-            # Stage 04
-            job["current_step"] = 4
-            job["step_name"] = "Reconstructing Sentences (Stage 04 Seq2Seq)"
-            job["progress"] = 55
-            job["logs"].append("Stage 04: Reconstructing syntax with T5 neural model...")
-            keyword_text = ", ".join(keywords) if keywords else text
+        # Stage 04
+        job["current_step"] = 4
+        job["step_name"] = "Reconstructing Sentences (Stage 04 Seq2Seq)"
+        job["progress"] = 55
+        job["logs"].append("Stage 04: Reconstructing syntax with T5 neural model...")
+        keyword_text = ", ".join(keywords) if keywords else text
+        
+        # Try calling Stage 04 via HTTP if running, fallback to in-process construct
+        constructed_sentence = ""
+        try:
+            r4 = requests.post("http://127.0.0.1:8004/api/construct", json={"text": keyword_text, "num_beams": 4}, timeout=30)
+            if r4.ok:
+                constructed_sentence = r4.json().get("output_sentence", "").strip()
+        except Exception:
+            pass
+
+        if not constructed_sentence:
+            stage4_dir = ROOT_DIR / "04_Keyword_to_Sentence_Construction"
+            stage4_py = stage4_dir / "venv" / "Scripts" / "python.exe"
             
-            # Try calling Stage 04 via HTTP if running, fallback to in-process construct
-            constructed_sentence = ""
+            # If current environment lacks transformers, dispatch via Stage 04's dedicated venv
             try:
-                r4 = requests.post("http://127.0.0.1:8004/api/construct", json={"text": keyword_text, "num_beams": 4}, timeout=30)
-                if r4.ok:
-                    constructed_sentence = r4.json().get("output_sentence", "").strip()
-            except Exception:
-                pass
+                import transformers
+                has_transformers = True
+            except ImportError:
+                has_transformers = False
+
+            if not has_transformers and stage4_py.is_file():
+                # Execute construct.py in its dedicated virtual environment
+                cmd = [
+                    str(stage4_py),
+                    str(stage4_dir / "construct.py"),
+                    "--sentence", keyword_text,
+                    "--model_path", str(stage4_dir / "saved_model")
+                ]
+                res = subprocess.run(cmd, cwd=str(stage4_dir), capture_output=True, text=True, encoding="utf-8")
+                if res.returncode == 0:
+                    for line in res.stdout.splitlines():
+                        if "CONSTRUCTIVE OUTPUT :" in line:
+                            constructed_sentence = line.split("CONSTRUCTIVE OUTPUT :", 1)[1].strip()
+                            break
+                        elif "Constructed:" in line:
+                            constructed_sentence = line.split("Constructed:", 1)[1].strip()
+                            break
+                    if not constructed_sentence:
+                        # Fallback to output sentence from stdout
+                        lines = [l.strip() for l in res.stdout.splitlines() if l.strip() and not l.startswith("=")]
+                        if lines:
+                            constructed_sentence = lines[-1]
 
             if not constructed_sentence:
-                stage4_dir = ROOT_DIR / "04_Keyword_to_Sentence_Construction"
                 if str(stage4_dir) not in sys.path:
                     sys.path.insert(0, str(stage4_dir))
                 import importlib
@@ -449,9 +466,9 @@ def _run_job_worker(
                 constructor = SentenceConstructor(model_path=str(stage4_dir / "saved_model"))
                 constructed_sentence = constructor.construct(keyword_text).strip()
 
-            (work_dir / "constructed_sentence.txt").write_text(constructed_sentence, encoding="utf-8")
-            job["constructed_sentence"] = constructed_sentence
-            job["logs"].append(f"Stage 04: Reconstructed sentence: '{constructed_sentence[:60]}...'")
+        (work_dir / "constructed_sentence.txt").write_text(constructed_sentence, encoding="utf-8")
+        job["constructed_sentence"] = constructed_sentence
+        job["logs"].append(f"Stage 04: Reconstructed sentence: '{constructed_sentence[:60]}...'")
 
         # Stage 05b: Sentence Reformation & Translation (Directly from Stage 04, skipping 05a)
         job["current_step"] = 5
@@ -551,7 +568,6 @@ async def start_pipeline_job(
     voice_gender: str = Form("auto"),
     voice: Optional[str] = Form(None),
     target_language: str = Form("hindi"),
-    skip_stages_3_4: bool = Form(True),
 ):
     """Uploads video and initiates asynchronous end-to-end dubbing pipeline with voice gender control."""
     suffix = Path(file.filename or "").suffix.lower()
@@ -580,12 +596,11 @@ async def start_pipeline_job(
         "requested_voice_gender": voice_gender,
         "requested_voice": voice,
         "target_language": target_language,
-        "skip_stages_3_4": skip_stages_3_4,
     }
 
     t = threading.Thread(
         target=_run_job_worker,
-        args=(job_id, input_path, work_dir, voice_gender, voice, target_language, skip_stages_3_4),
+        args=(job_id, input_path, work_dir, voice_gender, voice, target_language),
         daemon=True,
     )
     t.start()
