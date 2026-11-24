@@ -83,23 +83,50 @@ def _log(job_id: str, message: str):
         job_registry[job_id]["logs"] += message + "\n"
 
 
+def _get_video_duration(video_path: Path) -> float:
+    """Probes video duration in seconds using ffprobe."""
+    try:
+        cmd = [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        if res.returncode == 0 and res.stdout.strip():
+            return float(res.stdout.strip())
+    except Exception:
+        pass
+    return 0.0
+
+
 def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: Path):
     """
     1. Executes the exact 00_Auto_Pip worker.
     2. Takes the dubbed audio and input video and performs selective lip-sync.
     """
+    start_time = time.time()
     job_registry[job_id]["state"] = "running"
-    _log(job_id, f"=== Starting Stage 00 Dubbing + Selective LipSync for {input_video_path.name} ===")
+    job_registry[job_id]["start_time"] = start_time
+    
+    video_dur = _get_video_duration(input_video_path)
+    job_registry[job_id]["video_duration"] = round(video_dur, 2)
+
+    # Clean structured telemetry logging: Input Video -> Intermediate Dubbing Stages -> Lip-Sync -> Final Video
+    _log(job_id, f"==================================================")
+    _log(job_id, f"[Phase 1: Input Video Loaded]")
+    _log(job_id, f"  File: {input_video_path.name}")
+    _log(job_id, f"  Duration: {video_dur:.2f}s")
+    _log(job_id, f"==================================================")
 
     # -----------------------------------------------------------------
     # STEP 1: Run Stage 00 Auto Dubbing (Exact 00_Auto_Pip workflow)
     # -----------------------------------------------------------------
-    _log(job_id, "\n[Stage 1/2] Executing Stage 00 Auto Dubbing Pipeline...")
+    _log(job_id, f"\n[Phase 2: Stage 00 Dubbing Pipeline]")
     import orchestrator
 
     root_dir = DUBBING_DIR.parent
-    _log(job_id, "  Ensuring Stage 00 microservices (ports 8001-8007) are running...")
-    owned_processes = orchestrator.start_services(root_dir)
+    _log(job_id, "  Ensuring microservice cluster is active...")
+    # Explicitly ensure skip_stages_3_4=False so text_to_kw (port 8003) is active
+    owned_processes = orchestrator.start_services(root_dir, skip_stages_3_4=False)
 
     auto_pip_main.job_store[job_id] = {
         "job_id": job_id,
@@ -114,6 +141,7 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
         "requested_voice_gender": "auto",
         "requested_voice": None,
         "target_language": "hindi",
+        "dub_mode": "full",
     }
 
     try:
@@ -143,18 +171,20 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
         if not dubbed_audio_path.exists() or not dubbed_video_path.exists():
             raise FileNotFoundError(f"Stage 00 outputs missing in {job_dir}")
 
-        _log(job_id, f"[Stage 1/2] Stage 00 Dubbing complete! (Audio: {dubbed_audio_path.name}, Video: {dubbed_video_path.name})")
+        dub_elapsed = round(time.time() - start_time, 1)
+        _log(job_id, f"  [Dubbing Complete] Dubbed Audio: {dubbed_audio_path.name} (Elapsed: {dub_elapsed}s)")
         job_registry[job_id]["dubbed_video_url"] = f"/api/video/{job_id}/dubbed"
 
     except Exception as exc:
         job_registry[job_id]["state"] = "failed"
-        _log(job_id, f"[ERROR in Stage 00 Dubbing]: {str(exc)}")
+        job_registry[job_id]["elapsed_seconds"] = round(time.time() - start_time, 1)
+        _log(job_id, f"[ERROR in Dubbing Phase]: {str(exc)}")
         return
 
     # -----------------------------------------------------------------
     # STEP 2: Run Selective Sub-Nasal Lip-Syncing
     # -----------------------------------------------------------------
-    _log(job_id, "\n[Stage 2/2] Adding Selective Sub-Nasal Lip-Syncing (Wav2Lip + MediaPipe)...")
+    _log(job_id, f"\n[Phase 3: Sub-Nasal Lip-Sync]")
     final_output_video = job_dir / "final_lipsynced_video.mp4"
     lipsync_script = BASE_DIR / "run_dub_lipsync.py"
     lipsync_py = str(LIPSYNC_DIR / ".venv" / "Scripts" / "python.exe")
@@ -196,15 +226,27 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
         final_dest = OUTPUTS_DIR / f"{job_id}_final_lipsynced_video.mp4"
         shutil.copy2(final_output_video, final_dest)
 
+        elapsed_total = round(time.time() - start_time, 1)
+        mins = int(elapsed_total // 60)
+        secs = int(elapsed_total % 60)
+        time_taken_str = f"{mins}m {secs}s" if mins > 0 else f"{secs}s"
+
         job_registry[job_id]["state"] = "completed"
         job_registry[job_id]["output_path"] = str(final_dest)
         job_registry[job_id]["output_video_url"] = f"/api/video/{job_id}/output"
         job_registry[job_id]["original_video_url"] = f"/api/video/{job_id}/original"
-        _log(job_id, f"\n=== SUCCESS! Dubbed + Lip-Synced video saved in outputs/: {final_dest.name} ===")
+        job_registry[job_id]["elapsed_seconds"] = elapsed_total
+        
+        _log(job_id, f"\n==================================================")
+        _log(job_id, f"[Phase 4: Final Video Rendered]")
+        _log(job_id, f"  Output: outputs/{final_dest.name}")
+        _log(job_id, f"  Total Pipeline Duration: {time_taken_str} ({elapsed_total}s)")
+        _log(job_id, f"==================================================")
 
     except Exception as exc:
         job_registry[job_id]["state"] = "failed"
-        _log(job_id, f"[ERROR in Stage 2 LipSync]: {str(exc)}")
+        job_registry[job_id]["elapsed_seconds"] = round(time.time() - start_time, 1)
+        _log(job_id, f"[ERROR in Lip-Sync Phase]: {str(exc)}")
 
 
 @app.post("/api/process")

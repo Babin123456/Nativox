@@ -12,7 +12,7 @@ import requests
 # Feature flag: Skip Stage 03 (Keywords) and Stage 04 (Sentence Construction) temporarily.
 # When True, the speech transcript from Stage 02 is routed directly into Stage 05b (Reformation).
 # Can be enabled/disabled here or via env var NATIVOX_SKIP_STAGES_3_4="0" (to enable) or "1" (to skip).
-SKIP_STAGES_3_AND_4 = os.environ.get("NATIVOX_SKIP_STAGES_3_4", "1") == "1"
+SKIP_STAGES_3_AND_4 = os.environ.get("NATIVOX_SKIP_STAGES_3_4", "0") == "1"
 
 # One port per HTTP stage. Stage 04 is loaded directly from construct.py or via port 8004.
 # Stage 2b (main.py) and Stage 6 (test_cloned.py) are executed in Stage 08 directly.

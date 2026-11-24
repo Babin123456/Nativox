@@ -27,19 +27,33 @@ Navigate into the `Dub_with_LipSync` folder:
 cd d:\Projects\Nativox\Dub_with_LipSync
 ```
 
-### Activate Environment
-The workspace already has a fully configured environment in `../LipSync_Babin/.venv`. You can activate it directly:
+### 2. Virtual Environment Setup & Activation
 
-- **Windows PowerShell:**
-  ```powershell
-  ..\LipSync_Babin\.venv\Scripts\Activate.ps1
-  ```
-- **Windows Command Prompt:**
-  ```cmd
-  ..\LipSync_Babin\.venv\Scripts\activate.bat
+Create and activate a dedicated virtual environment inside this folder:
+
+- **Create Environment (First Time Only):**
+  ```bash
+  python -m venv venv
   ```
 
-*(Or install into a fresh environment using `pip install -r requirements.txt`).*
+- **Activate Environment:**
+  - **Windows PowerShell:**
+    ```powershell
+    .\venv\Scripts\Activate.ps1
+    ```
+  - **Windows Command Prompt:**
+    ```cmd
+    .\venv\Scripts\activate.bat
+    ```
+  - **Linux / macOS:**
+    ```bash
+    source venv/bin/activate
+    ```
+
+- **Install Dependencies:**
+  ```bash
+  pip install -r requirements.txt
+  ```
 
 ---
 
@@ -51,7 +65,7 @@ From inside the `Dub_with_LipSync` directory:
 python app.py
 ```
 
-*(Or direct binary execution without activating: `..\LipSync_Babin\.venv\Scripts\python.exe app.py`)*
+*(Or direct execution via the local virtual environment: `.\venv\Scripts\python.exe app.py`)*
 
 ### What happens automatically:
 1. Starts the server at `http://127.0.0.1:8080`.

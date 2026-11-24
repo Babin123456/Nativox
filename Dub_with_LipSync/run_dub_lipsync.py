@@ -73,7 +73,10 @@ class LandmarkMouthMasker:
         if self.face_mesh is None:
             return mask
 
-        rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+        # Fast MediaPipe inference on half-scale for 3x speedup on CPU
+        proc_h, proc_w = max(160, h // 2), max(160, w // 2)
+        small_bgr = cv2.resize(frame_bgr, (proc_w, proc_h), interpolation=cv2.INTER_LINEAR)
+        rgb = cv2.cvtColor(small_bgr, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(rgb)
 
         if not results.multi_face_landmarks:
@@ -228,9 +231,9 @@ class SelectiveCompositor:
             "-c:v",
             "libx264",
             "-crf",
-            "17",
+            "18",
             "-preset",
-            "slow",
+            "veryfast",
             "-pix_fmt",
             "yuv420p",
             "-c:a",
@@ -289,6 +292,10 @@ def run_wav2lip(
         str(output_wav2lip_path.resolve()),
         "--resize_factor",
         str(resize_factor),
+        "--face_det_batch_size",
+        "32",
+        "--wav2lip_batch_size",
+        "64",
         "--nosmooth",
     ]
 
