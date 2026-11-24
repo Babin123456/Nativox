@@ -137,7 +137,8 @@ def _run_unified_studio_pipeline(job_id: str, input_video_path: Path, job_dir: P
 
     root_dir = DUBBING_DIR.parent
     _log(job_id, "  Ensuring Stage 00 microservices (ports 8001-8007) are running...")
-    owned_processes = orchestrator.start_services(root_dir)
+    # Explicitly ensure skip_stages_3_4=False so text_to_kw (port 8003) is started!
+    owned_processes = orchestrator.start_services(root_dir, skip_stages_3_4=False)
 
     auto_pip_main.job_store[job_id] = {
         "job_id": job_id,
